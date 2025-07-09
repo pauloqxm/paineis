@@ -3,24 +3,6 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 
-# 🔒 Proteção por senha
-def check_password():
-    def password_entered():
-        if st.session_state["password"] == "1234":
-            st.session_state["password_correct"] = True
-            del st.session_state["password"]
-        else:
-            st.session_state["password_correct"] = False
-
-    if "password_correct" not in st.session_state:
-        st.text_input("🔒 Digite a senha para acessar", type="password", on_change=password_entered, key="password")
-        st.stop()
-    elif not st.session_state["password_correct"]:
-        st.text_input("❌ Senha incorreta. Tente novamente", type="password", on_change=password_entered, key="password")
-        st.stop()
-
-check_password()
-
 # 🌐 Estilo CSS para deixar a barra lateral azul
 st.markdown("""
     <style>
