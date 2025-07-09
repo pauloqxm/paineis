@@ -55,6 +55,12 @@ grafico2 = px.bar(df_filtrado.groupby('Mês')['Valor Total'].sum().reset_index()
                   x='Mês', y='Valor Total', title='', text_auto='.2s')
 st.plotly_chart(grafico2, use_container_width=True)
 
+# Gráfico de barras - Valor por Solicitante
+st.subheader("🧑‍💼 Valor Total por Solicitante")
+grafico3 = px.bar(df_filtrado.groupby('Solicitante')['Valor Total'].sum().reset_index().sort_values(by='Valor Total', ascending=False),
+                  x='Valor Total', y='Solicitante', orientation='h', text_auto='.2s')
+st.plotly_chart(grafico3, use_container_width=True)
+
 # Tabela de dados
 st.subheader("📋 Detalhamento das Diárias")
 st.dataframe(df_filtrado.sort_values(by='Data Inicio', ascending=False))
