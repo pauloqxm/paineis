@@ -3,6 +3,24 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 
+# Proteção por senha
+def check_password():
+    def password_entered():
+        if st.session_state["password"] == "minhasenha123":
+            st.session_state["password_correct"] = True
+            del st.session_state["password"]
+        else:
+            st.session_state["password_correct"] = False
+
+    if "password_correct" not in st.session_state:
+        st.text_input("🔒 Digite a senha para acessar", type="password", on_change=password_entered, key="password")
+        st.stop()
+    elif not st.session_state["password_correct"]:
+        st.text_input("❌ Senha incorreta. Tente novamente", type="password", on_change=password_entered, key="password")
+        st.stop()
+
+check_password()
+
 # Configurações iniciais
 st.set_page_config(page_title="Dashboard de Diárias", layout="wide")
 
@@ -66,11 +84,10 @@ grafico3 = px.bar(df_filtrado.groupby('Solicitante')['Valor Total'].sum().reset_
                   x='Valor Total', y='Solicitante', orientation='h', text_auto='.2s', title='')
 st.plotly_chart(grafico3, use_container_width=True)
 
-# Gráfico de pizza - Distribuição de Diárias por Destino
+# Gráfico de pizza - Distribuição por Destino
 st.markdown("### 🗺️ Distribuição de Diárias por Destino")
 grafico_pizza = px.pie(df_filtrado, names='Destino', values='Qtde',
-                       title='Proporção de Diárias por Destino',
-                       hole=0.3)  # deixa com estilo de rosquinha
+                       title='Proporção de Diárias por Destino', hole=0.3)
 st.plotly_chart(grafico_pizza, use_container_width=True)
 
 # Tabela
