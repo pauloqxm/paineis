@@ -3,10 +3,10 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 
-# Proteção por senha
+# 🔒 Proteção por senha
 def check_password():
     def password_entered():
-        if st.session_state["password"] == "1234":
+        if st.session_state["password"] == "minhasenha123":
             st.session_state["password_correct"] = True
             del st.session_state["password"]
         else:
@@ -21,14 +21,21 @@ def check_password():
 
 check_password()
 
-# Configurações iniciais
+# 🌐 Estilo CSS para deixar a barra lateral azul
+st.markdown("""
+    <style>
+    [data-testid="stSidebar"] {
+        background-color: #e0f0ff;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
+# ⚙️ Configuração da página
 st.set_page_config(page_title="Dashboard de Diárias", layout="wide")
 
-# Carregar os dados
 @st.cache_data
 def load_data():
-    url = 'DIARIAS.xlsx'
-    df = pd.read_excel(url, sheet_name='DIARIAS')
+    df = pd.read_excel('DIARIAS.xlsx', sheet_name='DIARIAS')
     df['Data Inicio'] = pd.to_datetime(df['Data Inicio'])
     df['Data Fim'] = pd.to_datetime(df['Data Fim'])
     df['Mês'] = df['Data Inicio'].dt.to_period('M').astype(str)
@@ -38,7 +45,7 @@ df = load_data()
 
 st.title("📊 Dashboard de Diárias")
 
-# Filtros com ícones
+# 📌 Filtros
 with st.sidebar:
     st.header("🧰 Filtros")
     solicitantes = st.multiselect("🧑‍💼 Solicitante", df['Solicitante'].unique())
@@ -46,7 +53,6 @@ with st.sidebar:
     meses = st.multiselect("🗓️ Mês", df['Mês'].unique())
     destinos = st.multiselect("📍 Destino", df['Destino'].unique())
 
-# Aplicar filtros
 df_filtrado = df.copy()
 if solicitantes:
     df_filtrado = df_filtrado[df_filtrado['Solicitante'].isin(solicitantes)]
@@ -57,39 +63,27 @@ if meses:
 if destinos:
     df_filtrado = df_filtrado[df_filtrado['Destino'].isin(destinos)]
 
-# KPIs
-total_diarias = df_filtrado['Qtde'].sum()
-valor_total = df_filtrado['Valor Total'].sum()
-
-st.markdown("### 📌 Visão Geral")
+# 📊 Indicadores
 col1, col2 = st.columns(2)
-col1.metric("🧾 Total de Diárias", total_diarias)
-col2.metric("💰 Valor Total (R$)", f"{valor_total:,.2f}")
+col1.metric("🧾 Total de Diárias", df_filtrado['Qtde'].sum())
+col2.metric("💰 Valor Total (R$)", f"{df_filtrado['Valor Total'].sum():,.2f}")
 
-# Gráfico de barras - Valor por Gerência
-st.markdown("### 💼 Valor Total por Gerência")
-grafico1 = px.bar(df_filtrado.groupby('Gerencia')['Valor Total'].sum().reset_index(),
-                  x='Gerencia', y='Valor Total', text_auto='.2s', title='')
-st.plotly_chart(grafico1, use_container_width=True)
+# 📈 Gráficos
+st.subheader("💼 Valor por Gerência")
+st.plotly_chart(px.bar(df_filtrado.groupby('Gerencia')['Valor Total'].sum().reset_index(),
+                       x='Gerencia', y='Valor Total', text_auto='.2s'), use_container_width=True)
 
-# Gráfico de barras - Valor por Mês
-st.markdown("### 📅 Valor Total por Mês")
-grafico2 = px.bar(df_filtrado.groupby('Mês')['Valor Total'].sum().reset_index(),
-                  x='Mês', y='Valor Total', text_auto='.2s', title='')
-st.plotly_chart(grafico2, use_container_width=True)
+st.subheader("📅 Valor por Mês")
+st.plotly_chart(px.bar(df_filtrado.groupby('Mês')['Valor Total'].sum().reset_index(),
+                       x='Mês', y='Valor Total', text_auto='.2s'), use_container_width=True)
 
-# Gráfico de barras - Valor por Solicitante
-st.markdown("### 🧑‍💼 Valor Total por Solicitante")
-grafico3 = px.bar(df_filtrado.groupby('Solicitante')['Valor Total'].sum().reset_index().sort_values(by='Valor Total', ascending=False),
-                  x='Valor Total', y='Solicitante', orientation='h', text_auto='.2s', title='')
-st.plotly_chart(grafico3, use_container_width=True)
+st.subheader("🧑‍💼 Valor por Solicitante")
+st.plotly_chart(px.bar(df_filtrado.groupby('Solicitante')['Valor Total'].sum().reset_index().sort_values(by='Valor Total'),
+                       x='Valor Total', y='Solicitante', orientation='h', text_auto='.2s'), use_container_width=True)
 
-# Gráfico de pizza - Distribuição por Destino
-st.markdown("### 🗺️ Distribuição de Diárias por Destino")
-grafico_pizza = px.pie(df_filtrado, names='Destino', values='Qtde',
-                       title='Proporção de Diárias por Destino', hole=0.3)
-st.plotly_chart(grafico_pizza, use_container_width=True)
+st.subheader("🗺️ Destinos (Gráfico de Pizza)")
+st.plotly_chart(px.pie(df_filtrado, names='Destino', values='Qtde', hole=0.3), use_container_width=True)
 
-# Tabela
-st.markdown("### 📋 Detalhamento das Diárias")
+# 📋 Tabela
+st.subheader("📋 Detalhamento das Diárias")
 st.dataframe(df_filtrado.sort_values(by='Data Inicio', ascending=False), use_container_width=True)
