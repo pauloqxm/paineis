@@ -66,6 +66,13 @@ grafico3 = px.bar(df_filtrado.groupby('Solicitante')['Valor Total'].sum().reset_
                   x='Valor Total', y='Solicitante', orientation='h', text_auto='.2s', title='')
 st.plotly_chart(grafico3, use_container_width=True)
 
+# Gráfico de pizza - Distribuição de Diárias por Destino
+st.markdown("### 🗺️ Distribuição de Diárias por Destino")
+grafico_pizza = px.pie(df_filtrado, names='Destino', values='Qtde',
+                       title='Proporção de Diárias por Destino',
+                       hole=0.3)  # deixa com estilo de rosquinha
+st.plotly_chart(grafico_pizza, use_container_width=True)
+
 # Tabela
 st.markdown("### 📋 Detalhamento das Diárias")
 st.dataframe(df_filtrado.sort_values(by='Data Inicio', ascending=False), use_container_width=True)
