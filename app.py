@@ -6,7 +6,7 @@ import plotly.express as px
 # Proteção por senha
 def check_password():
     def password_entered():
-        if st.session_state["password"] == "minhasenha123":
+        if st.session_state["password"] == "1234":
             st.session_state["password_correct"] = True
             del st.session_state["password"]
         else:
