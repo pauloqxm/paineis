@@ -1,4 +1,3 @@
-
 import streamlit as st
 import pandas as pd
 import plotly.express as px
@@ -65,7 +64,7 @@ if aba == "Vazões - GRBANABUIU":
 
     st.subheader("🗺️ Mapa dos Reservatórios com Pinos")
     df_mapa = df_filtrado.copy()
-    df_mapa[['lat', 'lon']] = df_mapa['Coordendas'].str.extract(r'\((.*), (.*)\)').astype(float)
+    df_mapa[['lat', 'lon']] = df_mapa['Coordendas'].str.split(',', expand=True).astype(float)
     df_mapa = df_mapa.dropna(subset=['lat', 'lon']).drop_duplicates(subset=['Reservatório Monitorado'])
 
     layer = pdk.Layer(
