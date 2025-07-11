@@ -1,4 +1,3 @@
-
 import streamlit as st
 import pandas as pd
 import plotly.express as px
@@ -111,7 +110,7 @@ if aba == "Vazões - GRBANABUIU":
         ).add_to(m)
 
         folium.GeoJson(
-            rio_leitos,
+            geojson_leitos,
             name="Leitos de Rios",
             tooltip=folium.GeoJsonTooltip(fields=["Name"], aliases=["Rio:"]),
             style_function=lambda x: {"color": "darkblue", "weight": 2, "opacity": 0.8}
