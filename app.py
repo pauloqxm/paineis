@@ -1,10 +1,9 @@
-
 import streamlit as st
 import pandas as pd
 import plotly.express as px
 from streamlit_option_menu import option_menu
 
-# 🌐 Estilo opcional para lateral
+# 🌐 Estilo lateral azul
 st.markdown("""
     <style>
     [data-testid="stSidebar"] {
@@ -19,7 +18,7 @@ st.set_page_config(page_title="Dashboard Integrado", layout="wide")
 # 📁 Menu lateral estilizado
 with st.sidebar:
     aba = option_menu(
-        menu_title="Painel",
+        menu_title="Navegação",
         options=["Dashboard de Diárias", "Controle de Frota"],
         icons=["bar-chart-line", "truck"],
         menu_icon="cast",
@@ -109,12 +108,26 @@ elif aba == "Controle de Frota":
         df_frota_filtrado = df_frota_filtrado[df_frota_filtrado['Mês'].isin(meses_frota)]
 
     st.subheader("💰 Compras (utilizado) por Placa")
-st.plotly_chart(px.bar(df_frota_filtrado.groupby('Placa')['Compras (utilizado)'].sum().reset_index(),
-                       x='Placa', y='Compras (utilizado)', text_auto='.2s'), use_container_width=True)
+    st.plotly_chart(
+        px.bar(
+            df_frota_filtrado.groupby('Placa')['Compras (utilizado)'].sum().reset_index(),
+            x='Placa',
+            y='Compras (utilizado)',
+            text_auto='.2s'
+        ),
+        use_container_width=True
+    )
 
     st.subheader("📉 Compras Mensais")
-    st.plotly_chart(px.line(df_frota_filtrado.groupby('Mês')['Compras (utilizado)'].sum().reset_index(),
-                            x='Mês', y='Compras (utilizado)', markers=True), use_container_width=True)
+    st.plotly_chart(
+        px.line(
+            df_frota_filtrado.groupby('Mês')['Compras (utilizado)'].sum().reset_index(),
+            x='Mês',
+            y='Compras (utilizado)',
+            markers=True
+        ),
+        use_container_width=True
+    )
 
     st.subheader("📋 Detalhamento da Frota")
     st.dataframe(df_frota_filtrado.sort_values(by='Data', ascending=False), use_container_width=True)
