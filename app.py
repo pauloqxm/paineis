@@ -42,6 +42,9 @@ if aba == "Vazões - GRBANABUIU":
 
     df = load_data()
 
+    with open("Açudes_Monitorados.geojson", "r", encoding="utf-8") as f:
+        geojson_acudes = json.load(f)
+
     st.title("💧 Vazões - GRBANABUIU")
 
     with st.sidebar:
@@ -60,6 +63,7 @@ if aba == "Vazões - GRBANABUIU":
             ],
             index=0
         )
+        mostrar_acudes = st.checkbox("💧 Exibir Açudes Monitorados no mapa", value=True)
 
     df_filtrado = df.copy()
     if estacoes:
@@ -99,6 +103,14 @@ if aba == "Vazões - GRBANABUIU":
         else:
             m = folium.Map(location=center, zoom_start=8, tiles=mapa_tipo)
 
+        # Camada de Açudes Monitorados (se ativado)
+        if mostrar_acudes:
+            folium.GeoJson(
+                geojson_acudes,
+                name="Açudes Monitorados",
+                tooltip=folium.GeoJsonTooltip(fields=["Name"], aliases=["Açude:"])
+            ).add_to(m)
+
         for _, row in df_mapa.iterrows():
             popup_info = f"""
             <strong>Reservatório:</strong> {row['Reservatório Monitorado']}<br>
@@ -112,6 +124,7 @@ if aba == "Vazões - GRBANABUIU":
                 tooltip=row["Reservatório Monitorado"]
             ).add_to(m)
 
+        folium.LayerControl().add_to(m)
         folium_static(m)
     else:
         st.info("Nenhum ponto com coordenadas disponíveis para plotar no mapa.")
