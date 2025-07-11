@@ -111,7 +111,7 @@ if aba == "Vazões - GRBANABUIU":
         ).add_to(m)
 
         folium.GeoJson(
-            geojson_leitos,
+            rio_leitos,
             name="Leitos de Rios",
             tooltip=folium.GeoJsonTooltip(fields=["Name"], aliases=["Rio:"]),
             style_function=lambda x: {"color": "darkblue", "weight": 2, "opacity": 0.8}
