@@ -1,8 +1,10 @@
+
 import streamlit as st
 import pandas as pd
 import plotly.express as px
+from streamlit_option_menu import option_menu
 
-# 🌐 Estilo CSS da barra lateral azul
+# 🌐 Estilo opcional para lateral
 st.markdown("""
     <style>
     [data-testid="stSidebar"] {
@@ -11,16 +13,24 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# ⚙️ Configuração da página
+# ⚙️ Configuração
 st.set_page_config(page_title="Dashboard Integrado", layout="wide")
 
-# 📁 Menu lateral com selectbox
-aba = st.sidebar.selectbox("🔎 Escolha o painel:", ["📊 Dashboard de Diárias", "🚗 Controle de Frota"])
+# 📁 Menu lateral estilizado
+with st.sidebar:
+    aba = option_menu(
+        menu_title="Navegação",
+        options=["Dashboard de Diárias", "Controle de Frota"],
+        icons=["bar-chart-line", "truck"],
+        menu_icon="cast",
+        default_index=0,
+        orientation="vertical"
+    )
 
-# ===============================
+# ===========================
 # 📊 DASHBOARD DE DIÁRIAS
-# ===============================
-if aba == "📊 Dashboard de Diárias":
+# ===========================
+if aba == "Dashboard de Diárias":
     @st.cache_data
     def load_data_diarias():
         df = pd.read_excel('DIARIAS.xlsx', sheet_name='DIARIAS')
@@ -72,10 +82,10 @@ if aba == "📊 Dashboard de Diárias":
     st.subheader("📋 Detalhamento das Diárias")
     st.dataframe(df_filtrado.sort_values(by='Data Inicio', ascending=False), use_container_width=True)
 
-# ===============================
+# ===========================
 # 🚗 CONTROLE DE FROTA
-# ===============================
-elif aba == "🚗 Controle de Frota":
+# ===========================
+elif aba == "Controle de Frota":
     @st.cache_data
     def load_frota():
         df = pd.read_excel('BASE_FROTA.xlsx')
