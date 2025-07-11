@@ -19,7 +19,7 @@ st.set_page_config(page_title="Dashboard Integrado", layout="wide")
 # 📁 Menu lateral estilizado
 with st.sidebar:
     aba = option_menu(
-        menu_title="Navegação",
+        menu_title="Painel",
         options=["Dashboard de Diárias", "Controle de Frota"],
         icons=["bar-chart-line", "truck"],
         menu_icon="cast",
