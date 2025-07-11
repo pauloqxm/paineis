@@ -1,8 +1,9 @@
+
 import streamlit as st
 import pandas as pd
 import plotly.express as px
 
-# 🌐 Estilo CSS para deixar a barra lateral azul
+# 🌐 Estilo CSS para a barra lateral (ainda útil para filtros)
 st.markdown("""
     <style>
     [data-testid="stSidebar"] {
@@ -14,13 +15,13 @@ st.markdown("""
 # ⚙️ Configuração da página
 st.set_page_config(page_title="Dashboard Integrado", layout="wide")
 
-# Menu lateral para selecionar a aba
-aba = st.sidebar.radio("📁 Selecione uma aba:", ["📊 Dashboard de Diárias", "🚗 Controle de Frota"])
+# 🧭 Abas horizontais no topo
+tab1, tab2 = st.tabs(["📊 Dashboard de Diárias", "🚗 Controle de Frota"])
 
 # ===============================
 # 📊 ABA 1: DASHBOARD DE DIÁRIAS
 # ===============================
-if aba == "📊 Dashboard de Diárias":
+with tab1:
     @st.cache_data
     def load_data_diarias():
         df = pd.read_excel('DIARIAS.xlsx', sheet_name='DIARIAS')
@@ -34,7 +35,7 @@ if aba == "📊 Dashboard de Diárias":
     st.title("📊 Dashboard de Diárias")
 
     with st.sidebar:
-        st.header("🧰 Filtros")
+        st.header("🧰 Filtros de Diárias")
         solicitantes = st.multiselect("🧑‍💼 Solicitante", df['Solicitante'].unique())
         gerencias = st.multiselect("🏢 Gerência", df['Gerencia'].unique())
         meses = st.multiselect("🗓️ Mês", df['Mês'].unique())
@@ -75,7 +76,7 @@ if aba == "📊 Dashboard de Diárias":
 # ===============================
 # 🚗 ABA 2: CONTROLE DE FROTA
 # ===============================
-elif aba == "🚗 Controle de Frota":
+with tab2:
     @st.cache_data
     def load_frota():
         df = pd.read_excel('BASE_FROTA.xlsx')
@@ -108,5 +109,3 @@ elif aba == "🚗 Controle de Frota":
 
     st.subheader("📋 Detalhamento da Frota")
     st.dataframe(df_frota_filtrado.sort_values(by='Data', ascending=False), use_container_width=True)
-
-
