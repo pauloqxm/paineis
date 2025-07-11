@@ -42,6 +42,9 @@ if aba == "Vazões - GRBANABUIU":
 
     df = load_data()
 
+    with open("Trechos.geojson", "r", encoding="utf-8") as f:
+        geojson_trechos = json.load(f)
+
     with open("Açudes_Monitorados.geojson", "r", encoding="utf-8") as f:
         geojson_acudes = json.load(f)
 
@@ -64,6 +67,7 @@ if aba == "Vazões - GRBANABUIU":
             index=0
         )
         mostrar_acudes = st.checkbox("💧 Exibir Açudes Monitorados no mapa", value=True)
+        mostrar_trechos = st.checkbox("🧭 Exibir Trechos no mapa", value=True)
 
     df_filtrado = df.copy()
     if estacoes:
@@ -103,7 +107,14 @@ if aba == "Vazões - GRBANABUIU":
         else:
             m = folium.Map(location=center, zoom_start=8, tiles=mapa_tipo)
 
-        # Camada de Açudes Monitorados (se ativado)
+        if mostrar_trechos:
+            folium.GeoJson(
+                geojson_trechos,
+                name="Trechos",
+                tooltip=folium.GeoJsonTooltip(fields=["BACIA"], aliases=["Bacia:"]),
+                style_function=lambda x: {"color": "orange", "weight": 2}
+            ).add_to(m)
+
         if mostrar_acudes:
             folium.GeoJson(
                 geojson_acudes,
