@@ -67,6 +67,12 @@ if aba == "Vazões - GRBANABUIU":
     df_mapa[['lat', 'lon']] = df_mapa['Coordendas'].str.split(',', expand=True).astype(float)
     df_mapa = df_mapa.dropna(subset=['lat', 'lon']).drop_duplicates(subset=['Reservatório Monitorado'])
 
+    mapa_tipo = st.selectbox(
+        "🗺️ Tipo de Mapa",
+        options=["light", "dark", "streets", "outdoors", "satellite"],
+        index=0
+    )
+
     layer = pdk.Layer(
         'ScatterplotLayer',
         data=df_mapa,
@@ -88,7 +94,14 @@ if aba == "Vazões - GRBANABUIU":
         pitch=0
     )
 
-    st.pydeck_chart(pdk.Deck(layers=[layer], initial_view_state=view_state, tooltip=tooltip))
+    st.pydeck_chart(
+        pdk.Deck(
+            map_style=f"mapbox://styles/mapbox/{mapa_tipo}-v11",
+            layers=[layer],
+            initial_view_state=view_state,
+            tooltip=tooltip
+        )
+    )
 
     st.subheader("🏞️ Média da Vazão Operada por Reservatório")
     media_vazao = df_filtrado.groupby("Reservatório Monitorado")["Vazão Operada"].mean().reset_index()
