@@ -1,4 +1,3 @@
-
 import streamlit as st
 import pandas as pd
 import plotly.express as px
@@ -41,35 +40,34 @@ if aba == "Vazões - GRBANABUIU":
 
     with st.sidebar:
         st.header("🔎 Filtros")
-        estacoes = st.multiselect("🏞️ Estação", df['Estacao'].dropna().unique())
+        estacoes = st.multiselect("🏞️ Reservatório Monitorado", df['Reservatório Monitorado'].dropna().unique())
         meses = st.multiselect("📆 Mês", df['Mês'].dropna().unique())
 
     df_filtrado = df.copy()
     if estacoes:
-        df_filtrado = df_filtrado[df_filtrado['Estacao'].isin(estacoes)]
+        df_filtrado = df_filtrado[df_filtrado['Reservatório Monitorado'].isin(estacoes)]
     if meses:
         df_filtrado = df_filtrado[df_filtrado['Mês'].isin(meses)]
 
-    st.subheader("📈 Evolução da Vazão por Estação")
+    st.subheader("📈 Evolução da Vazão Operada por Reservatório")
     st.plotly_chart(
         px.line(
             df_filtrado,
             x="Data",
-            y="Vazao",
-            color="Estacao",
-            markers=True,
-            title="Séries Temporais de Vazão"
+            y="Vazão Operada",
+            color="Reservatório Monitorado",
+            markers=True
         ),
         use_container_width=True
     )
 
-    st.subheader("🏞️ Média de Vazão por Estação")
-    media_vazao = df_filtrado.groupby("Estacao")["Vazao"].mean().reset_index()
+    st.subheader("🏞️ Média da Vazão Operada por Reservatório")
+    media_vazao = df_filtrado.groupby("Reservatório Monitorado")["Vazão Operada"].mean().reset_index()
     st.plotly_chart(
         px.bar(
             media_vazao,
-            x="Estacao",
-            y="Vazao",
+            x="Reservatório Monitorado",
+            y="Vazão Operada",
             text_auto='.2s'
         ),
         use_container_width=True
