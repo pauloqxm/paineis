@@ -1,6 +1,8 @@
+
 import streamlit as st
 import pandas as pd
 import plotly.express as px
+import pydeck as pdk
 from streamlit_option_menu import option_menu
 
 # 🌐 Estilo da barra lateral
@@ -61,10 +63,33 @@ if aba == "Vazões - GRBANABUIU":
         use_container_width=True
     )
 
-    st.subheader("🗺️ Mapa dos Reservatórios")
+    st.subheader("🗺️ Mapa dos Reservatórios com Pinos")
     df_mapa = df_filtrado.copy()
     df_mapa[['lat', 'lon']] = df_mapa['Coordendas'].str.extract(r'\((.*), (.*)\)').astype(float)
-    st.map(df_mapa[['lat', 'lon']].dropna().drop_duplicates())
+    df_mapa = df_mapa.dropna(subset=['lat', 'lon']).drop_duplicates(subset=['Reservatório Monitorado'])
+
+    layer = pdk.Layer(
+        'ScatterplotLayer',
+        data=df_mapa,
+        get_position='[lon, lat]',
+        get_fill_color='[0, 102, 204, 160]',
+        get_radius=6000,
+        pickable=True
+    )
+
+    tooltip = {
+        "html": "<b>{Reservatório Monitorado}</b><br/>Lat: {lat}<br/>Lon: {lon}",
+        "style": {"backgroundColor": "white", "color": "black"}
+    }
+
+    view_state = pdk.ViewState(
+        latitude=df_mapa['lat'].mean(),
+        longitude=df_mapa['lon'].mean(),
+        zoom=7,
+        pitch=0
+    )
+
+    st.pydeck_chart(pdk.Deck(layers=[layer], initial_view_state=view_state, tooltip=tooltip))
 
     st.subheader("🏞️ Média da Vazão Operada por Reservatório")
     media_vazao = df_filtrado.groupby("Reservatório Monitorado")["Vazão Operada"].mean().reset_index()
