@@ -43,7 +43,9 @@ if aba == "Vazões - GRBANABUIU":
     with open("Açudes_Monitorados.geojson", "r", encoding="utf-8") as f:
         geojson_acudes = json.load(f)
 
-    with open("rio_trecho.geojson", "r", encoding="utf-8") as f:
+    from pathlib import Path
+caminho_trecho = Path(__file__).parent / "rio_trecho.geojson"
+with open(caminho_trecho, "r", encoding="utf-8") as f:
         geojson_trechos = json.load(f)
 
     st.title("💧 Vazões - GRBANABUIU")
