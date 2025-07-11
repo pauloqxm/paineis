@@ -1,9 +1,8 @@
-
 import streamlit as st
 import pandas as pd
 import plotly.express as px
 
-# 🌐 Estilo CSS para a barra lateral (ainda útil para filtros)
+# 🌐 Estilo CSS para a barra lateral azul
 st.markdown("""
     <style>
     [data-testid="stSidebar"] {
@@ -15,7 +14,7 @@ st.markdown("""
 # ⚙️ Configuração da página
 st.set_page_config(page_title="Dashboard Integrado", layout="wide")
 
-# 🧭 Abas horizontais no topo
+# 🧭 Abas horizontais
 tab1, tab2 = st.tabs(["📊 Dashboard de Diárias", "🚗 Controle de Frota"])
 
 # ===============================
@@ -35,11 +34,11 @@ with tab1:
     st.title("📊 Dashboard de Diárias")
 
     with st.sidebar:
-        st.header("🧰 Filtros de Diárias")
-        solicitantes = st.multiselect("🧑‍💼 Solicitante", df['Solicitante'].unique())
-        gerencias = st.multiselect("🏢 Gerência", df['Gerencia'].unique())
-        meses = st.multiselect("🗓️ Mês", df['Mês'].unique())
-        destinos = st.multiselect("📍 Destino", df['Destino'].unique())
+        st.header("🧰 Filtros - Diárias")
+        solicitantes = st.multiselect("🧑‍💼 Solicitante - Diárias", df['Solicitante'].unique())
+        gerencias = st.multiselect("🏢 Gerência - Diárias", df['Gerencia'].unique())
+        meses = st.multiselect("🗓️ Mês - Diárias", df['Mês'].unique())
+        destinos = st.multiselect("📍 Destino - Diárias", df['Destino'].unique())
 
     df_filtrado = df.copy()
     if solicitantes:
@@ -89,9 +88,9 @@ with tab2:
     st.title("🚗 Controle de Frota")
 
     with st.sidebar:
-        st.header("🚙 Filtros da Frota")
-        veiculos = st.multiselect("🚗 Veículo", df_frota['Veiculo'].dropna().unique())
-        meses_frota = st.multiselect("🗓️ Mês", df_frota['Mês'].dropna().unique())
+        st.header("🚙 Filtros - Frota")
+        veiculos = st.multiselect("🚗 Veículo - Frota", df_frota['Veiculo'].dropna().unique())
+        meses_frota = st.multiselect("🗓️ Mês - Frota", df_frota['Mês'].dropna().unique())
 
     df_frota_filtrado = df_frota.copy()
     if veiculos:
