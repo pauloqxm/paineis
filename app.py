@@ -1,4 +1,3 @@
-
 import streamlit as st
 import pandas as pd
 import plotly.express as px
@@ -13,12 +12,15 @@ st.markdown("""
     """, unsafe_allow_html=True)
 
 # ⚙️ Configuração da página
-st.set_page_config(page_title="Dashboard de Diárias e Frota", layout="wide")
+st.set_page_config(page_title="Dashboard Integrado", layout="wide")
 
-# 📁 Menu lateral para navegação
-aba = st.sidebar.radio("📌 Selecione uma aba:", ["Diárias", "Controle de Frota"])
+# Menu lateral para selecionar a aba
+aba = st.sidebar.radio("📁 Selecione uma aba:", ["📊 Dashboard de Diárias", "🚗 Controle de Frota"])
 
-if aba == "Diárias":
+# ===============================
+# 📊 ABA 1: DASHBOARD DE DIÁRIAS
+# ===============================
+if aba == "📊 Dashboard de Diárias":
     @st.cache_data
     def load_data_diarias():
         df = pd.read_excel('DIARIAS.xlsx', sheet_name='DIARIAS')
@@ -70,6 +72,9 @@ if aba == "Diárias":
     st.subheader("📋 Detalhamento das Diárias")
     st.dataframe(df_filtrado.sort_values(by='Data Inicio', ascending=False), use_container_width=True)
 
+# ===============================
+# 🚗 ABA 2: CONTROLE DE FROTA
+# ===============================
 elif aba == "🚗 Controle de Frota":
     @st.cache_data
     def load_frota():
@@ -79,6 +84,7 @@ elif aba == "🚗 Controle de Frota":
         return df_frota
 
     df_frota = load_frota()
+
     st.title("🚗 Controle de Frota")
 
     with st.sidebar:
@@ -108,4 +114,3 @@ elif aba == "🚗 Controle de Frota":
 
     st.subheader("📋 Detalhamento da Frota")
     st.dataframe(df_frota_filtrado.sort_values(by='Data', ascending=False), use_container_width=True)
-
