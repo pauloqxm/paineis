@@ -1,35 +1,35 @@
 
-
 import streamlit as st
 import pandas as pd
 import plotly.express as px
 import folium
+import json
 from streamlit_folium import folium_static
 from streamlit_option_menu import option_menu
 
-# 🌐 Estilo da barra lateral
+st.set_page_config(page_title="Dashboard Vazões", layout="wide")
+
+# Estilo barra lateral
 st.markdown("""
     <style>
     [data-testid="stSidebar"] {
         background-color: #e0f0ff;
     }
     </style>
-    """, unsafe_allow_html=True)
+""", unsafe_allow_html=True)
 
-# ⚙️ Configuração
-st.set_page_config(page_title="Dashboard Vazões", layout="wide")
-
-# 📁 Menu lateral
+# Menu lateral
 with st.sidebar:
     aba = option_menu(
         menu_title="Painel",
         options=["Vazões - GRBANABUIU", "🗺️ Açudes Monitorados"],
-        icons=["droplet"],
+        icons=["droplet", "map"],
         menu_icon="cast",
         default_index=0,
         orientation="vertical"
     )
 
+# Aba principal
 if aba == "Vazões - GRBANABUIU":
     @st.cache_data
     def load_data():
@@ -40,12 +40,11 @@ if aba == "Vazões - GRBANABUIU":
 
     df = load_data()
 
-    
-    with open("Trechos.geojson", "r", encoding="utf-8") as f:
-        geojson_trechos = json.load(f)
-
     with open("Açudes_Monitorados.geojson", "r", encoding="utf-8") as f:
         geojson_acudes = json.load(f)
+
+    with open("Trechos_VALIDO.geojson", "r", encoding="utf-8") as f:
+        geojson_trechos = json.load(f)
 
     st.title("💧 Vazões - GRBANABUIU")
 
@@ -53,11 +52,12 @@ if aba == "Vazões - GRBANABUIU":
         st.header("🔎 Filtros")
         estacoes = st.multiselect("🏞️ Reservatório Monitorado", df['Reservatório Monitorado'].dropna().unique())
         meses = st.multiselect("📆 Mês", df['Mês'].dropna().unique())
-        mapa_tipo = st.selectbox(
-            "🗺️ Estilo do Mapa",
-            options=["OpenStreetMap", "Stamen Terrain", "Stamen Toner", "CartoDB positron", "CartoDB dark_matter", "Esri Satellite"],
-            index=0
-        )
+        mapa_tipo = st.selectbox("🗺️ Estilo do Mapa", [
+            "OpenStreetMap", "Stamen Terrain", "Stamen Toner",
+            "CartoDB positron", "CartoDB dark_matter", "Esri Satellite"
+        ])
+        mostrar_acudes = st.checkbox("💧 Exibir Açudes Monitorados no mapa", value=True)
+        mostrar_trechos = st.checkbox("🧭 Exibir Trechos no mapa", value=True)
 
     df_filtrado = df.copy()
     if estacoes:
@@ -67,13 +67,8 @@ if aba == "Vazões - GRBANABUIU":
 
     st.subheader("📈 Evolução da Vazão Operada por Reservatório")
     st.plotly_chart(
-        px.line(
-            df_filtrado,
-            x="Data",
-            y="Vazão Operada",
-            color="Reservatório Monitorado",
-            markers=True
-        ),
+        px.line(df_filtrado, x="Data", y="Vazão Operada",
+                color="Reservatório Monitorado", markers=True),
         use_container_width=True
     )
 
@@ -86,7 +81,7 @@ if aba == "Vazões - GRBANABUIU":
         "Esri Satellite": "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
     }
     tile_attr = {
-        "Esri Satellite": "Tiles © Esri — Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, etc."
+        "Esri Satellite": "Tiles © Esri"
     }
 
     if not df_mapa.empty:
@@ -97,75 +92,60 @@ if aba == "Vazões - GRBANABUIU":
         else:
             m = folium.Map(location=center, zoom_start=8, tiles=mapa_tipo)
 
+        if mostrar_trechos:
+            folium.GeoJson(
+                geojson_trechos,
+                name="Trechos",
+                tooltip=folium.GeoJsonTooltip(fields=["BACIA"], aliases=["Bacia:"]),
+                style_function=lambda x: {"color": "red", "weight": 3, "opacity": 0.8}
+            ).add_to(m)
 
-        folium.GeoJson(
-            geojson_acudes,
-            name="Açudes Monitorados",
-            tooltip=folium.GeoJsonTooltip(fields=["Name"], aliases=["Açude:"])
-        ).add_to(m)
+        if mostrar_acudes:
+            folium.GeoJson(
+                geojson_acudes,
+                name="Açudes Monitorados",
+                tooltip=folium.GeoJsonTooltip(fields=["Name"], aliases=["Açude:"])
+            ).add_to(m)
+
         for _, row in df_mapa.iterrows():
-            popup_info = f"""
-            <strong>Reservatório:</strong> {row['Reservatório Monitorado']}<br>
-            <strong>Data:</strong> {row['Data'].date()}<br>
-            <strong>Vazão Operada:</strong> {row['Vazão Operada']} m³/s
-            """
             folium.Marker(
                 location=[row["lat"], row["lon"]],
-                popup=folium.Popup(popup_info, max_width=300),
+                popup=folium.Popup(f"""
+                    <strong>Reservatório:</strong> {row['Reservatório Monitorado']}<br>
+                    <strong>Data:</strong> {row['Data'].date()}<br>
+                    <strong>Vazão Operada:</strong> {row['Vazão Operada']} m³/s
+                """, max_width=300),
                 icon=folium.Icon(color="blue", icon="tint", prefix="fa"),
                 tooltip=row["Reservatório Monitorado"]
             ).add_to(m)
 
+        folium.LayerControl().add_to(m)
         folium_static(m)
     else:
-        st.info("Nenhum ponto com coordenadas disponíveis para plotar no mapa.")
+        st.info("Nenhum ponto com coordenadas disponíveis.")
 
     st.subheader("🏞️ Média da Vazão Operada por Reservatório")
     media_vazao = df_filtrado.groupby("Reservatório Monitorado")["Vazão Operada"].mean().reset_index()
     st.plotly_chart(
-        px.bar(
-            media_vazao,
-            x="Reservatório Monitorado",
-            y="Vazão Operada",
-            text_auto='.2s'
-        ),
+        px.bar(media_vazao, x="Reservatório Monitorado", y="Vazão Operada", text_auto='.2s'),
         use_container_width=True
     )
 
     st.subheader("📋 Tabela Detalhada")
     st.dataframe(df_filtrado.sort_values(by="Data", ascending=False), use_container_width=True)
 
+# Segunda aba
 elif aba == "🗺️ Açudes Monitorados":
     st.title("🗺️ Açudes Monitorados")
 
     tile_option = st.sidebar.selectbox("🗺️ Estilo do Mapa (Açudes)", [
-        "OpenStreetMap",
-        "Stamen Terrain",
-        "Stamen Toner",
-        "CartoDB positron",
-        "CartoDB dark_matter",
-        "Esri Satellite"
-    ], key="acudes_map_tile")
-
-    tile_urls = {
-        "Esri Satellite": "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
-    }
-    tile_attr = {
-        "Esri Satellite": "Tiles © Esri — Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, etc."
-    }
-
-    import json
-    import folium
-    from streamlit_folium import folium_static
-
-    
-    with open("Trechos.geojson", "r", encoding="utf-8") as f:
-        geojson_trechos = json.load(f)
+        "OpenStreetMap", "Stamen Terrain", "Stamen Toner",
+        "CartoDB positron", "CartoDB dark_matter", "Esri Satellite"
+    ])
 
     with open("Açudes_Monitorados.geojson", "r", encoding="utf-8") as f:
         geojson_data = json.load(f)
 
-    # Coordenada central padrão do Ceará
     center = [-5.2, -39.2]
     if tile_option in tile_urls:
         m = folium.Map(location=center, zoom_start=7, tiles=None)
