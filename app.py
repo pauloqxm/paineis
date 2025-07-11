@@ -89,21 +89,21 @@ elif aba == "🚗 Controle de Frota":
 
     with st.sidebar:
         st.header("🚙 Filtros da Frota")
-        veiculos = st.multiselect("🚗 Veículo", df_frota['Veículo'].dropna().unique())
+        veiculos = st.multiselect("🚗 Veículo", df_frota['Veiculo'].dropna().unique())
         combustivel = st.multiselect("⛽ Tipo de Combustível", df_frota['Combustível'].dropna().unique())
         meses_frota = st.multiselect("🗓️ Mês", df_frota['Mês'].dropna().unique())
 
     df_frota_filtrado = df_frota.copy()
     if veiculos:
-        df_frota_filtrado = df_frota_filtrado[df_frota_filtrado['Veículo'].isin(veiculos)]
+        df_frota_filtrado = df_frota_filtrado[df_frota_filtrado['Veiculo'].isin(veiculos)]
     if combustivel:
         df_frota_filtrado = df_frota_filtrado[df_frota_filtrado['Combustível'].isin(combustivel)]
     if meses_frota:
         df_frota_filtrado = df_frota_filtrado[df_frota_filtrado['Mês'].isin(meses_frota)]
 
     st.subheader("💰 Gastos por Veículo")
-    st.plotly_chart(px.bar(df_frota_filtrado.groupby('Veículo')['Custo'].sum().reset_index(),
-                           x='Veículo', y='Custo', text_auto='.2s'), use_container_width=True)
+    st.plotly_chart(px.bar(df_frota_filtrado.groupby('Veiculo')['Custo'].sum().reset_index(),
+                           x='Veiculo', y='Custo', text_auto='.2s'), use_container_width=True)
 
     st.subheader("⛽ Tipos de Combustível")
     st.plotly_chart(px.pie(df_frota_filtrado, names='Combustível', values='Custo', hole=0.3), use_container_width=True)
@@ -114,3 +114,4 @@ elif aba == "🚗 Controle de Frota":
 
     st.subheader("📋 Detalhamento da Frota")
     st.dataframe(df_frota_filtrado.sort_values(by='Data', ascending=False), use_container_width=True)
+
