@@ -63,7 +63,6 @@ if aba == "Vazões - GRBANABUIU":
             ],
             index=0
         )
-        mostrar_acudes = st.checkbox("💧 Exibir Açudes Monitorados no mapa", value=True)
 
     df_filtrado = df.copy()
     if estacoes:
@@ -104,12 +103,11 @@ if aba == "Vazões - GRBANABUIU":
             m = folium.Map(location=center, zoom_start=8, tiles=mapa_tipo)
 
         # Camada de Açudes Monitorados (se ativado)
-        if mostrar_acudes:
-            folium.GeoJson(
-                geojson_acudes,
-                name="Açudes Monitorados",
-                tooltip=folium.GeoJsonTooltip(fields=["Name"], aliases=["Açude:"])
-            ).add_to(m)
+        folium.GeoJson(
+            geojson_acudes,
+            name="Açudes Monitorados",
+            tooltip=folium.GeoJsonTooltip(fields=["Name"], aliases=["Açude:"])
+        ).add_to(m)
 
         for _, row in df_mapa.iterrows():
             popup_info = f"""
