@@ -14,8 +14,8 @@ st.markdown("""
 # ⚙️ Configuração da página
 st.set_page_config(page_title="Dashboard Integrado", layout="wide")
 
-# 📁 Menu lateral para selecionar a aba
-aba = st.sidebar.radio("🔎 Escolha o painel:", ["📊 Dashboard de Diárias", "🚗 Controle de Frota"])
+# 📁 Menu lateral com selectbox
+aba = st.sidebar.selectbox("🔎 Escolha o painel:", ["📊 Dashboard de Diárias", "🚗 Controle de Frota"])
 
 # ===============================
 # 📊 DASHBOARD DE DIÁRIAS
