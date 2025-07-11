@@ -106,6 +106,13 @@ if aba == "Vazões - GRBANABUIU":
         folium.GeoJson(
             geojson_acudes,
             name="Açudes Monitorados",
+        folium.GeoJson(
+            geojson_leitos,
+            name="Leitos de Rios",
+            tooltip=folium.GeoJsonTooltip(fields=["Name"], aliases=["Rio:"]),
+            style_function=lambda x: {"color": "darkblue", "weight": 2, "opacity": 0.8}
+        ).add_to(m)
+
             tooltip=folium.GeoJsonTooltip(fields=["Name"], aliases=["Açude:"])
         ).add_to(m)
 
