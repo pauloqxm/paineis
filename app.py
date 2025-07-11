@@ -61,6 +61,11 @@ if aba == "Vazões - GRBANABUIU":
         use_container_width=True
     )
 
+    st.subheader("🗺️ Mapa dos Reservatórios")
+    df_mapa = df_filtrado.copy()
+    df_mapa[['lat', 'lon']] = df_mapa['Coordendas'].str.extract(r'\((.*), (.*)\)').astype(float)
+    st.map(df_mapa[['lat', 'lon']].dropna().drop_duplicates())
+
     st.subheader("🏞️ Média da Vazão Operada por Reservatório")
     media_vazao = df_filtrado.groupby("Reservatório Monitorado")["Vazão Operada"].mean().reset_index()
     st.plotly_chart(
