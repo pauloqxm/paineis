@@ -1,8 +1,8 @@
-
 import streamlit as st
 import pandas as pd
 import plotly.express as px
 import folium
+import json
 from streamlit_folium import folium_static
 from streamlit_option_menu import option_menu
 
@@ -22,13 +22,16 @@ st.set_page_config(page_title="Dashboard Vazões", layout="wide")
 with st.sidebar:
     aba = option_menu(
         menu_title="Painel",
-        options=["Vazões - GRBANABUIU"],
-        icons=["droplet"],
+        options=["Vazões - GRBANABUIU", "🗺️ Açudes Monitorados"],
+        icons=["droplet", "map"],
         menu_icon="cast",
         default_index=0,
         orientation="vertical"
     )
 
+# ===============================
+# 📊 ABA DE VAZÕES MONITORADAS
+# ===============================
 if aba == "Vazões - GRBANABUIU":
     @st.cache_data
     def load_data():
@@ -47,7 +50,14 @@ if aba == "Vazões - GRBANABUIU":
         meses = st.multiselect("📆 Mês", df['Mês'].dropna().unique())
         mapa_tipo = st.selectbox(
             "🗺️ Estilo do Mapa",
-            options=["OpenStreetMap", "Stamen Terrain", "Stamen Toner", "CartoDB positron", "CartoDB dark_matter", "Esri Satellite"],
+            options=[
+                "OpenStreetMap",
+                "Stamen Terrain",
+                "Stamen Toner",
+                "CartoDB positron",
+                "CartoDB dark_matter",
+                "Esri Satellite"
+            ],
             index=0
         )
 
@@ -120,3 +130,44 @@ if aba == "Vazões - GRBANABUIU":
 
     st.subheader("📋 Tabela Detalhada")
     st.dataframe(df_filtrado.sort_values(by="Data", ascending=False), use_container_width=True)
+
+# ===============================
+# 🗺️ ABA AÇUDES MONITORADOS
+# ===============================
+elif aba == "🗺️ Açudes Monitorados":
+    st.title("🗺️ Açudes Monitorados")
+
+    tile_option = st.sidebar.selectbox("🗺️ Estilo do Mapa (Açudes)", [
+        "OpenStreetMap",
+        "Stamen Terrain",
+        "Stamen Toner",
+        "CartoDB positron",
+        "CartoDB dark_matter",
+        "Esri Satellite"
+    ], key="acudes_map_tile")
+
+    tile_urls = {
+        "Esri Satellite": "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+    }
+    tile_attr = {
+        "Esri Satellite": "Tiles © Esri — Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, etc."
+    }
+
+    with open("Açudes_Monitorados.geojson", "r", encoding="utf-8") as f:
+        geojson_data = json.load(f)
+
+    center = [-5.2, -39.2]
+    if tile_option in tile_urls:
+        m = folium.Map(location=center, zoom_start=7, tiles=None)
+        folium.TileLayer(tiles=tile_urls[tile_option], attr=tile_attr[tile_option], name=tile_option).add_to(m)
+    else:
+        m = folium.Map(location=center, zoom_start=7, tiles=tile_option)
+
+    folium.GeoJson(
+        geojson_data,
+        name="Açudes",
+        tooltip=folium.GeoJsonTooltip(fields=["Name"], aliases=["Açude:"])
+    ).add_to(m)
+
+    folium.LayerControl().add_to(m)
+    folium_static(m)
