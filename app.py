@@ -7,7 +7,7 @@ from streamlit_option_menu import option_menu
 st.markdown("""
     <style>
     [data-testid="stSidebar"] {
-        background-color: #99ccff;
+        background-color: #e0f0ff;
     }
     </style>
     """, unsafe_allow_html=True)
