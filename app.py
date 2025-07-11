@@ -107,27 +107,24 @@ elif aba == "Controle de Frota":
     if meses_frota:
         df_frota_filtrado = df_frota_filtrado[df_frota_filtrado['Mês'].isin(meses_frota)]
 
-   st.subheader("💰 Top 10 Compras (utilizado) por Placa")
-
-top10 = (
-    df_frota_filtrado
-    .groupby('Placa')['Compras (utilizado)']
-    .sum()
-    .sort_values(ascending=False)
-    .head(10)
-    .reset_index()
-)
-
-st.plotly_chart(
-    px.bar(
-        top10,
-        x='Placa',
-        y='Compras (utilizado)',
-        text_auto='.2s'
-    ),
-    use_container_width=True
-)
-
+    st.subheader("💰 Top 10 Compras (utilizado) por Placa")
+    top10 = (
+        df_frota_filtrado
+        .groupby('Placa')['Compras (utilizado)']
+        .sum()
+        .sort_values(ascending=False)
+        .head(10)
+        .reset_index()
+    )
+    st.plotly_chart(
+        px.bar(
+            top10,
+            x='Placa',
+            y='Compras (utilizado)',
+            text_auto='.2s'
+        ),
+        use_container_width=True
+    )
 
     st.subheader("📉 Compras Mensais")
     st.plotly_chart(
