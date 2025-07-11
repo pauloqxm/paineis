@@ -43,6 +43,11 @@ if aba == "Vazões - GRBANABUIU":
         st.header("🔎 Filtros")
         estacoes = st.multiselect("🏞️ Reservatório Monitorado", df['Reservatório Monitorado'].dropna().unique())
         meses = st.multiselect("📆 Mês", df['Mês'].dropna().unique())
+        mapa_tipo = st.selectbox(
+            "🗺️ Tipo de Mapa",
+            options=["light", "dark", "streets", "outdoors", "satellite"],
+            index=0
+        )
 
     df_filtrado = df.copy()
     if estacoes:
@@ -66,12 +71,6 @@ if aba == "Vazões - GRBANABUIU":
     df_mapa = df_filtrado.copy()
     df_mapa[['lat', 'lon']] = df_mapa['Coordendas'].str.split(',', expand=True).astype(float)
     df_mapa = df_mapa.dropna(subset=['lat', 'lon']).drop_duplicates(subset=['Reservatório Monitorado'])
-
-    mapa_tipo = st.selectbox(
-        "🗺️ Tipo de Mapa",
-        options=["light", "dark", "streets", "outdoors", "satellite"],
-        index=0
-    )
 
     layer = pdk.Layer(
         'ScatterplotLayer',
