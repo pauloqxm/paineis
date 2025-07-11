@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 
-# 🌐 Estilo CSS para a barra lateral azul
+# 🌐 Estilo CSS da barra lateral azul
 st.markdown("""
     <style>
     [data-testid="stSidebar"] {
@@ -14,13 +14,13 @@ st.markdown("""
 # ⚙️ Configuração da página
 st.set_page_config(page_title="Dashboard Integrado", layout="wide")
 
-# 🧭 Abas horizontais
-tab1, tab2 = st.tabs(["📊 Dashboard de Diárias", "🚗 Controle de Frota"])
+# 📁 Menu lateral para selecionar a aba
+aba = st.sidebar.radio("🔎 Escolha o painel:", ["📊 Dashboard de Diárias", "🚗 Controle de Frota"])
 
 # ===============================
-# 📊 ABA 1: DASHBOARD DE DIÁRIAS
+# 📊 DASHBOARD DE DIÁRIAS
 # ===============================
-with tab1:
+if aba == "📊 Dashboard de Diárias":
     @st.cache_data
     def load_data_diarias():
         df = pd.read_excel('DIARIAS.xlsx', sheet_name='DIARIAS')
@@ -35,10 +35,10 @@ with tab1:
 
     with st.sidebar:
         st.header("🧰 Filtros - Diárias")
-        solicitantes = st.multiselect("🧑‍💼 Solicitante - Diárias", df['Solicitante'].unique())
-        gerencias = st.multiselect("🏢 Gerência - Diárias", df['Gerencia'].unique())
-        meses = st.multiselect("🗓️ Mês - Diárias", df['Mês'].unique())
-        destinos = st.multiselect("📍 Destino - Diárias", df['Destino'].unique())
+        solicitantes = st.multiselect("👤 Solicitante", df['Solicitante'].unique())
+        gerencias = st.multiselect("🏢 Gerência", df['Gerencia'].unique())
+        meses = st.multiselect("📆 Mês", df['Mês'].unique())
+        destinos = st.multiselect("📍 Destino", df['Destino'].unique())
 
     df_filtrado = df.copy()
     if solicitantes:
@@ -73,9 +73,9 @@ with tab1:
     st.dataframe(df_filtrado.sort_values(by='Data Inicio', ascending=False), use_container_width=True)
 
 # ===============================
-# 🚗 ABA 2: CONTROLE DE FROTA
+# 🚗 CONTROLE DE FROTA
 # ===============================
-with tab2:
+elif aba == "🚗 Controle de Frota":
     @st.cache_data
     def load_frota():
         df = pd.read_excel('BASE_FROTA.xlsx')
@@ -89,8 +89,8 @@ with tab2:
 
     with st.sidebar:
         st.header("🚙 Filtros - Frota")
-        veiculos = st.multiselect("🚗 Veículo - Frota", df_frota['Veiculo'].dropna().unique())
-        meses_frota = st.multiselect("🗓️ Mês - Frota", df_frota['Mês'].dropna().unique())
+        veiculos = st.multiselect("🚗 Veículo", df_frota['Veiculo'].dropna().unique())
+        meses_frota = st.multiselect("📆 Mês", df_frota['Mês'].dropna().unique())
 
     df_frota_filtrado = df_frota.copy()
     if veiculos:
