@@ -1,6 +1,7 @@
 streamlit
 pandas
 plotly
-pydeck
+folium
+streamlit-folium
 streamlit-option-menu
 openpyxl
