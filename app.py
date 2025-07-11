@@ -70,12 +70,42 @@ if aba == "Diárias":
     st.subheader("📋 Detalhamento das Diárias")
     st.dataframe(df_filtrado.sort_values(by='Data Inicio', ascending=False), use_container_width=True)
 
-elif aba == "Controle de Frota":
+elif aba == "🚗 Controle de Frota":
     @st.cache_data
-    def load_data_frota():
-        return pd.read_excel('CONTROLE_FROTA.xlsx')
+    def load_frota():
+        df_frota = pd.read_excel('BASE_FROTA.xlsx')
+        df_frota['Data'] = pd.to_datetime(df_frota['Data'], errors='coerce')
+        df_frota['Mês'] = df_frota['Data'].dt.to_period('M').astype(str)
+        return df_frota
 
+    df_frota = load_frota()
     st.title("🚗 Controle de Frota")
-    df_frota = load_data_frota()
 
-    st.dataframe(df_frota, use_container_width=True)
+    with st.sidebar:
+        st.header("🚙 Filtros da Frota")
+        veiculos = st.multiselect("🚗 Veículo", df_frota['Veículo'].dropna().unique())
+        combustivel = st.multiselect("⛽ Tipo de Combustível", df_frota['Combustível'].dropna().unique())
+        meses_frota = st.multiselect("🗓️ Mês", df_frota['Mês'].dropna().unique())
+
+    df_frota_filtrado = df_frota.copy()
+    if veiculos:
+        df_frota_filtrado = df_frota_filtrado[df_frota_filtrado['Veículo'].isin(veiculos)]
+    if combustivel:
+        df_frota_filtrado = df_frota_filtrado[df_frota_filtrado['Combustível'].isin(combustivel)]
+    if meses_frota:
+        df_frota_filtrado = df_frota_filtrado[df_frota_filtrado['Mês'].isin(meses_frota)]
+
+    st.subheader("💰 Gastos por Veículo")
+    st.plotly_chart(px.bar(df_frota_filtrado.groupby('Veículo')['Custo'].sum().reset_index(),
+                           x='Veículo', y='Custo', text_auto='.2s'), use_container_width=True)
+
+    st.subheader("⛽ Tipos de Combustível")
+    st.plotly_chart(px.pie(df_frota_filtrado, names='Combustível', values='Custo', hole=0.3), use_container_width=True)
+
+    st.subheader("📉 Gastos Mensais")
+    st.plotly_chart(px.line(df_frota_filtrado.groupby('Mês')['Custo'].sum().reset_index(),
+                            x='Mês', y='Custo', markers=True), use_container_width=True)
+
+    st.subheader("📋 Detalhamento da Frota")
+    st.dataframe(df_frota_filtrado.sort_values(by='Data', ascending=False), use_container_width=True)
+
