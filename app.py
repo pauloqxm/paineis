@@ -3,9 +3,6 @@ import pandas as pd
 import plotly.express as px
 import folium
 import json
-
-with open("rio_quixera.geojson", "r", encoding="utf-8") as f:
-    geojson_quixera = json.load(f)
 from streamlit_folium import folium_static
 from streamlit_option_menu import option_menu
 
@@ -102,22 +99,9 @@ if aba == "Vazões - GRBANABUIU":
         center = [df_mapa['lat'].mean(), df_mapa['lon'].mean()]
         if mapa_tipo in tile_urls:
             m = folium.Map(location=center, zoom_start=8, tiles=None)
-
-        folium.GeoJson(
-            geojson_acudes,
-            name="Açudes Monitorados",
-            tooltip=folium.GeoJsonTooltip(fields=["Name"], aliases=["Açude:"])
-        ).add_to(m)
-        if mapa_tipo in tile_urls:
-    folium.TileLayer(tiles=tile_urls[mapa_tipo], attr=tile_attr[mapa_tipo], name=mapa_tipo).add_to(m)
-    else:
+            folium.TileLayer(tiles=tile_urls[mapa_tipo], attr=tile_attr[mapa_tipo], name=mapa_tipo).add_to(m)
+        else:
             m = folium.Map(location=center, zoom_start=8, tiles=mapa_tipo)
-
-        folium.GeoJson(
-            geojson_acudes,
-            name="Açudes Monitorados",
-            tooltip=folium.GeoJsonTooltip(fields=["Name"], aliases=["Açude:"])
-        ).add_to(m)
 
         # Camada de Açudes Monitorados (se ativado)
         if mostrar_acudes:
@@ -196,21 +180,9 @@ elif aba == "🗺️ Açudes Monitorados":
     center = [-5.2, -39.2]
     if tile_option in tile_urls:
         m = folium.Map(location=center, zoom_start=7, tiles=None)
-
-        folium.GeoJson(
-            geojson_acudes,
-            name="Açudes Monitorados",
-            tooltip=folium.GeoJsonTooltip(fields=["Name"], aliases=["Açude:"])
-        ).add_to(m)
         folium.TileLayer(tiles=tile_urls[tile_option], attr=tile_attr[tile_option], name=tile_option).add_to(m)
     else:
         m = folium.Map(location=center, zoom_start=7, tiles=tile_option)
-
-        folium.GeoJson(
-            geojson_acudes,
-            name="Açudes Monitorados",
-            tooltip=folium.GeoJsonTooltip(fields=["Name"], aliases=["Açude:"])
-        ).add_to(m)
 
     folium.GeoJson(
         geojson_data,
