@@ -3,6 +3,9 @@ import pandas as pd
 import plotly.express as px
 import folium
 import json
+
+with open("rio_quixera.geojson", "r", encoding="utf-8") as f:
+    geojson_quixera = json.load(f)
 from streamlit_folium import folium_static
 from streamlit_option_menu import option_menu
 
