@@ -24,7 +24,7 @@ st.set_page_config(page_title="Dashboard Vazões", layout="wide")
 with st.sidebar:
     aba = option_menu(
         menu_title="Painel",
-        options=["Vazões - GRBANABUIU", "🗺️ Açudes Monitorados"],
+        options=["Vazões - GRBANABUI", "🗺️ Açudes Monitorados"],
         icons=["droplet", "map"],
         menu_icon="cast",
         default_index=0,
