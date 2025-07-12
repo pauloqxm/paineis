@@ -24,7 +24,7 @@ st.set_page_config(page_title="Dashboard Vazões", layout="wide")
 with st.sidebar:
     aba = option_menu(
         menu_title="Painel",
-        options=["Vazões - GRBANABUI", "🗺️ Açudes Monitorados"],
+        options=["Vazões - GRBANABUIU", "🗺️ Açudes Monitorados"],
         icons=["droplet", "map"],
         menu_icon="cast",
         default_index=0,
@@ -34,7 +34,7 @@ with st.sidebar:
 if aba == "Vazões - GRBANABUIU":
     @st.cache_data
     def load_data():
-        df = pd.read_excel("GRBANABUIU_VAZÕES.xlsx")
+        df = pd.read_excel("GRBANABUI_VAZÕES.xlsx")
         df['Data'] = pd.to_datetime(df['Data'], errors='coerce')
         df['Mês'] = df['Data'].dt.to_period('M').astype(str)
         return df
