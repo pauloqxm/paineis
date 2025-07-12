@@ -72,32 +72,43 @@ if aba == "Vazões - GRBANABUIU":
 
     fig = go.Figure()
     cores = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b']
+    datas = df_filtrado["Data"].sort_values()
+    x_range = [datas.min(), datas.max()]
+
+    for y in range(100, 1001, 100):
+        fig.add_trace(go.Scatter(
+            x=x_range,
+            y=[y, y],
+            mode="lines",
+            name=f"Referência {y} l/s",
+            line=dict(color="lightgray", width=1, dash="dot"),
+            showlegend=False
+        ))
 
     for i, reservatorio in enumerate(df_filtrado['Reservatório Monitorado'].unique()):
         df_res = df_filtrado[df_filtrado['Reservatório Monitorado'] == reservatorio].sort_values(by="Data")
         media_res = df_res["Vazão Operada"].mean()
+        cor = cores[i % len(cores)]
 
         fig.add_trace(go.Scatter(
             x=df_res["Data"],
             y=df_res["Vazão Operada"],
             mode="lines",
             name=reservatorio,
-            line=dict(shape='spline', width=2, color=cores[i % len(cores)]),
+            line=dict(shape='spline', width=2, color=cor),
         ))
 
-        fig.add_hline(
-            y=media_res,
-            line_dash="dash",
-            line_color=cores[i % len(cores)],
-            annotation_text=f"Média {reservatorio}: {media_res:.2f} l/s",
-            annotation_position="top left",
-            annotation_font_size=11,
-            opacity=0.5
-        )
+        fig.add_trace(go.Scatter(
+            x=x_range,
+            y=[media_res, media_res],
+            mode="lines",
+            name=f"Média {reservatorio}",
+            line=dict(color=cor, width=1, dash="dash"),
+        ))
 
     fig.update_layout(
         xaxis_title="Data",
-        yaxis_title="Vazão Operada",
+        yaxis_title="Vazão Operada (l/s)",
         legend_title="Reservatório",
         template="simple_white",
         hovermode="x unified",
