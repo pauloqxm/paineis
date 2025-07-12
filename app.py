@@ -7,12 +7,6 @@ import json
 import locale
 import datetime
 
-# Define o locale para pt-BR
-try:
-    locale.setlocale(locale.LC_TIME, 'pt_BR.UTF-8')
-except locale.Error:
-    st.warning("⚠️ Não foi possível aplicar o locale pt_BR no ambiente atual.")
-
 with open("rio_quixera.geojson", "r", encoding="utf-8") as f:
     geojson_quixera = json.load(f)
 from streamlit_folium import folium_static
