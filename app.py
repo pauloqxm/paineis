@@ -92,14 +92,16 @@ if aba == "Vazões - GRBANABUIU":
 
     fig = go.Figure()
 
-    for reservatorio in df_filtrado['Reservatório Monitorado'].unique():
+    cores = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b']  # paleta de cores harmoniosa
+    for i, reservatorio in enumerate(df_filtrado['Reservatório Monitorado'].unique()):
         df_res = df_filtrado[df_filtrado['Reservatório Monitorado'] == reservatorio].sort_values(by="Data")
         fig.add_trace(go.Scatter(
             x=df_res["Data"],
             y=df_res["Vazão Operada"],
             mode="lines+markers",
             name=reservatorio,
-            line=dict(shape='linear')  # linha reta tradicional
+            line=dict(shape='linear', width=2, color=cores[i % len(cores)]),
+            marker=dict(size=4)
         ))
 
     if len(df_filtrado['Reservatório Monitorado'].unique()) == 1:
@@ -107,15 +109,19 @@ if aba == "Vazões - GRBANABUIU":
         fig.add_hline(
             y=media_geral,
             line_dash="dash",
-            line_color="red",
+            line_color="gray",
             annotation_text=f"Média: {media_geral:.2f} l/s",
-            annotation_position="top left"
+            annotation_position="top left",
+            annotation_font_size=12
         )
 
     fig.update_layout(
         xaxis_title="Data",
         yaxis_title="Vazão Operada",
-        legend_title="Reservatório Monitorado"
+        legend_title="Reservatório",
+        template="simple_white",
+        hovermode="x unified",
+        margin=dict(l=40, r=20, t=40, b=40)
     )
 
     st.plotly_chart(fig, use_container_width=True)
