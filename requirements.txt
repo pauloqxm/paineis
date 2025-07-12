@@ -5,5 +5,5 @@ folium
 streamlit-folium
 streamlit-option-menu
 openpyxl
-import locale
-import datetime
+locale
+datetime
