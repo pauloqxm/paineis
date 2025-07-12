@@ -110,6 +110,16 @@ if aba == "Vazões - GRBANABUIU":
                 name="Açudes Monitorados",
                 tooltip=folium.GeoJsonTooltip(fields=["Name"], aliases=["Açude:"])
             ).add_to(m)
+    with open("trecho.geojsonl.json", "r", encoding="utf-8") as f:
+        geojson_trecho = json.load(f)
+
+    folium.GeoJson(
+        geojson_trecho,
+        name="Trecho do Rio",
+        tooltip=folium.GeoJsonTooltip(fields=["Name"], aliases=["Trecho:"]),
+        style_function=lambda x: {"color": "darkblue", "weight": 3}
+    ).add_to(m)
+
 
         for _, row in df_mapa.iterrows():
             popup_info = f"""
