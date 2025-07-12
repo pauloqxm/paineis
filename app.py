@@ -75,6 +75,7 @@ if aba == "Vazões - GRBANABUIU":
     datas = df_filtrado["Data"].sort_values()
     x_range = [datas.min(), datas.max()]
 
+    # Linhas de referência horizontais (100 a 1000)
     for y in range(100, 1001, 100):
         fig.add_trace(go.Scatter(
             x=x_range,
@@ -85,9 +86,10 @@ if aba == "Vazões - GRBANABUIU":
             showlegend=False
         ))
 
-    for i, reservatorio in enumerate(df_filtrado['Reservatório Monitorado'].unique()):
+    # Traços por reservatório
+    reservatorios_filtrados = df_filtrado['Reservatório Monitorado'].unique()
+    for i, reservatorio in enumerate(reservatorios_filtrados):
         df_res = df_filtrado[df_filtrado['Reservatório Monitorado'] == reservatorio].sort_values(by="Data")
-        media_res = df_res["Vazão Operada"].mean()
         cor = cores[i % len(cores)]
 
         fig.add_trace(go.Scatter(
@@ -98,12 +100,15 @@ if aba == "Vazões - GRBANABUIU":
             line=dict(shape='spline', width=2, color=cor),
         ))
 
+    # Se apenas 1 reservatório, exibe linha da média
+    if len(reservatorios_filtrados) == 1:
+        media_res = df_filtrado["Vazão Operada"].mean()
         fig.add_trace(go.Scatter(
             x=x_range,
             y=[media_res, media_res],
             mode="lines",
-            name=f"Média {reservatorio}",
-            line=dict(color=cor, width=1, dash="dash"),
+            name=f"Média {reservatorios_filtrados[0]}",
+            line=dict(color=cores[0], width=1, dash="dash"),
         ))
 
     fig.update_layout(
