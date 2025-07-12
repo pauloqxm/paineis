@@ -33,7 +33,7 @@ with st.sidebar:
 if aba == "Vazões - GRBANABUIU":
     @st.cache_data
     def load_data():
-        df = pd.read_excel("GRBANABUIU_PERENE.xlsx")
+        df = pd.read_excel("GRBANABUIU_PERE.xlsx")
         df['Data'] = pd.to_datetime(df['Data'], errors='coerce')
         df['Mês'] = df['Data'].dt.to_period('M').astype(str)
         return df
