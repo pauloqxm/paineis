@@ -92,7 +92,7 @@ if aba == "Vazões - GRBANABUIU":
             y=media_geral,
             line_dash="dash",
             line_color="red",
-            annotation_text=f"Média: {media_geral:.2f} m³/s",
+            annotation_text=f"Média: {media_geral:.2f} l/s",
             annotation_position="top left"
         )
 
