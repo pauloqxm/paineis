@@ -11,13 +11,6 @@ with open("rio_quixera.geojson", "r", encoding="utf-8") as f:
 from streamlit_folium import folium_static
 from streamlit_option_menu import option_menu
 
-st.markdown("""
-    <style>
-    [data-testid="stSidebar"] {
-        background-color: #e0f0ff;
-    }
-    </style>
-    """, unsafe_allow_html=True)
 
 st.set_page_config(page_title="Dashboard Vazões", layout="wide")
 
