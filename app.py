@@ -81,7 +81,8 @@ if aba == "Vazões - GRBANABUIU":
             x="Data",
             y="Vazão Operada",
             color="Reservatório Monitorado",
-            markers=True
+            markers=True,
+            line_shape="spline"  # Curvas suavizadas aqui
         ),
         use_container_width=True
     )
@@ -120,7 +121,6 @@ if aba == "Vazões - GRBANABUIU":
             tooltip=folium.GeoJsonTooltip(fields=["Name"], aliases=["Trecho:"]),
             style_function=lambda x: {"color": "darkblue", "weight": 2}
         ).add_to(m)
-
 
         for _, row in df_mapa.iterrows():
             popup_info = f"""
