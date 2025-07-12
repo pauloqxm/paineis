@@ -54,6 +54,11 @@ if aba == "Vazões - GRBANABUIU":
         st.header("🔎 Filtros")
         estacoes = st.multiselect("🏞️ Reservatório Monitorado", df['Reservatório Monitorado'].dropna().unique())
         meses = st.multiselect("📆 Mês", df['Mês'].dropna().unique())
+        datas_disponiveis = df['Data'].dropna().sort_values()
+        data_min = datas_disponiveis.min()
+        data_max = datas_disponiveis.max()
+        intervalo_data = st.date_input("📅 Intervalo de Datas", (data_min, data_max), format="DD/MM/YYYY")
+
         mapa_tipo = st.selectbox(
             "🗺️ Estilo do Mapa",
             options=[
@@ -73,28 +78,38 @@ if aba == "Vazões - GRBANABUIU":
         df_filtrado = df_filtrado[df_filtrado['Reservatório Monitorado'].isin(estacoes)]
     if meses:
         df_filtrado = df_filtrado[df_filtrado['Mês'].isin(meses)]
+    if isinstance(intervalo_data, tuple) and len(intervalo_data) == 2:
+        inicio, fim = intervalo_data
+        df_filtrado = df_filtrado[(df_filtrado['Data'] >= pd.to_datetime(inicio)) & (df_filtrado['Data'] <= pd.to_datetime(fim))]
+
+        df_filtrado = df_filtrado[df_filtrado['Mês'].isin(meses)]
 
     st.subheader("📈 Evolução da Vazão Operada por Reservatório")
+        st.subheader("📈 Evolução da Vazão Operada por Reservatório")
+
     media_geral = df_filtrado["Vazão Operada"].mean()
 
-fig = px.line(
-    df_filtrado,
-    x="Data",
-    y="Vazão Operada",
-    color="Reservatório Monitorado",
-    markers=True,
-    line_shape="spline"
-)
+    fig = px.line(
+        df_filtrado,
+        x="Data",
+        y="Vazão Operada",
+        color="Reservatório Monitorado",
+        markers=True,
+        line_shape="spline"
+    )
 
-fig.add_hline(
-    y=media_geral,
-    line_dash="dash",
-    line_color="red",
-    annotation_text=f"Média: {media_geral:.2f} m³/s",
-    annotation_position="top left"
-)
+        if len(df_filtrado['Reservatório Monitorado'].unique()) == 1:
+        media_geral = df_filtrado["Vazão Operada"].mean()
+        fig.add_hline(
+            y=media_geral,
+            line_dash="dash",
+            line_color="red",
+            annotation_text=f"Média: {media_geral:.2f} m³/s",
+            annotation_position="top left"
+        )
 
-st.plotly_chart(fig, use_container_width=True)
+
+    st.plotly_chart(fig, use_container_width=True)
 
 
     st.subheader("🗺️ Mapa dos Reservatórios com Pinos")
