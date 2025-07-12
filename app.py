@@ -11,19 +11,6 @@ with open("rio_quixera.geojson", "r", encoding="utf-8") as f:
 from streamlit_folium import folium_static
 from streamlit_option_menu import option_menu
 
-
-st.set_page_config(page_title="Dashboard Vazões", layout="wide")
-
-with st.sidebar:
-    aba = option_menu(
-        menu_title="Painel",
-        options=["Vazões - GRBANABUIU", "🗺️ Açudes Monitorados"],
-        icons=["droplet", "map"],
-        menu_icon="cast",
-        default_index=0,
-        orientation="vertical"
-    )
-
 if aba == "Vazões - GRBANABUIU":
     @st.cache_data
     def load_data():
