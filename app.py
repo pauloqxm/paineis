@@ -85,7 +85,6 @@ if aba == "Vazões - GRBANABUIU":
         df_filtrado = df_filtrado[df_filtrado['Mês'].isin(meses)]
 
     st.subheader("📈 Evolução da Vazão Operada por Reservatório")
-        st.subheader("📈 Evolução da Vazão Operada por Reservatório")
 
     media_geral = df_filtrado["Vazão Operada"].mean()
 
