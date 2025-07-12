@@ -6,10 +6,6 @@ import folium
 import json
 import datetime
 
-# Define o locale para pt-BR
-try:
-except locale.Error:
-
 with open("rio_quixera.geojson", "r", encoding="utf-8") as f:
     geojson_quixera = json.load(f)
 from streamlit_folium import folium_static
