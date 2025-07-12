@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
+import plotly.graph_objects as go
 import folium
 import json
 
@@ -75,17 +76,27 @@ if aba == "Vazões - GRBANABUIU":
         df_filtrado = df_filtrado[df_filtrado['Mês'].isin(meses)]
 
     st.subheader("📈 Evolução da Vazão Operada por Reservatório")
-    st.plotly_chart(
-        px.line(
-            df_filtrado,
-            x="Data",
-            y="Vazão Operada",
-            color="Reservatório Monitorado",
-            markers=True,
-            line_shape="spline"  # Curvas suavizadas aqui
-        ),
-        use_container_width=True
+
+    media_geral = df_filtrado["Vazão Operada"].mean()
+
+    fig = px.line(
+        df_filtrado,
+        x="Data",
+        y="Vazão Operada",
+        color="Reservatório Monitorado",
+        markers=True,
+        line_shape="spline"
     )
+
+    fig.add_hline(
+        y=media_geral,
+        line_dash="dash",
+        line_color="red",
+        annotation_text=f"Média Geral: {media_geral:.2f} m³/s",
+        annotation_position="top left"
+    )
+
+    st.plotly_chart(fig, use_container_width=True)
 
     st.subheader("🗺️ Mapa dos Reservatórios com Pinos")
     df_mapa = df_filtrado.copy()
@@ -107,7 +118,6 @@ if aba == "Vazões - GRBANABUIU":
         else:
             m = folium.Map(location=center, zoom_start=8, tiles=mapa_tipo)
 
-        # Camada de Açudes Monitorados (se ativado)
         if mostrar_acudes:
             folium.GeoJson(
                 geojson_acudes,
