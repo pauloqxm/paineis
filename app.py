@@ -4,6 +4,14 @@ import plotly.express as px
 import plotly.graph_objects as go
 import folium
 import json
+import locale
+import datetime
+
+# Define o locale para pt-BR
+try:
+    locale.setlocale(locale.LC_TIME, 'pt_BR.UTF-8')
+except locale.Error:
+    st.warning("⚠️ Não foi possível aplicar o locale pt_BR no ambiente atual.")
 
 with open("rio_quixera.geojson", "r", encoding="utf-8") as f:
     geojson_quixera = json.load(f)
@@ -23,7 +31,7 @@ st.set_page_config(page_title="Dashboard Vazões", layout="wide")
 with st.sidebar:
     aba = option_menu(
         menu_title="Painel",
-        options=["Vazões - GRBANABUIU", "🗘️ Açudes Monitorados"],
+        options=["Vazões - GRBANABUIU", "🗺️ Açudes Monitorados"],
         icons=["droplet", "map"],
         menu_icon="cast",
         default_index=0,
@@ -47,14 +55,18 @@ if aba == "Vazões - GRBANABUIU":
 
     with st.sidebar:
         st.header("🔎 Filtros")
-        estacoes = st.multiselect("🏜️ Reservatório Monitorado", df['Reservatório Monitorado'].dropna().unique())
+        estacoes = st.multiselect("🏞️ Reservatório Monitorado", df['Reservatório Monitorado'].dropna().unique())
         meses = st.multiselect("📆 Mês", df['Mês'].dropna().unique())
         datas_disponiveis = df['Data'].dropna().sort_values()
         data_min = datas_disponiveis.min()
         data_max = datas_disponiveis.max()
-        intervalo_data = st.date_input("🗓️ Intervalo de Datas", (data_min, data_max))
+        intervalo_data = st.date_input(
+            "📅 Intervalo de Datas",
+            (data_min, data_max),
+            format="DD/MM/YYYY"
+        )
         mapa_tipo = st.selectbox(
-            "🗾️ Estilo do Mapa",
+            "🗺️ Estilo do Mapa",
             options=[
                 "OpenStreetMap",
                 "Stamen Terrain",
@@ -99,7 +111,7 @@ if aba == "Vazões - GRBANABUIU":
 
     st.plotly_chart(fig, use_container_width=True)
 
-    st.subheader("🗘️ Mapa dos Reservatórios com Pinos")
+    st.subheader("🗺️ Mapa dos Reservatórios com Pinos")
     df_mapa = df_filtrado.copy()
     df_mapa[['lat', 'lon']] = df_mapa['Coordendas'].str.split(',', expand=True).astype(float)
     df_mapa = df_mapa.dropna(subset=['lat', 'lon']).drop_duplicates(subset=['Reservatório Monitorado'])
@@ -151,7 +163,7 @@ if aba == "Vazões - GRBANABUIU":
     else:
         st.info("Nenhum ponto com coordenadas disponíveis para plotar no mapa.")
 
-    st.subheader("🏖️ Média da Vazão Operada por Reservatório")
+    st.subheader("🏞️ Média da Vazão Operada por Reservatório")
     media_vazao = df_filtrado.groupby("Reservatório Monitorado")["Vazão Operada"].mean().reset_index()
     st.plotly_chart(
         px.bar(
@@ -166,10 +178,10 @@ if aba == "Vazões - GRBANABUIU":
     st.subheader("📋 Tabela Detalhada")
     st.dataframe(df_filtrado.sort_values(by="Data", ascending=False), use_container_width=True)
 
-elif aba == "🗘️ Açudes Monitorados":
-    st.title("🗘️ Açudes Monitorados")
+elif aba == "🗺️ Açudes Monitorados":
+    st.title("🗺️ Açudes Monitorados")
 
-    tile_option = st.sidebar.selectbox("🗾️ Estilo do Mapa (Açudes)", [
+    tile_option = st.sidebar.selectbox("🗺️ Estilo do Mapa (Açudes)", [
         "OpenStreetMap",
         "Stamen Terrain",
         "Stamen Toner",
