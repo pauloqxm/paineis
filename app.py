@@ -99,7 +99,7 @@ if aba == "Vazões - GRBANABUIU":
             y=df_res["Vazão Operada"],
             mode="lines+markers",
             name=reservatorio,
-            line=dict(shape='spline', smoothing=1.3)
+            line=dict(shape='linear')  # linha reta tradicional
         ))
 
     if len(df_filtrado['Reservatório Monitorado'].unique()) == 1:
