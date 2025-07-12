@@ -109,7 +109,7 @@ if aba == "Vazões - GRBANABUIU":
             tooltip=folium.GeoJsonTooltip(fields=["Name"], aliases=["Açude:"])
         ).add_to(m)
         if mapa_tipo in tile_urls:
-        folium.TileLayer(tiles=tile_urls[mapa_tipo], attr=tile_attr[mapa_tipo], name=mapa_tipo).add_to(m)
+    folium.TileLayer(tiles=tile_urls[mapa_tipo], attr=tile_attr[mapa_tipo], name=mapa_tipo).add_to(m)
     else:
             m = folium.Map(location=center, zoom_start=8, tiles=mapa_tipo)
 
