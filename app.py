@@ -77,8 +77,6 @@ if aba == "Vazões - GRBANABUIU":
 
     st.subheader("📈 Evolução da Vazão Operada por Reservatório")
 
-    media_geral = df_filtrado["Vazão Operada"].mean()
-
     fig = px.line(
         df_filtrado,
         x="Data",
@@ -88,13 +86,15 @@ if aba == "Vazões - GRBANABUIU":
         line_shape="spline"
     )
 
-    fig.add_hline(
-        y=media_geral,
-        line_dash="dash",
-        line_color="red",
-        annotation_text=f"Média Geral: {media_geral:.2f} m³/s",
-        annotation_position="top left"
-    )
+    if len(df_filtrado['Reservatório Monitorado'].unique()) == 1:
+        media_geral = df_filtrado["Vazão Operada"].mean()
+        fig.add_hline(
+            y=media_geral,
+            line_dash="dash",
+            line_color="red",
+            annotation_text=f"Média: {media_geral:.2f} m³/s",
+            annotation_position="top left"
+        )
 
     st.plotly_chart(fig, use_container_width=True)
 
