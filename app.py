@@ -95,20 +95,17 @@ if aba == "Vazões - GRBANABUIU":
         color="Reservatório Monitorado",
         markers=True,
         line_shape="spline"
-    )
-
-        if len(df_filtrado['Reservatório Monitorado'].unique()) == 1:
+        )
+            if len(df_filtrado['Reservatório Monitorado'].unique()) == 1:
         media_geral = df_filtrado["Vazão Operada"].mean()
         fig.add_hline(
-            y=media_geral,
+        y=media_geral,
             line_dash="dash",
             line_color="red",
             annotation_text=f"Média: {media_geral:.2f} m³/s",
             annotation_position="top left"
         )
-
-
-    st.plotly_chart(fig, use_container_width=True)
+                    st.plotly_chart(fig, use_container_width=True)
 
 
     st.subheader("🗺️ Mapa dos Reservatórios com Pinos")
