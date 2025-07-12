@@ -4,13 +4,20 @@ import plotly.express as px
 import plotly.graph_objects as go
 import folium
 import json
+import locale
+import datetime
+
+# Define o locale para pt-BR
+try:
+    locale.setlocale(locale.LC_TIME, 'pt_BR.UTF-8')
+except locale.Error:
+    st.warning("⚠️ Não foi possível aplicar o locale pt_BR no ambiente atual.")
 
 with open("rio_quixera.geojson", "r", encoding="utf-8") as f:
     geojson_quixera = json.load(f)
 from streamlit_folium import folium_static
 from streamlit_option_menu import option_menu
 
-# 🌐 Estilo da barra lateral
 st.markdown("""
     <style>
     [data-testid="stSidebar"] {
@@ -19,10 +26,8 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# ⚙️ Configuração
 st.set_page_config(page_title="Dashboard Vazões", layout="wide")
 
-# 📁 Menu lateral
 with st.sidebar:
     aba = option_menu(
         menu_title="Painel",
@@ -33,9 +38,6 @@ with st.sidebar:
         orientation="vertical"
     )
 
-# ===============================
-# 📊 ABA DE VAZÕES MONITORADAS
-# ===============================
 if aba == "Vazões - GRBANABUIU":
     @st.cache_data
     def load_data():
@@ -55,6 +57,14 @@ if aba == "Vazões - GRBANABUIU":
         st.header("🔎 Filtros")
         estacoes = st.multiselect("🏞️ Reservatório Monitorado", df['Reservatório Monitorado'].dropna().unique())
         meses = st.multiselect("📆 Mês", df['Mês'].dropna().unique())
+        datas_disponiveis = df['Data'].dropna().sort_values()
+        data_min = datas_disponiveis.min()
+        data_max = datas_disponiveis.max()
+        intervalo_data = st.date_input(
+            "📅 Intervalo de Datas",
+            (data_min, data_max),
+            format="DD/MM/YYYY"
+        )
         mapa_tipo = st.selectbox(
             "🗺️ Estilo do Mapa",
             options=[
@@ -74,6 +84,9 @@ if aba == "Vazões - GRBANABUIU":
         df_filtrado = df_filtrado[df_filtrado['Reservatório Monitorado'].isin(estacoes)]
     if meses:
         df_filtrado = df_filtrado[df_filtrado['Mês'].isin(meses)]
+    if isinstance(intervalo_data, tuple) and len(intervalo_data) == 2:
+        inicio, fim = intervalo_data
+        df_filtrado = df_filtrado[(df_filtrado['Data'] >= pd.to_datetime(inicio)) & (df_filtrado['Data'] <= pd.to_datetime(fim))]
 
     st.subheader("📈 Evolução da Vazão Operada por Reservatório")
 
@@ -92,7 +105,7 @@ if aba == "Vazões - GRBANABUIU":
             y=media_geral,
             line_dash="dash",
             line_color="red",
-            annotation_text=f"Média: {media_geral:.2f} m³/s",
+            annotation_text=f"Média: {media_geral:.2f} l/s",
             annotation_position="top left"
         )
 
@@ -165,9 +178,6 @@ if aba == "Vazões - GRBANABUIU":
     st.subheader("📋 Tabela Detalhada")
     st.dataframe(df_filtrado.sort_values(by="Data", ascending=False), use_container_width=True)
 
-# ===============================
-# 🗺️ ABA AÇUDES MONITORADOS
-# ===============================
 elif aba == "🗺️ Açudes Monitorados":
     st.title("🗺️ Açudes Monitorados")
 
