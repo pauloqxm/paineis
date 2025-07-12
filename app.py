@@ -1,15 +1,15 @@
 import streamlit as st
 import pandas as pd
-import plotly.express as px
 import plotly.graph_objects as go
+import plotly.express as px
 import folium
 import json
 import datetime
+from streamlit_folium import folium_static
+from streamlit_option_menu import option_menu
 
 with open("rio_quixera.geojson", "r", encoding="utf-8") as f:
     geojson_quixera = json.load(f)
-from streamlit_folium import folium_static
-from streamlit_option_menu import option_menu
 
 st.markdown("""
     <style>
@@ -29,6 +29,7 @@ with st.sidebar:
         default_index=0,
         orientation="vertical"
     )
+
 if aba == "Vazões - GRBANABUIU":
     @st.cache_data
     def load_data():
@@ -51,23 +52,11 @@ if aba == "Vazões - GRBANABUIU":
         datas_disponiveis = df['Data'].dropna().sort_values()
         data_min = datas_disponiveis.min()
         data_max = datas_disponiveis.max()
-        intervalo_data = st.date_input(
-            "📅 Intervalo de Datas",
-            (data_min, data_max),
-            format="DD/MM/YYYY"
-        )
-        mapa_tipo = st.selectbox(
-            "🗺️ Estilo do Mapa",
-            options=[
-                "OpenStreetMap",
-                "Stamen Terrain",
-                "Stamen Toner",
-                "CartoDB positron",
-                "CartoDB dark_matter",
-                "Esri Satellite"
-            ],
-            index=0
-        )
+        intervalo_data = st.date_input("📅 Intervalo de Datas", (data_min, data_max), format="DD/MM/YYYY")
+        mapa_tipo = st.selectbox("🗺️ Estilo do Mapa", [
+            "OpenStreetMap", "Stamen Terrain", "Stamen Toner",
+            "CartoDB positron", "CartoDB dark_matter", "Esri Satellite"
+        ], index=0)
         mostrar_acudes = st.checkbox("💧 Exibir Açudes Monitorados no mapa", value=True)
 
     df_filtrado = df.copy()
@@ -82,28 +71,28 @@ if aba == "Vazões - GRBANABUIU":
     st.subheader("📈 Evolução da Vazão Operada por Reservatório")
 
     fig = go.Figure()
+    cores = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b']
 
-    cores = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b']  # paleta de cores harmoniosa
     for i, reservatorio in enumerate(df_filtrado['Reservatório Monitorado'].unique()):
         df_res = df_filtrado[df_filtrado['Reservatório Monitorado'] == reservatorio].sort_values(by="Data")
+        media_res = df_res["Vazão Operada"].mean()
+
         fig.add_trace(go.Scatter(
             x=df_res["Data"],
             y=df_res["Vazão Operada"],
-            mode="lines+markers",
+            mode="lines",
             name=reservatorio,
-            line=dict(shape='linear', width=2, color=cores[i % len(cores)]),
-            marker=dict(size=4)
+            line=dict(shape='spline', width=2, color=cores[i % len(cores)]),
         ))
 
-    if len(df_filtrado['Reservatório Monitorado'].unique()) == 1:
-        media_geral = df_filtrado["Vazão Operada"].mean()
         fig.add_hline(
-            y=media_geral,
+            y=media_res,
             line_dash="dash",
-            line_color="gray",
-            annotation_text=f"Média: {media_geral:.2f} l/s",
+            line_color=cores[i % len(cores)],
+            annotation_text=f"Média {reservatorio}: {media_res:.2f} l/s",
             annotation_position="top left",
-            annotation_font_size=12
+            annotation_font_size=11,
+            opacity=0.5
         )
 
     fig.update_layout(
@@ -188,12 +177,8 @@ elif aba == "🗺️ Açudes Monitorados":
     st.title("🗺️ Açudes Monitorados")
 
     tile_option = st.sidebar.selectbox("🗺️ Estilo do Mapa (Açudes)", [
-        "OpenStreetMap",
-        "Stamen Terrain",
-        "Stamen Toner",
-        "CartoDB positron",
-        "CartoDB dark_matter",
-        "Esri Satellite"
+        "OpenStreetMap", "Stamen Terrain", "Stamen Toner",
+        "CartoDB positron", "CartoDB dark_matter", "Esri Satellite"
     ], key="acudes_map_tile")
 
     tile_urls = {
