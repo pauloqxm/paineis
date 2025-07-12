@@ -4,7 +4,6 @@ import plotly.express as px
 import plotly.graph_objects as go
 import folium
 import json
-import locale
 import datetime
 
 # Define o locale para pt-BR
