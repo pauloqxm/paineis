@@ -10,7 +10,6 @@ with open("rio_quixera.geojson", "r", encoding="utf-8") as f:
 from streamlit_folium import folium_static
 from streamlit_option_menu import option_menu
 
-# 🌐 Estilo da barra lateral
 st.markdown("""
     <style>
     [data-testid="stSidebar"] {
@@ -19,23 +18,18 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# ⚙️ Configuração
 st.set_page_config(page_title="Dashboard Vazões", layout="wide")
 
-# 📁 Menu lateral
 with st.sidebar:
     aba = option_menu(
         menu_title="Painel",
-        options=["Vazões - GRBANABUIU", "🗺️ Açudes Monitorados"],
+        options=["Vazões - GRBANABUIU", "🗘️ Açudes Monitorados"],
         icons=["droplet", "map"],
         menu_icon="cast",
         default_index=0,
         orientation="vertical"
     )
 
-# ===============================
-# 📊 ABA DE VAZÕES MONITORADAS
-# ===============================
 if aba == "Vazões - GRBANABUIU":
     @st.cache_data
     def load_data():
@@ -53,10 +47,14 @@ if aba == "Vazões - GRBANABUIU":
 
     with st.sidebar:
         st.header("🔎 Filtros")
-        estacoes = st.multiselect("🏞️ Reservatório Monitorado", df['Reservatório Monitorado'].dropna().unique())
+        estacoes = st.multiselect("🏜️ Reservatório Monitorado", df['Reservatório Monitorado'].dropna().unique())
         meses = st.multiselect("📆 Mês", df['Mês'].dropna().unique())
+        datas_disponiveis = df['Data'].dropna().sort_values()
+        data_min = datas_disponiveis.min()
+        data_max = datas_disponiveis.max()
+        intervalo_data = st.date_input("🗓️ Intervalo de Datas", (data_min, data_max))
         mapa_tipo = st.selectbox(
-            "🗺️ Estilo do Mapa",
+            "🗾️ Estilo do Mapa",
             options=[
                 "OpenStreetMap",
                 "Stamen Terrain",
@@ -74,6 +72,9 @@ if aba == "Vazões - GRBANABUIU":
         df_filtrado = df_filtrado[df_filtrado['Reservatório Monitorado'].isin(estacoes)]
     if meses:
         df_filtrado = df_filtrado[df_filtrado['Mês'].isin(meses)]
+    if isinstance(intervalo_data, tuple) and len(intervalo_data) == 2:
+        inicio, fim = intervalo_data
+        df_filtrado = df_filtrado[(df_filtrado['Data'] >= pd.to_datetime(inicio)) & (df_filtrado['Data'] <= pd.to_datetime(fim))]
 
     st.subheader("📈 Evolução da Vazão Operada por Reservatório")
 
@@ -98,7 +99,7 @@ if aba == "Vazões - GRBANABUIU":
 
     st.plotly_chart(fig, use_container_width=True)
 
-    st.subheader("🗺️ Mapa dos Reservatórios com Pinos")
+    st.subheader("🗘️ Mapa dos Reservatórios com Pinos")
     df_mapa = df_filtrado.copy()
     df_mapa[['lat', 'lon']] = df_mapa['Coordendas'].str.split(',', expand=True).astype(float)
     df_mapa = df_mapa.dropna(subset=['lat', 'lon']).drop_duplicates(subset=['Reservatório Monitorado'])
@@ -150,7 +151,7 @@ if aba == "Vazões - GRBANABUIU":
     else:
         st.info("Nenhum ponto com coordenadas disponíveis para plotar no mapa.")
 
-    st.subheader("🏞️ Média da Vazão Operada por Reservatório")
+    st.subheader("🏖️ Média da Vazão Operada por Reservatório")
     media_vazao = df_filtrado.groupby("Reservatório Monitorado")["Vazão Operada"].mean().reset_index()
     st.plotly_chart(
         px.bar(
@@ -165,13 +166,10 @@ if aba == "Vazões - GRBANABUIU":
     st.subheader("📋 Tabela Detalhada")
     st.dataframe(df_filtrado.sort_values(by="Data", ascending=False), use_container_width=True)
 
-# ===============================
-# 🗺️ ABA AÇUDES MONITORADOS
-# ===============================
-elif aba == "🗺️ Açudes Monitorados":
-    st.title("🗺️ Açudes Monitorados")
+elif aba == "🗘️ Açudes Monitorados":
+    st.title("🗘️ Açudes Monitorados")
 
-    tile_option = st.sidebar.selectbox("🗺️ Estilo do Mapa (Açudes)", [
+    tile_option = st.sidebar.selectbox("🗾️ Estilo do Mapa (Açudes)", [
         "OpenStreetMap",
         "Stamen Terrain",
         "Stamen Toner",
