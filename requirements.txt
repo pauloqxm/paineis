@@ -5,5 +5,3 @@ folium
 streamlit-folium
 streamlit-option-menu
 openpyxl
-locale
-datetime
