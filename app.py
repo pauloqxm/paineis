@@ -17,6 +17,8 @@ with open("Açudes_Monitorados.geojson", "r", encoding="utf-8") as f:
 with open("Sedes_Municipais.geojson", "r", encoding="utf-8") as f:
     geojson_sedes = json.load(f)
 
+with open("c_gestoras.geojson", "r", encoding="utf-8") as f:
+    geojson_comissoes = json.load(f)
 
 st.markdown("""
     <style>
@@ -171,6 +173,22 @@ if aba == "Vazões - GRBANABUIU":
                 icon=folium.CustomIcon("https://cdn-icons-png.flaticon.com/512/854/854878.png", icon_size=(30, 30)),
                 tooltip=nome_municipio
             ).add_to(sedes_layer)
+
+        sedes_layer.add_to(m)
+        
+         # Camada Comissões Gestoras
+        comissoes_layer = folium.FeatureGroup(name="Comissões Gestoras", show=False)
+
+        for feature in geojson_sedes["features"]:
+            props = feature["properties"]
+            coords = feature["geometry"]["coordinates"]
+            nome_municipio = props.get("SISTEMAH3", "Sem nome")
+
+            folium.Marker(
+                location=[coords[1], coords[0]],
+                icon=folium.CustomIcon("https://cdn-icons-png.flaticon.com/512/4144/4144517.png", icon_size=(30, 30)),
+                tooltip=nome_municipio
+            ).add_to(comissoes_layer)
 
         sedes_layer.add_to(m)
 
