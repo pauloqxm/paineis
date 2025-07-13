@@ -59,6 +59,7 @@ if aba == "Vazões - GRBANABUIU":
             "OpenStreetMap", "Stamen Terrain", "Stamen Toner",
             "CartoDB positron", "CartoDB dark_matter", "Esri Satellite"
         ], index=0)
+        mostrar_acudes = st.checkbox("💧 Exibir Açudes Monitorados no mapa", value=True)
 
     df_filtrado = df.copy()
     if estacoes:
@@ -135,7 +136,14 @@ if aba == "Vazões - GRBANABUIU":
         else:
             m = folium.Map(location=center, zoom_start=8, tiles=mapa_tipo)
 
+        if mostrar_acudes:
             folium.GeoJson(
+                geojson_acudes,
+                name="Açudes Monitorados",
+                tooltip=folium.GeoJsonTooltip(fields=["Name"], aliases=["Açude:"])
+            ).add_to(m)
+
+        folium.GeoJson(
             geojson_quixera,
             name="Trecho Perenizado",
             tooltip=folium.GeoJsonTooltip(fields=["Name"], aliases=["Trecho:"]),
