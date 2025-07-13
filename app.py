@@ -162,7 +162,7 @@ if aba == "Vazões - GRBANABUIU":
                 location=[row["lat"], row["lon"]],
                 popup=folium.Popup(popup_info, max_width=300),
                 icon=folium.Icon(color="blue", icon="tint", prefix="fa"),
-                tooltip=row["Reservatório Monitorado"]
+                tooltip=row["Reservatório Monitorado"],
 
         folium_static(m)
     else:
