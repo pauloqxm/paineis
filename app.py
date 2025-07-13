@@ -76,17 +76,6 @@ if aba == "Vazões - GRBANABUIU":
     datas = df_filtrado["Data"].sort_values()
     x_range = [datas.min(), datas.max()]
 
-    # Linhas de referência horizontais (100 a 1000)
-    for y in range(100, 1001, 100):
-        fig.add_trace(go.Scatter(
-            x=x_range,
-            y=[y, y],
-            mode="lines",
-            name=f"Referência {y} l/s",
-            line=dict(color="lightgray", width=1, dash="dot"),
-            showlegend=False
-        ))
-
     # Traços por reservatório
     reservatorios_filtrados = df_filtrado['Reservatório Monitorado'].unique()
     for i, reservatorio in enumerate(reservatorios_filtrados):
