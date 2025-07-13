@@ -163,9 +163,7 @@ if aba == "Vazões - GRBANABUIU":
                 popup=folium.Popup(popup_info, max_width=300),
                 icon=folium.Icon(color="blue", icon="tint", prefix="fa"),
                 tooltip=row["Reservatório Monitorado"]
-            )).add_to(m)
 
-        folium.LayerControl()).add_to(m)
         folium_static(m)
     else:
         st.info("Nenhum ponto com coordenadas disponíveis para plotar no mapa.")
@@ -206,7 +204,6 @@ elif aba == "🗺️ Açudes Monitorados":
     center = [-5.2, -39.2]
     if tile_option in tile_urls:
         m = folium.Map(location=center, zoom_start=7, tiles=None)
-        folium.TileLayer(tiles=tile_urls[tile_option], attr=tile_attr[tile_option], name=tile_option)).add_to(m)
     else:
         m = folium.Map(location=center, zoom_start=7, tiles=tile_option)
 
@@ -214,7 +211,5 @@ elif aba == "🗺️ Açudes Monitorados":
         geojson_data,
         name="Açudes",
         tooltip=folium.GeoJsonTooltip(fields=["Name"], aliases=["Açude:"])
-    )).add_to(m)
 
-    folium.LayerControl()).add_to(m)
     folium_static(m)
