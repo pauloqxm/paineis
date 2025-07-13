@@ -156,7 +156,7 @@ if aba == "Vazões - GRBANABUIU":
         folium.GeoJson(
             geojson_sedes,
             name="Sedes Municipais",
-            tooltip=folium.GeoJsonTooltip(fields=["Name"], aliases=["Sede:"]),
+            tooltip=folium.GeoJsonTooltip(fields=["NOME_MUNIC"], aliases=["Município:"]),
             style_function=lambda x: {"color": "purple", "weight": 2}
         ).add_to(m)
 
