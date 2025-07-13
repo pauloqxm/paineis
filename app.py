@@ -182,16 +182,14 @@ if aba == "Vazões - GRBANABUIU":
             coords = feature["geometry"]["coordinates"]
             nome_gestora = props.get("NOME", "Sem nome")
 
-            folium.Marker(
-                location=[coords[1], coords[0]],
-                icon=folium.CustomIcon("https://cdn-icons-png.flaticon.com/512/4144/4144517.png", icon_size=(30, 30)),
-                popup_info = f"""
+            popup_info = f"""
             <strong>Célula Gestora:</strong> {nome_gestora}<br>
             <strong>Ano de Formação:</strong> {props.get("ANOFORMA1", "N/A")}<br>
             <strong>Sistema:</strong> {props.get("SISTEMAH3", "N/A")}<br>
             <strong>Município:</strong> {props.get("MUNICIPI6", "N/A")}
             """
-folium.Marker(
+
+            folium.Marker(
                 location=[coords[1], coords[0]],
                 icon=folium.CustomIcon("https://cdn-icons-png.flaticon.com/512/4144/4144517.png", icon_size=(30, 30)),
                 tooltip=nome_gestora,
