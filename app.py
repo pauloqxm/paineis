@@ -13,12 +13,11 @@ with open("rio_quixera.geojson", "r", encoding="utf-8") as f:
 
 with open("Açudes_Monitorados.geojson", "r", encoding="utf-8") as f:
     geojson_acudes = json.load(f)
-    
 with open("Sedes_Municipais.geojson", "r", encoding="utf-8") as f:
     geojson_sedes = json.load(f)
-
 with open("c_gestoras.geojson", "r", encoding="utf-8") as f:
-    geojson_comissoes = json.load(f)
+    geojson_c_gestoras = json.load(f)
+
 
 st.markdown("""
     <style>
@@ -157,6 +156,8 @@ if aba == "Vazões - GRBANABUIU":
         ).add_to(acudes_layer)
 
         acudes_layer.add_to(m)
+
+
         
         # Camada Sedes Municipais com ícone PNG personalizado
         sedes_layer = folium.FeatureGroup(name="Sedes Municipais", show=False)
@@ -173,22 +174,21 @@ if aba == "Vazões - GRBANABUIU":
             ).add_to(sedes_layer)
 
         sedes_layer.add_to(m)
-        
-         # Camada Comissões Gestoras
-        comissoes_layer = folium.FeatureGroup(name="Comissões Gestoras", show=False)
+# Camada Células Gestoras com ícone PNG personalizado
+        gestoras_layer = folium.FeatureGroup(name="Comissões Gestoras", show=False)
 
-        for feature in geojson_sedes["features"]:
+        for feature in geojson_c_gestoras["features"]:
             props = feature["properties"]
             coords = feature["geometry"]["coordinates"]
-            nome_comissao = props.get("SISTEMAH3", "Sem nome")
+            nome_gestora = props.get("SISTEMAH3", "Sem nome")
 
             folium.Marker(
                 location=[coords[1], coords[0]],
                 icon=folium.CustomIcon("https://cdn-icons-png.flaticon.com/512/4144/4144517.png", icon_size=(30, 30)),
-                tooltip=nome_comissao
-            ).add_to(comissoes_layer)
+                tooltip=nome_gestora
+            ).add_to(gestoras_layer)
 
-        sedes_layer.add_to(m)
+        gestoras_layer.add_to(m)
 
 
         for _, row in df_mapa.iterrows():
