@@ -34,7 +34,8 @@ with st.sidebar:
 if aba == "Vazões - GRBANABUIU":
     @st.cache_data
     def load_data():
-        df = pd.read_excel("GRBANABUIU_PERENE.xlsx")
+        url = "https://docs.google.com/spreadsheets/d/1pbNcZ9hS8DhotdkYuPc8kIOy5dgyoYQb384-jgqLDfA/export?format=csv"
+        df = pd.read_csv(url)
         df['Data'] = pd.to_datetime(df['Data'], errors='coerce')
         df['Mês'] = df['Data'].dt.to_period('M').astype(str)
         return df
@@ -100,7 +101,7 @@ if aba == "Vazões - GRBANABUIU":
             name=f"Média: {media_res:.2f} l/s",
             line=dict(color="red", width=4, dash="dash"),
             text=[f"Média: {media_res:.2f} l/s", ""],
-            textposition="top right",
+            textposition="top left",
             showlegend=False
         ))
 
