@@ -40,13 +40,9 @@ if aba == "Vazões - GRBANABUIU":
         df['Mês'] = df['Data'].dt.to_period('M').astype(str)
         return df
 
-    recarregar = st.sidebar.button("🔄 Recarregar Dados")
-if recarregar:
-    st.cache_data.clear()
+    df = load_data()
 
-df = load_data()
-
-with open("Açudes_Monitorados.geojson", "r", encoding="utf-8") as f:
+    with open("Açudes_Monitorados.geojson", "r", encoding="utf-8") as f:
         geojson_acudes = json.load(f)
 
     st.title("💧 Vazões - GRBANABUIU")
@@ -202,7 +198,7 @@ elif aba == "🗺️ Açudes Monitorados":
         "Esri Satellite": "Tiles © Esri — Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, etc."
     }
 
-with open("Açudes_Monitorados.geojson", "r", encoding="utf-8") as f:
+    with open("Açudes_Monitorados.geojson", "r", encoding="utf-8") as f:
         geojson_data = json.load(f)
 
     center = [-5.2, -39.2]
