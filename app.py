@@ -46,7 +46,7 @@ if recarregar:
 
 df = load_data()
 
-    with open("Açudes_Monitorados.geojson", "r", encoding="utf-8") as f:
+with open("Açudes_Monitorados.geojson", "r", encoding="utf-8") as f:
         geojson_acudes = json.load(f)
 
     st.title("💧 Vazões - GRBANABUIU")
@@ -202,7 +202,7 @@ elif aba == "🗺️ Açudes Monitorados":
         "Esri Satellite": "Tiles © Esri — Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, etc."
     }
 
-    with open("Açudes_Monitorados.geojson", "r", encoding="utf-8") as f:
+with open("Açudes_Monitorados.geojson", "r", encoding="utf-8") as f:
         geojson_data = json.load(f)
 
     center = [-5.2, -39.2]
