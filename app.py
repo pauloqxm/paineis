@@ -131,12 +131,16 @@ if aba == "Vazões - GRBANABUIU":
         else:
             m = folium.Map(location=center, zoom_start=8, tiles=mapa_tipo)
 
+        #Camada Trecho Perenizado
+
         folium.GeoJson(
             geojson_quixera,
             name="Trecho Perenizado",
             tooltip=folium.GeoJsonTooltip(fields=["Name"], aliases=["Trecho:"]),
             style_function=lambda x: {"color": "darkblue", "weight": 2}
         ).add_to(m)
+
+        #Camada Açudes Monitorados
 
         folium.GeoJson(
             geojson_acudes,
