@@ -152,13 +152,23 @@ if aba == "Vazões - GRBANABUIU":
             style_function=lambda x: {"color": "darkgreen", "weight": 2}
         ).add_to(m)
 
-        #Camada Sedes Municipais
+        
+        
+        # Camada Sedes Municipais com ícone PNG
         folium.GeoJson(
             geojson_sedes,
             name="Sedes Municipais",
             tooltip=folium.GeoJsonTooltip(fields=["NOME_MUNIC"], aliases=["Município:"]),
-            style_function=lambda x: {"color": "purple", "weight": 2}
+            show=False,
+            marker=folium.features.Marker,
+            popup=None,
+            point_to_layer=lambda feature, latlng: folium.Marker(
+                location=latlng,
+                icon=folium.CustomIcon("https://cdn-icons-png.flaticon.com/512/854/854878.png", icon_size=(24, 24))
+            )
         ).add_to(m)
+
+
 
 
         for _, row in df_mapa.iterrows():
