@@ -13,9 +13,9 @@ with open("rio_quixera.geojson", "r", encoding="utf-8") as f:
 
 with open("Açudes_Monitorados.geojson", "r", encoding="utf-8") as f:
     geojson_acudes = json.load(f)
-
 with open("Sedes_Municipais.geojson", "r", encoding="utf-8") as f:
     geojson_sedes = json.load(f)
+
 
 st.markdown("""
     <style>
@@ -153,13 +153,13 @@ if aba == "Vazões - GRBANABUIU":
         ).add_to(m)
 
         #Camada Sedes Municipais
-
         folium.GeoJson(
             geojson_sedes,
             name="Sedes Municipais",
-            tooltip=folium.GeoJsonTooltip(fields=["Name"], aliases=["Sedes:"]),
-            style_function=lambda x: {"color": "darkgreen", "weight": 2}
+            tooltip=folium.GeoJsonTooltip(fields=["Name"], aliases=["Sede:"]),
+            style_function=lambda x: {"color": "purple", "weight": 2}
         ).add_to(m)
+
 
         for _, row in df_mapa.iterrows():
             popup_info = f"""
