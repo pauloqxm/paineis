@@ -157,8 +157,6 @@ if aba == "Vazões - GRBANABUIU":
         ).add_to(acudes_layer)
 
         acudes_layer.add_to(m)
-
-
         
         # Camada Sedes Municipais com ícone PNG personalizado
         sedes_layer = folium.FeatureGroup(name="Sedes Municipais", show=False)
@@ -182,12 +180,12 @@ if aba == "Vazões - GRBANABUIU":
         for feature in geojson_sedes["features"]:
             props = feature["properties"]
             coords = feature["geometry"]["coordinates"]
-            nome_municipio = props.get("SISTEMAH3", "Sem nome")
+            nome_comissao = props.get("SISTEMAH3", "Sem nome")
 
             folium.Marker(
                 location=[coords[1], coords[0]],
                 icon=folium.CustomIcon("https://cdn-icons-png.flaticon.com/512/4144/4144517.png", icon_size=(30, 30)),
-                tooltip=nome_municipio
+                tooltip=nome_comissao
             ).add_to(comissoes_layer)
 
         sedes_layer.add_to(m)
