@@ -180,7 +180,7 @@ if aba == "Vazões - GRBANABUIU":
         for feature in geojson_c_gestoras["features"]:
             props = feature["properties"]
             coords = feature["geometry"]["coordinates"]
-            nome_gestora = props.get("NOME", "Sem nome")
+            nome_gestora = props.get("SISTEMAH3", "Sem nome")
 
             popup_info = f"""
             <strong>Célula Gestora:</strong> {nome_gestora}<br>
