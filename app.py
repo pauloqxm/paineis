@@ -59,7 +59,6 @@ if aba == "Vazões - GRBANABUIU":
             "OpenStreetMap", "Stamen Terrain", "Stamen Toner",
             "CartoDB positron", "CartoDB dark_matter", "Esri Satellite"
         ], index=0)
-        mostrar_acudes = st.checkbox("💧 Exibir Açudes Monitorados no mapa", value=True)
 
     df_filtrado = df.copy()
     if estacoes:
