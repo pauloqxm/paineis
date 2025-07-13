@@ -12,13 +12,16 @@ from streamlit_option_menu import option_menu
 with open("rio_quixera.geojson", "r", encoding="utf-8") as f:
     geojson_quixera = json.load(f)
 
+with open("Açudes_Monitorados.geojson", "r", encoding="utf-8") as f:
+    geojson_acudes = json.load(f)
+
 st.markdown("""
     <style>
     [data-testid="stSidebar"] {
         background-color: #e0f0ff;
     }
     </style>
-    """, unsafe_allow_html=True)
+""", unsafe_allow_html=True)
 st.set_page_config(page_title="Dashboard Vazões", layout="wide")
 
 with st.sidebar:
@@ -42,9 +45,6 @@ if aba == "Vazões - GRBANABUIU":
 
     df = load_data()
 
-    with open("Açudes_Monitorados.geojson", "r", encoding="utf-8") as f:
-        geojson_acudes = json.load(f)
-
     st.title("💧 Vazões - GRBANABUIU")
 
     with st.sidebar:
@@ -59,7 +59,7 @@ if aba == "Vazões - GRBANABUIU":
             "OpenStreetMap", "Stamen Terrain", "Stamen Toner",
             "CartoDB positron", "CartoDB dark_matter", "Esri Satellite"
         ], index=0)
-      
+
     df_filtrado = df.copy()
     if estacoes:
         df_filtrado = df_filtrado[df_filtrado['Reservatório Monitorado'].isin(estacoes)]
@@ -76,12 +76,10 @@ if aba == "Vazões - GRBANABUIU":
     datas = df_filtrado["Data"].sort_values()
     x_range = [datas.min(), datas.max()]
 
-    # Traços por reservatório
     reservatorios_filtrados = df_filtrado['Reservatório Monitorado'].unique()
     for i, reservatorio in enumerate(reservatorios_filtrados):
         df_res = df_filtrado[df_filtrado['Reservatório Monitorado'] == reservatorio].sort_values(by="Data")
         cor = cores[i % len(cores)]
-
         fig.add_trace(go.Scatter(
             x=df_res["Data"],
             y=df_res["Vazão Operada"],
@@ -90,7 +88,6 @@ if aba == "Vazões - GRBANABUIU":
             line=dict(shape='linear', width=2, color=cor),
         ))
 
-    # Se apenas 1 reservatório, exibe linha da média em vermelho destacado
     if len(reservatorios_filtrados) == 1:
         media_res = df_filtrado["Vazão Operada"].mean()
         fig.add_trace(go.Scatter(
@@ -135,14 +132,13 @@ if aba == "Vazões - GRBANABUIU":
         else:
             m = folium.Map(location=center, zoom_start=8, tiles=mapa_tipo)
 
-            folium.GeoJson(
+        folium.GeoJson(
             geojson_quixera,
             name="Trecho Perenizado",
             tooltip=folium.GeoJsonTooltip(fields=["Name"], aliases=["Trecho:"]),
             style_function=lambda x: {"color": "darkblue", "weight": 2}
         ).add_to(m)
 
-        # Camada Açudes Monitorados
         folium.GeoJson(
             geojson_acudes,
             name="Açudes Monitorados",
@@ -150,66 +146,20 @@ if aba == "Vazões - GRBANABUIU":
             style_function=lambda x: {"color": "darkgreen", "weight": 2}
         ).add_to(m)
 
-            
-     
         for _, row in df_mapa.iterrows():
             popup_info = f"""
-            <strong>Reservatório:</strong> {row['Reservatório Monitorado']}<br>
-            <strong>Data:</strong> {row['Data'].date()}<br>
-            <strong>Vazão Alocada:</strong> {row['Vazao_Aloc']} l/s
-            """
+<strong>Reservatório:</strong> {row['Reservatório Monitorado']}<br>
+<strong>Data:</strong> {row['Data'].date()}<br>
+<strong>Vazão Alocada:</strong> {row['Vazao_Aloc']} l/s
+"""
             folium.Marker(
                 location=[row["lat"], row["lon"]],
                 popup=folium.Popup(popup_info, max_width=300),
                 icon=folium.Icon(color="blue", icon="tint", prefix="fa"),
-                tooltip=row["Reservatório Monitorado"],
+                tooltip=row["Reservatório Monitorado"]
+            ).add_to(m)
 
+        folium.LayerControl().add_to(m)
         folium_static(m)
     else:
         st.info("Nenhum ponto com coordenadas disponíveis para plotar no mapa.")
-
-    st.subheader("🏞️ Média da Vazão Operada por Reservatório")
-    media_vazao = df_filtrado.groupby("Reservatório Monitorado")["Vazão Operada"].mean().reset_index()
-    st.plotly_chart(
-        px.bar(
-            media_vazao,
-            x="Reservatório Monitorado",
-            y="Vazão Operada",
-            text_auto='.2s'
-        ),
-        use_container_width=True
-    )
-
-    st.subheader("📋 Tabela Detalhada")
-    st.dataframe(df_filtrado.sort_values(by="Data", ascending=False), use_container_width=True)
-
-elif aba == "🗺️ Açudes Monitorados":
-    st.title("🗺️ Açudes Monitorados")
-
-    tile_option = st.sidebar.selectbox("🗺️ Estilo do Mapa (Açudes)", [
-        "OpenStreetMap", "Stamen Terrain", "Stamen Toner",
-        "CartoDB positron", "CartoDB dark_matter", "Esri Satellite"
-    ], key="acudes_map_tile")
-
-    tile_urls = {
-        "Esri Satellite": "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
-    }
-    tile_attr = {
-        "Esri Satellite": "Tiles © Esri — Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, etc."
-    }
-
-    with open("Açudes_Monitorados.geojson", "r", encoding="utf-8") as f:
-        geojson_data = json.load(f)
-
-    center = [-5.2, -39.2]
-    if tile_option in tile_urls:
-        m = folium.Map(location=center, zoom_start=7, tiles=None)
-    else:
-        m = folium.Map(location=center, zoom_start=7, tiles=tile_option)
-
-    folium.GeoJson(
-        geojson_data,
-        name="Açudes",
-        tooltip=folium.GeoJsonTooltip(fields=["Name"], aliases=["Açude:"])
-
-    folium_static(m)
