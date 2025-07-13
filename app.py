@@ -101,7 +101,7 @@ if aba == "Vazões - GRBANABUIU":
             name=f"Média: {media_res:.2f} l/s",
             line=dict(color="red", width=4, dash="dash"),
             text=[f"Média: {media_res:.2f} l/s", ""],
-            textposition="top left",
+            textposition="top rigth",
             showlegend=False
         ))
 
