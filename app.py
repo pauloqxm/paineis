@@ -145,12 +145,15 @@ if aba == "Vazões - GRBANABUIU":
 
         #Camada Açudes Monitorados
 
-        folium.GeoJson(
-            geojson_acudes,
-            name="Açudes Monitorados",
-            tooltip=folium.GeoJsonTooltip(fields=["Name"], aliases=["Açude:"]),
-            style_function=lambda x: {"color": "darkgreen", "weight": 2}
-        ).add_to(m)
+        acudes_layer = folium.FeatureGroup(name="Açudes Monitorados", show=False)
+
+      folium.GeoJson(
+      geojson_acudes,
+      tooltip=folium.GeoJsonTooltip(fields=["Name"], aliases=["Açude:"]),
+      style_function=lambda x: {"color": "darkgreen", "weight": 2}
+      ).add_to(acudes_layer)
+
+      acudes_layer.add_to(m)
 
         
         # Camada Sedes Municipais com ícone PNG personalizado
