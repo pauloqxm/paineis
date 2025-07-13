@@ -154,7 +154,7 @@ if aba == "Vazões - GRBANABUIU":
             popup_info = f"""
             <strong>Reservatório:</strong> {row['Reservatório Monitorado']}<br>
             <strong>Data:</strong> {row['Data'].date()}<br>
-            <strong>Vazão Operada:</strong> {row['Vazão Operada']} m³/s
+            <strong>Vazão Operada:</strong> {row['Vazao_Aloc']} l/s
             """
             folium.Marker(
                 location=[row["lat"], row["lon"]],
