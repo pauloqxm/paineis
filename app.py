@@ -1,4 +1,3 @@
-
 import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
@@ -163,3 +162,53 @@ if aba == "Vazões - GRBANABUIU":
         folium_static(m)
     else:
         st.info("Nenhum ponto com coordenadas disponíveis para plotar no mapa.")
+
+
+    st.subheader("🏞️ Média da Vazão Operada por Reservatório")
+    media_vazao = df_filtrado.groupby("Reservatório Monitorado")["Vazão Operada"].mean().reset_index()
+    st.plotly_chart(
+        px.bar(
+            media_vazao,
+            x="Reservatório Monitorado",
+            y="Vazão Operada",
+            text_auto='.2s'
+        ),
+        use_container_width=True
+    )
+
+    st.subheader("📋 Tabela Detalhada")
+    st.dataframe(df_filtrado.sort_values(by="Data", ascending=False), use_container_width=True)
+
+elif aba == "🗺️ Açudes Monitorados":
+    st.title("🗺️ Açudes Monitorados")
+
+    tile_option = st.sidebar.selectbox("🗺️ Estilo do Mapa (Açudes)", [
+        "OpenStreetMap", "Stamen Terrain", "Stamen Toner",
+        "CartoDB positron", "CartoDB dark_matter", "Esri Satellite"
+    ], key="acudes_map_tile")
+
+    tile_urls = {
+        "Esri Satellite": "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+    }
+    tile_attr = {
+        "Esri Satellite": "Tiles © Esri — Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, etc."
+    }
+
+    with open("Açudes_Monitorados.geojson", "r", encoding="utf-8") as f:
+        geojson_data = json.load(f)
+
+    center = [-5.2, -39.2]
+    if tile_option in tile_urls:
+        m = folium.Map(location=center, zoom_start=7, tiles=None)
+        folium.TileLayer(tiles=tile_urls[tile_option], attr=tile_attr[tile_option], name=tile_option).add_to(m)
+    else:
+        m = folium.Map(location=center, zoom_start=7, tiles=tile_option)
+
+    folium.GeoJson(
+        geojson_data,
+        name="Açudes",
+        tooltip=folium.GeoJsonTooltip(fields=["Name"], aliases=["Açude:"])
+    ).add_to(m)
+
+    folium.LayerControl().add_to(m)
+    folium_static(m)
