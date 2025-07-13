@@ -36,7 +36,7 @@ if aba == "Vazões - GRBANABUIU":
     def load_data():
         url = "https://docs.google.com/spreadsheets/d/1pbNcZ9hS8DhotdkYuPc8kIOy5dgyoYQb384-jgqLDfA/export?format=csv"
         df = pd.read_csv(url)
-        df['Data'] = pd.to_datetime(df['Data'], errors='coerce')
+        df['Data'] = pd.to_datetime(df['Data'], format='%d/%m/%Y', errors='coerce')
         df['Mês'] = df['Data'].dt.to_period('M').astype(str)
         return df
 
