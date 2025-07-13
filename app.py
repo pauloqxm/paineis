@@ -1,3 +1,4 @@
+
 import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
@@ -100,15 +101,18 @@ if aba == "Vazões - GRBANABUIU":
             line=dict(shape='spline', width=2, color=cor),
         ))
 
-    # Se apenas 1 reservatório, exibe linha da média
+    # Se apenas 1 reservatório, exibe linha da média em vermelho destacado
     if len(reservatorios_filtrados) == 1:
         media_res = df_filtrado["Vazão Operada"].mean()
         fig.add_trace(go.Scatter(
             x=x_range,
             y=[media_res, media_res],
-            mode="lines",
-            name=f"Média {reservatorios_filtrados[0]}",
-            line=dict(color=cores[0], width=1, dash="dash"),
+            mode="lines+text",
+            name=f"Média: {media_res:.2f} l/s",
+            line=dict(color="red", width=4, dash="dash"),
+            text=[f"Média: {media_res:.2f} l/s", ""],
+            textposition="top left",
+            showlegend=False
         ))
 
     fig.update_layout(
