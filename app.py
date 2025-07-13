@@ -22,7 +22,14 @@ st.markdown("""
 st.set_page_config(page_title="Dashboard Vazões", layout="wide")
 
 with st.sidebar:
-    aba = "Vazões - GRBANABUIU"
+    aba = option_menu(
+        menu_title="Painel",
+        options=["Vazões - GRBANABUIU", "🗺️ Açudes Monitorados"],
+        icons=["droplet", "map"],
+        menu_icon="cast",
+        default_index=0,
+        orientation="vertical"
+    )
 
 if aba == "Vazões - GRBANABUIU":
     @st.cache_data
@@ -33,13 +40,9 @@ if aba == "Vazões - GRBANABUIU":
         df['Mês'] = df['Data'].dt.to_period('M').astype(str)
         return df
 
-    recarregar = st.sidebar.button("🔄 Recarregar Dados")
-if recarregar:
-    st.cache_data.clear()
+    df = load_data()
 
-df = load_data()
-
-with open("Açudes_Monitorados.geojson", "r", encoding="utf-8") as f:
+    with open("Açudes_Monitorados.geojson", "r", encoding="utf-8") as f:
         geojson_acudes = json.load(f)
 
     st.title("💧 Vazões - GRBANABUIU")
@@ -180,7 +183,8 @@ with open("Açudes_Monitorados.geojson", "r", encoding="utf-8") as f:
     st.subheader("📋 Tabela Detalhada")
     st.dataframe(df_filtrado.sort_values(by="Data", ascending=False), use_container_width=True)
 
-
+elif aba == "🗺️ Açudes Monitorados":
+    st.title("🗺️ Açudes Monitorados")
 
     tile_option = st.sidebar.selectbox("🗺️ Estilo do Mapa (Açudes)", [
         "OpenStreetMap", "Stamen Terrain", "Stamen Toner",
@@ -194,7 +198,7 @@ with open("Açudes_Monitorados.geojson", "r", encoding="utf-8") as f:
         "Esri Satellite": "Tiles © Esri — Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, etc."
     }
 
-with open("Açudes_Monitorados.geojson", "r", encoding="utf-8") as f:
+    with open("Açudes_Monitorados.geojson", "r", encoding="utf-8") as f:
         geojson_data = json.load(f)
 
     center = [-5.2, -39.2]
