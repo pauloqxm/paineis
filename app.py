@@ -88,7 +88,7 @@ if aba == "Vazões - GRBANABUIU":
     for i, reservatorio in enumerate(reservatorios_filtrados):
         df_res = df_filtrado[df_filtrado['Reservatório Monitorado'] == reservatorio].sort_values(by="Data")
         # Aplicando média móvel para suavização
-        df_res['Vazão Suavizada'] = df_res['Vazão Operada'].rolling(window=5, center=True, min_periods=1).mean()
+        df_res['Vazão Suavizada'] = df_res['Vazão Operada'].rolling(window=3, center=True, min_periods=1).mean()
         cor = cores[i % len(cores)]
         fig.add_trace(go.Scatter(
             x=df_res["Data"],
