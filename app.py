@@ -71,18 +71,38 @@ with st.sidebar:
         default_index=0,
         orientation="vertical"
     )
-    st.markdown("""
-        <style>
-        [data-testid="stSidebar"] { position: relative; }
-        .sidebar-footer { position: absolute; bottom: 10px; width:100%; text-align: center; }
-        .sidebar-footer img { width: 60px; height: auto; }
-        </style>
-        <div class="sidebar-footer">
-            <img src="https://i.ibb.co/tpQrmPb0/csbh.png" alt="CSBH Logo"><br>
-            <span style="font-size:14px; font-weight:bold; color:#003366;">Gerência Regional</span>
-        </div>
-    """, unsafe_allow_html=True)
 
+st.markdown(\"\"\"
+    <style>
+    [data-testid="stSidebarNav"] {
+        position: relative;
+    }
+    [data-testid="stSidebarNav"]::after {
+        content: "";
+        position: absolute;
+        bottom: 60px;
+        left: 0;
+        right: 0;
+        margin: auto;
+        width: 60px;
+        height: 60px;
+        background-image: url('https://i.ibb.co/tpQrmPb0/csbh.png');
+        background-size: contain;
+        background-repeat: no-repeat;
+    }
+    [data-testid="stSidebarNav"]::before {
+        content: "GRBANABUIU";
+        position: absolute;
+        bottom: 10px;
+        left: 0;
+        right: 0;
+        margin: auto;
+        font-size:14px;
+        font-weight:bold;
+        color:#003366;
+    }
+    </style>
+""", unsafe_allow_html=True)
 if aba == "Vazões - GRBANABUIU":
     @st.cache_data
     def load_data():
