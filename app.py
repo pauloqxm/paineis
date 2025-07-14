@@ -30,18 +30,18 @@ st.markdown("""
         background-color: #e0f0ff;
         position: relative;
     }
-    [data-testid="stSidebar"]::after {
+   [data-testid="stSidebar"]::after {
         content: "";
-        position: relative;
-        bottom: 20px;
-        left: 50%;
-        transform: translateX(-50%);
-        width: 80%;
+        position: fixed;
+        bottom: 60px;
+        left: 0;
+        width: 240px;
         height: 50px;
         background-image: url('https://i.ibb.co/tpQrmPb0/csbh.png');
         background-repeat: no-repeat;
         background-size: contain;
         background-position: center;
+        z-index: 999;
     }
     </style>
     </style>
