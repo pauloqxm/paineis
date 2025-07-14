@@ -40,7 +40,7 @@ st.markdown("""
         background-image: url('https://i.ibb.co/tpQrmPb0/csbh.png');
         background-repeat: no-repeat;
         background-size: contain;
-        background-position: right;
+        background-position: center;
         z-index: 999;
     }
     </style>
