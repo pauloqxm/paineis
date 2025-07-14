@@ -113,27 +113,24 @@ if aba == "Vazões - GRBANABUIU":
             textposition="top right",
             showlegend=False
         ))
-    # Linhas horizontais baseadas em valores suavizados (o que aparece no gráfico)
-    vazoes_suavizadas = pd.concat([
-        df_filtrado[df_filtrado['Reservatório Monitorado'] == r]['Vazão Operada'].rolling(window=5, center=True, min_periods=1).mean()
-        for r in reservatorios_filtrados
-    ])
 
-    min_vazao = vazoes_suavizadas.min()
-    max_vazao = vazoes_suavizadas.max()
-    intervalo = 500
-    faixas_auto = list(range(int(min_vazao // intervalo) * intervalo, int(max_vazao + intervalo), intervalo))
-
-    for valor in faixas_auto:
-        fig.add_shape(
-            type="line",
-            x0=x_range[0],
-            x1=x_range[1],
-            y0=valor,
-            y1=valor,
-            line=dict(color="lightgray", width=1, dash="dot")
-        )
-
+    # ADIÇÃO DAS LINHAS HORIZONTAIS DINÂMICAS
+    valores_vazao = df_filtrado['Vazão Operada'].dropna()
+    if not valores_vazao.empty:
+        # Calcular linhas nos percentis 25%, 50% e 75%
+        linhas_fixas = valores_vazao.quantile([0.25, 0.5, 0.75]).tolist()
+        percentis = [25, 50, 75]
+        
+        for valor, p in zip(linhas_fixas, percentis):
+            fig.add_hline(
+                y=valor,
+                line_dash="dot",
+                line_color="gray",
+                opacity=0.5,
+                annotation_text=f"P{p}: {valor:.0f} l/s",
+                annotation_position="right",
+                annotation_font_size=10
+            )
 
     fig.update_layout(
         xaxis_title="Data",
@@ -243,7 +240,7 @@ if aba == "Vazões - GRBANABUIU":
             ).add_to(m)
 
         folium.LayerControl().add_to(m)
-        folium_static(m, width=1200)  # Ajuste para mapa wide
+        folium_static(m, width=1200)
     else:
         st.info("Nenhum ponto com coordenadas disponíveis para plotar no mapa.")
 
@@ -294,4 +291,4 @@ elif aba == "🗺️ Açudes Monitorados":
     ).add_to(m)
 
     folium.LayerControl().add_to(m)
-    folium_static(m, width=None)  # Ajuste para mapa wide
+    folium_static(m, width=None)
