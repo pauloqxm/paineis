@@ -119,7 +119,7 @@ if aba == "Vazões - GRBANABUIU":
         yaxis_title="Vazão Operada (l/s)",
         legend_title="Reservatório",
         template="simple_white",
-        hovermode="closest",  # Mostra apenas o ponto mais próximo do cursor
+        hovermode="closest",
         margin=dict(l=40, r=20, t=40, b=40)
     )
 
@@ -222,7 +222,7 @@ if aba == "Vazões - GRBANABUIU":
             ).add_to(m)
 
         folium.LayerControl().add_to(m)
-        folium_static(m)
+        folium_static(m, width=1200)  # Ajuste para mapa wide
     else:
         st.info("Nenhum ponto com coordenadas disponíveis para plotar no mapa.")
 
@@ -273,4 +273,4 @@ elif aba == "🗺️ Açudes Monitorados":
     ).add_to(m)
 
     folium.LayerControl().add_to(m)
-    folium_static(m)
+    folium_static(m, width=1200)  # Ajuste para mapa wide
