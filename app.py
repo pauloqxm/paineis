@@ -46,16 +46,15 @@ st.markdown("""
         padding-top: 80px;
     }
 
+    /* Ajusta a largura da sidebar como variável */
     [data-testid="stSidebar"] {
         --sidebar-width: 260px;
     }
 
+    /* Remove margem duplicada quando a sidebar está recolhida */
     @media screen and (max-width: 768px) {
         .fixed-header {
-            display: none;
-        }
-        .stApp {
-            padding-top: 0;
+            margin-left: 0;
         }
     }
     </style>
