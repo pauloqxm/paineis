@@ -45,7 +45,7 @@ st.markdown("""
         padding-top: 80px;
     }
 
-    @media screen and (max-width: 768px) {
+    @media screen and (max-width: 100%) {
         .fixed-header {
             left: 0;
             width: 100vw;
