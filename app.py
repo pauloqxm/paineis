@@ -113,8 +113,32 @@ if aba == "Vazões - GRBANABUIU":
             textposition="top right",
             showlegend=False
         ))
+    # Adiciona linha média horizontal para cada reservatório
+    for i, reservatorio in enumerate(reservatorios_filtrados):
+        df_res = df_filtrado[df_filtrado['Reservatório Monitorado'] == reservatorio]
+        media_valor = df_res["Vazão Operada"].mean()
+        cor = cores[i % len(cores)]
+        fig.add_shape(
+            type="line",
+            x0=x_range[0],
+            x1=x_range[1],
+            y0=media_valor,
+            y1=media_valor,
+            line=dict(color=cor, width=1, dash="dash"),
+            name=f"Média {reservatorio}"
+        )
+        fig.add_annotation(
+            x=x_range[1],
+            y=media_valor,
+            text=f"{reservatorio} média: {media_valor:.1f} l/s",
+            showarrow=False,
+            xanchor="left",
+            yanchor="bottom",
+            font=dict(size=10, color=cor)
+        )
 
-    fig.update_layout(
+
+        fig.update_layout(
         xaxis_title="Data",
         yaxis_title="Vazão Operada (l/s)",
         legend_title="Reservatório",
