@@ -87,8 +87,8 @@ if aba == "Vazões - GRBANABUIU":
     reservatorios_filtrados = df_filtrado['Reservatório Monitorado'].unique()
     for i, reservatorio in enumerate(reservatorios_filtrados):
         df_res = df_filtrado[df_filtrado['Reservatório Monitorado'] == reservatorio].sort_values(by="Data")
-        # Aplicando média móvel para suavização adicional
-        df_res['Vazão Suavizada'] = df_res['Vazão Operada'].rolling(window=6, center=True, min_periods=1).mean()
+        # Aplicando média móvel para suavização
+        df_res['Vazão Suavizada'] = df_res['Vazão Operada'].rolling(window=3, center=True, min_periods=1).mean()
         cor = cores[i % len(cores)]
         fig.add_trace(go.Scatter(
             x=df_res["Data"],
@@ -97,7 +97,8 @@ if aba == "Vazões - GRBANABUIU":
             name=reservatorio,
             line=dict(shape='spline', width=2, color=cor, smoothing=1.3),
             hoverinfo='text',
-            hovertext=f"Reservatório: {reservatorio}<br>Data: {df_res['Data'].dt.strftime('%d/%m/%Y')}<br>Vazão: {df_res['Vazão Operada'].round(2)} l/s"
+            hovertext=[f"<b>{reservatorio}</b><br>Data: {d.strftime('%d/%m/%Y')}<br>Vazão: {v:.2f} l/s" 
+                      for d, v in zip(df_res['Data'], df_res['Vazão Operada'])]
         ))
 
     if len(reservatorios_filtrados) == 1:
@@ -118,7 +119,7 @@ if aba == "Vazões - GRBANABUIU":
         yaxis_title="Vazão Operada (l/s)",
         legend_title="Reservatório",
         template="simple_white",
-        hovermode="x unified",
+        hovermode="closest",  # Mostra apenas o ponto mais próximo do cursor
         margin=dict(l=40, r=20, t=40, b=40)
     )
 
