@@ -40,18 +40,8 @@ st.markdown("""
         border-bottom: 2px solid #ccc;
         box-sizing: border-box;
     }
-
     .stApp {
         padding-top: 80px;
-    }
-
-    @media screen and (max-width:  768px) {
-        .fixed-header {
-            left: 0;
-            width: 100vw;
-            padding-left: 20px;
-            padding-right: 20px;
-        }
     }
     </style>
     <div class="fixed-header">
