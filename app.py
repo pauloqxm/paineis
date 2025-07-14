@@ -113,9 +113,14 @@ if aba == "Vazões - GRBANABUIU":
             textposition="top right",
             showlegend=False
         ))
-    # Linhas horizontais automáticas conforme faixa da vazão
-    min_vazao = df_filtrado["Vazão Operada"].min()
-    max_vazao = df_filtrado["Vazão Operada"].max()
+    # Linhas horizontais baseadas em valores suavizados (o que aparece no gráfico)
+    vazoes_suavizadas = pd.concat([
+        df_filtrado[df_filtrado['Reservatório Monitorado'] == r]['Vazão Operada'].rolling(window=5, center=True, min_periods=1).mean()
+        for r in reservatorios_filtrados
+    ])
+
+    min_vazao = vazoes_suavizadas.min()
+    max_vazao = vazoes_suavizadas.max()
     intervalo = 250
     faixas_auto = list(range(int(min_vazao // intervalo) * intervalo, int(max_vazao + intervalo), intervalo))
 
