@@ -47,10 +47,10 @@ st.markdown("""
 
     @media screen and (max-width: 768px) {
         .fixed-header {
-            display: none;
-        }
-        .stApp {
-            padding-top: 0;
+            left: 0;
+            width: 100vw;
+            padding-left: 20px;
+            padding-right: 20px;
         }
     }
     </style>
