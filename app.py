@@ -177,8 +177,8 @@ if aba == "Vazões - GRBANABUIU":
             ).add_to(sedes_layer)
 
         sedes_layer.add_to(m)
-# Camada Células Gestoras com ícone PNG personalizado
-        gestoras_layer = folium.FeatureGroup(name="Células Gestoras", show=False)
+# Camada Comissões Gestoras
+        gestoras_layer = folium.FeatureGroup(name="Comissões Gestoras", show=False)
 
         for feature in geojson_c_gestoras["features"]:
             props = feature["properties"]
