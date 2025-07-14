@@ -27,16 +27,10 @@ st.markdown("""
     <style>
     <style>
     [data-testid="stSidebar"] {
-        max-width: 260px;
-        min-width: 260px;
-        border-right: 2px solid #ccc;
         background-color: #e0f0ff;
         position: relative;
     }
    [data-testid="stSidebar"]::after {
-        right: 0;
-        margin: 0 auto;
-        width: 100%;
         content: "";
         position: fixed;
         bottom: 60px;
