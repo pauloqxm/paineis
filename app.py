@@ -4,60 +4,32 @@ import plotly.graph_objects as go
 import plotly.express as px
 import folium
 import json
+import datetime
 from streamlit_folium import folium_static
 from streamlit_option_menu import option_menu
 
-# Carregar dados geoespaciais
-geojson_files = {
-    "rio_quixera": "rio_quixera.geojson",
-    "acudes": "Açudes_Monitorados.geojson", 
-    "sedes": "Sedes_Municipais.geojson",
-    "gestoras": "c_gestoras.geojson",
-    "municipios": "poligno_municipios.geojson"
-}
+with open("rio_quixera.geojson", "r", encoding="utf-8") as f:
+    geojson_quixera = json.load(f)
 
-geojson_data = {}
-for name, path in geojson_files.items():
-    with open(path, "r", encoding="utf-8") as f:
-        geojson_data[name] = json.load(f)
+with open("Açudes_Monitorados.geojson", "r", encoding="utf-8") as f:
+    geojson_acudes = json.load(f)
+    
+with open("Sedes_Municipais.geojson", "r", encoding="utf-8") as f:
+    geojson_sedes = json.load(f)
+    
+with open("c_gestoras.geojson", "r", encoding="utf-8") as f:
+    geojson_c_gestoras = json.load(f)
+    
+with open("poligno_municipios.geojson", "r", encoding="utf-8") as f:
+            geojson_poligno = json.load(f)
 
-# Configuração da página
-st.set_page_config(page_title="Dashboard Vazões", layout="wide")
 st.markdown("""
     <style>
     [data-testid="stSidebar"] {
         background-color: #e0f0ff;
-        position: relative;
     }
-    .sidebar-footer {
-        position: absolute;
-        bottom: 0;
-        width: 100%;
-        text-align: center;
-        padding: 10px;
-    }
-    .stMap {border-radius: 10px;}
     </style>
 """, unsafe_allow_html=True)
-
-# Menu lateral
-with st.sidebar:
-    aba = option_menu(
-        menu_title="Painel",
-        options=["Vazões - GRBANABUIU", "🗺️ Açudes Monitorados"],
-        icons=["droplet", "map"],
-        menu_icon="cast",
-        default_index=0
-    )
-    
-    # Adicionando o rodapé com a imagem
-    st.markdown("""
-    <div class="sidebar-footer">
-        <img src="https://i.ibb.co/tpQrmPb/csbh.png" alt="CSBH Rio Banabuiu" style="width: 80%; max-width: 200px;">
-    </div>
-    """, unsafe_allow_html=True)
-
-# Restante do código permanece exatamente igual...
 st.set_page_config(page_title="Dashboard Vazões", layout="wide")
 
 with st.sidebar:
