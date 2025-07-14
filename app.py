@@ -72,12 +72,13 @@ with st.sidebar:
         orientation="vertical"
     )
 
-with st.sidebar:
-    st.markdown("""<div style='position: absolute; bottom: 10px; width: 100%; text-align: center;'>
-        <img src='https://i.ibb.co/tpQrmPb0/csbh.png' style='width: 60px; height: auto;'><br>
-        <span style='font-size:14px; font-weight:bold; color:#003366;'>GRBANABUIU</span>
-    </div>""", unsafe_allow_html=True)
 
+    st.markdown("""
+        <div class="sidebar-footer">
+            <img src="https://i.ibb.co/tpQrmPb0/csbh.png" alt="CSBH Logo"><br>
+            <span style="font-size:14px; font-weight:bold; color:#003366;">GRBANABUIU</span>
+        </div>
+    """, unsafe_allow_html=True)
 
 if aba == "Vazões - GRBANABUIU":
     @st.cache_data
