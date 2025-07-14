@@ -176,9 +176,9 @@ if not df_mapa.empty:
         sedes_layer = folium.FeatureGroup(name="Sedes Municipais", show=False)
 
         for feature in geojson_sedes["features"]:
-        props = feature["properties"]
-        coords = feature["geometry"]["coordinates"]
-        nome_municipio = props.get("NOME_MUNIC", "Sem nome")
+            props = feature["properties"]
+            coords = feature["geometry"]["coordinates"]
+            nome_municipio = props.get("NOME_MUNIC", "Sem nome")
 
         folium.Marker(
         location=[coords[1], coords[0]],
@@ -193,9 +193,9 @@ if not df_mapa.empty:
         gestoras_layer = folium.FeatureGroup(name="Comissões Gestoras", show=False)
 
         for feature in geojson_c_gestoras["features"]:
-        props = feature["properties"]
-        coords = feature["geometry"]["coordinates"]
-        nome_gestora = props.get("SISTEMAH3", "Sem nome")
+            props = feature["properties"]
+            coords = feature["geometry"]["coordinates"]
+            nome_gestora = props.get("SISTEMAH3", "Sem nome")
 
         popup_info = f"""
         <strong>Célula Gestora:</strong> {nome_gestora}<br>
@@ -230,17 +230,17 @@ if not df_mapa.empty:
         municipios_layer.add_to(m)
 
         for _, row in df_mapa.iterrows():
-        popup_info = f"""
-        <strong>Reservatório:</strong> {row['Reservatório Monitorado']}<br>
-        <strong>Data:</strong> {row['Data'].date()}<br>
-        <strong>Vazão Alocada:</strong> {row['Vazao_Aloc']} l/s
-        """
-        folium.Marker(
-        location=[row["lat"], row["lon"]],
-        popup=folium.Popup(popup_info, max_width=300),
-        icon=folium.CustomIcon("https://i.ibb.co/kvvL870/hydro-dam.png", icon_size=(30, 30)),
-        tooltip=row["Reservatório Monitorado"]
-        ).add_to(m)
+            popup_info = f"""
+            <strong>Reservatório:</strong> {row['Reservatório Monitorado']}<br>
+            <strong>Data:</strong> {row['Data'].date()}<br>
+            <strong>Vazão Alocada:</strong> {row['Vazao_Aloc']} l/s
+            """
+            folium.Marker(
+            location=[row["lat"], row["lon"]],
+            popup=folium.Popup(popup_info, max_width=300),
+            icon=folium.CustomIcon("https://i.ibb.co/kvvL870/hydro-dam.png", icon_size=(30, 30)),
+            tooltip=row["Reservatório Monitorado"]
+            ).add_to(m)
 
         folium.LayerControl().add_to(m)
         folium_static(m)
