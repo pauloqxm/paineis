@@ -136,9 +136,29 @@ if aba == "Vazões - GRBANABUIU":
             yanchor="bottom",
             font=dict(size=10, color=cor)
         )
+    # Linhas horizontais fixas para referência de valores de vazão
+    faixas = [500, 1000, 1500, 2000]
+    for valor in faixas:
+        fig.add_shape(
+            type="line",
+            x0=x_range[0],
+            x1=x_range[1],
+            y0=valor,
+            y1=valor,
+            line=dict(color="gray", width=1, dash="dot")
+        )
+        fig.add_annotation(
+            x=x_range[1],
+            y=valor,
+            text=f"{valor} l/s",
+            showarrow=False,
+            xanchor="left",
+            yanchor="bottom",
+            font=dict(size=10, color="gray")
+        )
 
 
-        fig.update_layout(
+    fig.update_layout(
         xaxis_title="Data",
         yaxis_title="Vazão Operada (l/s)",
         legend_title="Reservatório",
