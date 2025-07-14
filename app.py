@@ -15,10 +15,6 @@ with open("Açudes_Monitorados.geojson", "r", encoding="utf-8") as f:
     geojson_acudes = json.load(f)
 with open("Sedes_Municipais.geojson", "r", encoding="utf-8") as f:
     geojson_sedes = json.load(f)
-with open("c_gestoras.geojson", "r", encoding="utf-8") as f:
-    geojson_c_gestoras = json.load(f)
-with open("poligono_municipios.geojson", "r", encoding="utf-8") as f:
-    geojson_poligonos = json.load(f)
 
 
 st.markdown("""
@@ -176,49 +172,6 @@ if aba == "Vazões - GRBANABUIU":
             ).add_to(sedes_layer)
 
         sedes_layer.add_to(m)
-# Camada Células Gestoras com ícone PNG personalizado
-        gestoras_layer = folium.FeatureGroup(name="Células Gestoras", show=False)
-
-        for feature in geojson_c_gestoras["features"]:
-            props = feature["properties"]
-            coords = feature["geometry"]["coordinates"]
-            nome_gestora = props.get("SISTEMAH3", "Sem nome")
-
-            popup_info = f"""
-            <strong>Célula Gestora:</strong> {nome_gestora}<br>
-            <strong>Ano de Formação:</strong> {props.get("ANOFORMA1", "N/A")}<br>
-            <strong>Sistema:</strong> {props.get("SISTEMAH3", "N/A")}<br>
-            <strong>Município:</strong> {props.get("MUNICIPI6", "N/A")}
-            """
-
-            folium.Marker(
-                location=[coords[1], coords[0]],
-                icon=folium.CustomIcon("https://cdn-icons-png.flaticon.com/512/4144/4144517.png", icon_size=(30, 30)),
-                tooltip=nome_gestora,
-                popup=folium.Popup(popup_info, max_width=300)
-            ).add_to(gestoras_layer)
-
-        gestoras_layer.add_to(m)
-        # Camada Polígono Municípios com ícone PNG personalizado
-municipios_layer = folium.FeatureGroup(name="Municípios", show=False)
-
-for feature in geojson_poligonos["features"]:
-    props = feature["properties"]
-    coords = feature["geometry"]["coordinates"][0][0]
-    nome_municipio = props.get("NM_MUNICIP", "Sem nome")
-
-    popup_info = f"<strong>Município:</strong> {nome_municipio}"
-
-    centroide = [sum([p[1] for p in coords]) / len(coords), sum([p[0] for p in coords]) / len(coords)]
-
-    folium.Marker(
-        location=centroide,
-        popup=folium.Popup(popup_info, max_width=300),
-        icon=folium.CustomIcon("https://cdn-icons-png.flaticon.com/512/5938/5938655.png", icon_size=(30, 30)),
-        tooltip=nome_municipio
-    ).add_to(municipios_layer)
-
-municipios_layer.add_to(m)
 
 
         for _, row in df_mapa.iterrows():
@@ -230,7 +183,7 @@ municipios_layer.add_to(m)
             folium.Marker(
                 location=[row["lat"], row["lon"]],
                 popup=folium.Popup(popup_info, max_width=300),
-                icon=folium.CustomIcon("https://i.ibb.co/kvvL870/hydro-dam.png", icon_size=(30, 30)),
+                icon=folium.Icon(color="blue", icon="tint", prefix="fa"),
                 tooltip=row["Reservatório Monitorado"]
             ).add_to(m)
 
