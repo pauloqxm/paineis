@@ -13,16 +13,19 @@ with open("rio_quixera.geojson", "r", encoding="utf-8") as f:
 
 with open("Açudes_Monitorados.geojson", "r", encoding="utf-8") as f:
     geojson_acudes = json.load(f)
-    
+
 with open("Sedes_Municipais.geojson", "r", encoding="utf-8") as f:
     geojson_sedes = json.load(f)
-    
+
 with open("c_gestoras.geojson", "r", encoding="utf-8") as f:
     geojson_c_gestoras = json.load(f)
-    
-with open("poligno_municipios.geojson", "r", encoding="utf-8") as f:
-            geojson_poligno = json.load(f)
 
+with open("poligno_municipios.geojson", "r", encoding="utf-8") as f:
+    geojson_poligno = json.load(f)
+
+st.set_page_config(page_title="Dashboard Vazões", layout="wide")
+
+# Estilo da barra lateral
 st.markdown("""
     <style>
     [data-testid="stSidebar"] {
@@ -30,7 +33,6 @@ st.markdown("""
     }
     </style>
 """, unsafe_allow_html=True)
-st.set_page_config(page_title="Dashboard Vazões", layout="wide")
 
 with st.sidebar:
     aba = option_menu(
@@ -42,12 +44,11 @@ with st.sidebar:
         orientation="vertical"
     )
 
-
-    # Rodapé com imagem
+    # Imagem no rodapé da sidebar
     st.markdown(
         """
         <div style="margin-top: 40px; text-align: center;">
-            <img src="https://i.ibb.co/tpQrmPb0/csbh.png" width="150">
+            <img src="https://i.ibb.co/tpQrmPb0/csbh.png" width="180">
         </div>
         """,
         unsafe_allow_html=True
