@@ -207,7 +207,7 @@ if aba == "Vazões - GRBANABUIU":
 
         folium.GeoJson(
             geojson_poligno,
-            tooltip=folium.GeoJsonTooltip(fields=["NM_MUN"], aliases=["Município:"]),
+            tooltip=folium.GeoJsonTooltip(fields=["DESCRICA1"], aliases=["Município:"]),
             style_function=lambda x: {
                 "fillOpacity": 0,
                 "color": "blue",
