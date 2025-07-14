@@ -64,15 +64,6 @@ st.markdown("""
 
 with st.sidebar:
     aba = option_menu(
-    st.markdown("""
-        <style>
-            [data-testid="stSidebar"] > div:nth-child(1) { position: relative; }
-        </style>
-        <div style="position: absolute; bottom: 10px; width: 100%; text-align: center;">
-            <img src="https://i.ibb.co/tpQrmPb0/csbh.png" style="width:60px; height:auto;"><br>
-            <span style="font-size:14px; font-weight:bold; color:#003366;">GRBANABUIU</span>
-        </div>
-    """, unsafe_allow_html=True)
         menu_title="Painel",
         options=["Vazões - GRBANABUIU", "🗺️ Açudes Monitorados"],
         icons=["droplet", "map"],
@@ -80,6 +71,17 @@ with st.sidebar:
         default_index=0,
         orientation="vertical"
     )
+    st.markdown("""
+        <style>
+        [data-testid="stSidebar"] { position: relative; }
+        .sidebar-footer { position: absolute; bottom: 10px; width:100%; text-align: center; }
+        .sidebar-footer img { width: 60px; height: auto; }
+        </style>
+        <div class="sidebar-footer">
+            <img src="https://i.ibb.co/tpQrmPb0/csbh.png" alt="CSBH Logo"><br>
+            <span style="font-size:14px; font-weight:bold; color:#003366;">GRBANABUIU</span>
+        </div>
+    """, unsafe_allow_html=True)
 
 if aba == "Vazões - GRBANABUIU":
     @st.cache_data
