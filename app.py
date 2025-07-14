@@ -33,23 +33,44 @@ st.markdown("""
 st.set_page_config(page_title="Dashboard Vazões", layout="wide")
 
 with st.sidebar:
-    aba = option_menu(
-        menu_title="Painel",
-        options=["Vazões - GRBANABUIU", "🗺️ Açudes Monitorados"],
-        icons=["droplet", "map"],
-        menu_icon="cast",
-        default_index=0,
-        orientation="vertical"
-    )
+    # Container principal que ocupará todo o espaço disponível
+    main_container = st.container()
     
-    # Adicionando a imagem com copyright na parte inferior da sidebar
-    st.markdown("---")
-    st.image("https://i.ibb.co/tpQrmPb0/csbh.png", use_column_width=True)
-    st.markdown("""
-    <div style="text-align: center; font-size: 12px; color: #666;">
-        © 2023 Companhia de Gestão dos Recursos Hídricos
-    </div>
-    """, unsafe_allow_html=True)
+    with main_container:
+        aba = option_menu(
+            menu_title="Painel",
+            options=["Vazões - GRBANABUIU", "🗺️ Açudes Monitorados"],
+            icons=["droplet", "map"],
+            menu_icon="cast",
+            default_index=0,
+            orientation="vertical"
+        )
+        
+        if aba == "Vazões - GRBANABUIU":
+            st.header("🔎 Filtros")
+            estacoes = st.multiselect("🏞️ Reservatório Monitorado", df['Reservatório Monitorado'].dropna().unique())
+            meses = st.multiselect("📆 Mês", df['Mês'].dropna().unique())
+            datas_disponiveis = df['Data'].dropna().sort_values()
+            data_min = datas_disponiveis.min()
+            data_max = datas_disponiveis.max()
+            intervalo_data = st.date_input("📅 Intervalo de Datas", (data_min, data_max), format="DD/MM/YYYY")
+            mapa_tipo = st.selectbox("🗺️ Estilo do Mapa", [
+                "OpenStreetMap", "Stamen Terrain", "Stamen Toner",
+                "CartoDB positron", "CartoDB dark_matter", "Esri Satellite"
+            ], index=0)
+    
+    # Container para o rodapé que ficará fixo na parte inferior
+    footer_container = st.container()
+    with footer_container:
+        st.markdown("---")
+        st.image("https://i.ibb.co/tpQrmPb0/csbh.png", use_column_width=True)
+        st.markdown("""
+        <div style="text-align: center; font-size: 12px; color: #666;">
+            © 2023 Companhia de Gestão dos Recursos Hídricos
+        </div>
+        """, unsafe_allow_html=True)
+
+# Restante do código permanece igual...
 
 if aba == "Vazões - GRBANABUIU":
     @st.cache_data
