@@ -13,19 +13,16 @@ with open("rio_quixera.geojson", "r", encoding="utf-8") as f:
 
 with open("Açudes_Monitorados.geojson", "r", encoding="utf-8") as f:
     geojson_acudes = json.load(f)
-
+    
 with open("Sedes_Municipais.geojson", "r", encoding="utf-8") as f:
     geojson_sedes = json.load(f)
-
+    
 with open("c_gestoras.geojson", "r", encoding="utf-8") as f:
     geojson_c_gestoras = json.load(f)
-
+    
 with open("poligno_municipios.geojson", "r", encoding="utf-8") as f:
-    geojson_poligno = json.load(f)
+            geojson_poligno = json.load(f)
 
-st.set_page_config(page_title="Dashboard Vazões", layout="wide")
-
-# Estilo personalizado da barra lateral
 st.markdown("""
     <style>
     [data-testid="stSidebar"] {
@@ -33,6 +30,7 @@ st.markdown("""
     }
     </style>
 """, unsafe_allow_html=True)
+st.set_page_config(page_title="Dashboard Vazões", layout="wide")
 
 with st.sidebar:
     aba = option_menu(
@@ -44,10 +42,14 @@ with st.sidebar:
         orientation="vertical"
     )
 
+
+    # Rodapé com imagem
     st.markdown(
-        "<div style='position: fixed; bottom: 20px; width: 100%; text-align: center;'>"
-        "<img src='https://i.ibb.co/tpQrmPb0/csbh.png' style='width: 130px; opacity: 0.9;'/>"
-        "</div>",
+        """
+        <div style="margin-top: 40px; text-align: center;">
+            <img src="https://i.ibb.co/tpQrmPb0/csbh.png" width="150">
+        </div>
+        """,
         unsafe_allow_html=True
     )
 
@@ -65,10 +67,6 @@ if aba == "Vazões - GRBANABUIU":
     st.title("💧 Vazões - GRBANABUIU")
 
     with st.sidebar:
-    st.markdown(
-        "<style>div[data-testid='stSidebar']::after {content: ''; display: block; height: 80px; background-image: url('https://i.ibb.co/tpQrmPb0/csbh.png'); background-size: contain; background-repeat: no-repeat; background-position: center bottom; margin-top: auto;}</style>",
-        unsafe_allow_html=True
-    )
         st.header("🔎 Filtros")
         estacoes = st.multiselect("🏞️ Reservatório Monitorado", df['Reservatório Monitorado'].dropna().unique())
         meses = st.multiselect("📆 Mês", df['Mês'].dropna().unique())
@@ -234,6 +232,17 @@ if aba == "Vazões - GRBANABUIU":
 
         for _, row in df_mapa.iterrows():
             popup_info = f"""
+
+    # Rodapé com imagem
+    st.markdown(
+        """
+        <div style="margin-top: 40px; text-align: center;">
+            <img src="https://i.ibb.co/tpQrmPb0/csbh.png" width="150">
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
 <strong>Reservatório:</strong> {row['Reservatório Monitorado']}<br>
 <strong>Data:</strong> {row['Data'].date()}<br>
 <strong>Vazão Alocada:</strong> {row['Vazao_Aloc']} l/s
