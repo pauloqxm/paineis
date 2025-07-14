@@ -79,7 +79,8 @@ if aba == "Vazões - GRBANABUIU":
 
     st.subheader("📈 Evolução da Vazão Operada por Reservatório")
 
-    fig = go.Figure()
+    
+fig = go.Figure()
 cores = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b']
 datas = df_filtrado["Data"].sort_values()
 x_range = [datas.min(), datas.max()]
@@ -128,6 +129,7 @@ fig.update_layout(
 )
 
 st.plotly_chart(fig, use_container_width=True)
+
 
     st.subheader("🗺️ Mapa dos Reservatórios com Pinos")
     df_mapa = df_filtrado.copy()
