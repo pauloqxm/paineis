@@ -46,7 +46,7 @@ with st.sidebar:
     
     # Footer container (will stay at bottom)
     with st.container():
-        st.markdown("---")
+        st.markdown("...")
         st.image("https://i.ibb.co/tpQrmPb0/csbh.png", use_column_width=True)
         st.markdown("""
         <div style="text-align: top; font-size: 12px; color: #666;">
