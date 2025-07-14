@@ -80,45 +80,54 @@ if aba == "Vazões - GRBANABUIU":
     st.subheader("📈 Evolução da Vazão Operada por Reservatório")
 
     fig = go.Figure()
-    cores = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b']
-    datas = df_filtrado["Data"].sort_values()
-    x_range = [datas.min(), datas.max()]
+cores = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b']
+datas = df_filtrado["Data"].sort_values()
+x_range = [datas.min(), datas.max()]
 
-    reservatorios_filtrados = df_filtrado['Reservatório Monitorado'].unique()
-    for i, reservatorio in enumerate(reservatorios_filtrados):
-        df_res = df_filtrado[df_filtrado['Reservatório Monitorado'] == reservatorio].sort_values(by="Data")
-        cor = cores[i % len(cores)]
-        fig.add_trace(go.Scatter(
-            x=df_res["Data"],
-            y=df_res["Vazão Operada"],
-            mode="lines",
-            name=reservatorio,
-            line=dict(shape='linear', width=2, color=cor),
-        ))
+reservatorios_filtrados = df_filtrado['Reservatório Monitorado'].unique()
+for i, reservatorio in enumerate(reservatorios_filtrados):
+    df_res = df_filtrado[df_filtrado['Reservatório Monitorado'] == reservatorio].sort_values(by="Data")
+    cor = cores[i % len(cores)]
 
-    if len(reservatorios_filtrados) == 1:
-        media_res = df_filtrado["Vazão Operada"].mean()
-        fig.add_trace(go.Scatter(
-            x=x_range,
-            y=[media_res, media_res],
-            mode="lines+text",
-            name=f"Média: {media_res:.2f} l/s",
-            line=dict(color="red", width=4, dash="dash"),
-            text=[f"Média: {media_res:.2f} l/s", ""],
-            textposition="top right",
-            showlegend=False
-        ))
+    # Suavização com média móvel
+    df_res['Vazão Suavizada'] = df_res['Vazão Operada'].rolling(window=5, min_periods=1).mean()
 
-    fig.update_layout(
-        xaxis_title="Data",
-        yaxis_title="Vazão Operada (l/s)",
-        legend_title="Reservatório",
-        template="simple_white",
-        hovermode="x unified",
-        margin=dict(l=40, r=20, t=40, b=40)
+    fig.add_trace(go.Scatter(
+        x=df_res["Data"],
+        y=df_res["Vazão Suavizada"],
+        mode="lines",
+        name=reservatorio,
+        line=dict(shape='spline', width=2, color=cor),
+    ))
+
+if len(reservatorios_filtrados) == 1:
+    media_res = df_filtrado["Vazão Operada"].mean()
+    fig.add_trace(go.Scatter(
+        x=x_range,
+        y=[media_res, media_res],
+        mode="lines+text",
+        name=f"Média: {media_res:.2f} l/s",
+        line=dict(color="red", width=4, dash="dash"),
+        text=[f"Média: {media_res:.2f} l/s", ""],
+        textposition="top right",
+        showlegend=False
+    ))
+
+fig.update_layout(
+    xaxis_title="Data",
+    yaxis_title="Vazão Operada (l/s)",
+    legend_title="Reservatório",
+    template="simple_white",
+    hovermode="x unified",
+    margin=dict(l=40, r=20, t=40, b=40),
+    yaxis=dict(
+        showgrid=True,
+        gridcolor='lightgray',
+        zeroline=False
     )
+)
 
-    st.plotly_chart(fig, use_container_width=True)
+st.plotly_chart(fig, use_container_width=True)
 
     st.subheader("🗺️ Mapa dos Reservatórios com Pinos")
     df_mapa = df_filtrado.copy()
