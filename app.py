@@ -17,6 +17,9 @@ with open("Sedes_Municipais.geojson", "r", encoding="utf-8") as f:
     geojson_sedes = json.load(f)
 with open("c_gestoras.geojson", "r", encoding="utf-8") as f:
     geojson_c_gestoras = json.load(f)
+with open("poligno_municipios.geojson", "r", encoding="utf-8") as f:
+            geojson_poligno = json.load(f)
+
 
 
 st.markdown("""
@@ -197,6 +200,22 @@ if aba == "Vazões - GRBANABUIU":
             ).add_to(gestoras_layer)
 
         gestoras_layer.add_to(m)
+
+         # Camada Polígono dos Municípios com borda azul fina
+        
+        municipios_layer = folium.FeatureGroup(name="Polígonos Municipais", show=False)
+
+        folium.GeoJson(
+            geojson_poligno,
+            tooltip=folium.GeoJsonTooltip(fields=["NM_MUN"], aliases=["Município:"]),
+            style_function=lambda x: {
+                "fillOpacity": 0,
+                "color": "blue",
+                "weight": 1
+            }
+        ).add_to(municipios_layer)
+
+        municipios_layer.add_to(m)
 
 
         for _, row in df_mapa.iterrows():
