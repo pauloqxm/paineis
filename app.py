@@ -45,9 +45,9 @@ with st.sidebar:
     )
 
     # Imagem no rodapé da sidebar
-    st.markdown(
+       st.markdown(
         """
-        <div style="margin-top: 40px; text-align: center;">
+        <div style="position: fixed; bottom: 30px; left: 10px; width: 230px; text-align: center;">
             <img src="https://i.ibb.co/tpQrmPb0/csbh.png" width="180">
         </div>
         """,
