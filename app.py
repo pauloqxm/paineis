@@ -43,10 +43,16 @@ st.markdown("""
     .stApp {
         padding-top: 80px;
     }
+    h2.oper-title {
+        font-size: 18px;
+        margin: 0;
+        color: #003366;
+        line-height: 1.2;
+    }
     </style>
     <div class="fixed-header">
         <img src="https://i.ibb.co/r2FRGkmB/cogerh-logo.png" alt="Logo COGERH" style="height: 50px;">
-        <h2 style="margin: 0; color: #003366; font-size: 18px;">Operação 2025.2</h2>
+        <h2 class="oper-title">Operação 2025.2</h2>
     </div>
 """, unsafe_allow_html=True)
 , unsafe_allow_html=True)
