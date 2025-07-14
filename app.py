@@ -32,7 +32,7 @@ st.markdown("""
     }
     [data-testid="stSidebar"]::after {
         content: "";
-        position: absolute;
+        position: relative;
         bottom: 20px;
         left: 50%;
         transform: translateX(-50%);
