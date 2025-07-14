@@ -13,19 +13,16 @@ with open("rio_quixera.geojson", "r", encoding="utf-8") as f:
 
 with open("Açudes_Monitorados.geojson", "r", encoding="utf-8") as f:
     geojson_acudes = json.load(f)
-
+    
 with open("Sedes_Municipais.geojson", "r", encoding="utf-8") as f:
     geojson_sedes = json.load(f)
-
+    
 with open("c_gestoras.geojson", "r", encoding="utf-8") as f:
     geojson_c_gestoras = json.load(f)
-
+    
 with open("poligno_municipios.geojson", "r", encoding="utf-8") as f:
-    geojson_poligno = json.load(f)
+            geojson_poligno = json.load(f)
 
-st.set_page_config(page_title="Dashboard Vazões", layout="wide")
-
-# Estilo da barra lateral
 st.markdown("""
     <style>
     [data-testid="stSidebar"] {
@@ -33,6 +30,7 @@ st.markdown("""
     }
     </style>
 """, unsafe_allow_html=True)
+st.set_page_config(page_title="Dashboard Vazões", layout="wide")
 
 with st.sidebar:
     aba = option_menu(
@@ -44,16 +42,11 @@ with st.sidebar:
         orientation="vertical"
     )
 
-    # Imagem no rodapé da sidebar
-       st.markdown(
-        """
-        <div style="position: fixed; bottom: 30px; left: 10px; width: 230px; text-align: center;">
-            <img src="https://i.ibb.co/tpQrmPb0/csbh.png" width="180">
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
-
+    st.markdown("""
+    <div style='position: fixed; bottom: 0; width: 100%; text-align: center; padding-bottom: 10px;'>
+        <img src='https://i.ibb.co/tpQrmPb0/csbh.png' style='width: 80%; max-width: 150px;'>
+    </div>
+""", unsafe_allow_html=True)
 if aba == "Vazões - GRBANABUIU":
     @st.cache_data
     def load_data():
@@ -233,17 +226,6 @@ if aba == "Vazões - GRBANABUIU":
 
         for _, row in df_mapa.iterrows():
             popup_info = f"""
-
-    # Rodapé com imagem
-    st.markdown(
-        """
-        <div style="margin-top: 40px; text-align: center;">
-            <img src="https://i.ibb.co/tpQrmPb0/csbh.png" width="150">
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
-
 <strong>Reservatório:</strong> {row['Reservatório Monitorado']}<br>
 <strong>Data:</strong> {row['Data'].date()}<br>
 <strong>Vazão Alocada:</strong> {row['Vazao_Aloc']} l/s
