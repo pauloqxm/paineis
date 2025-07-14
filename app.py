@@ -13,35 +13,23 @@ with open("rio_quixera.geojson", "r", encoding="utf-8") as f:
 
 with open("Açudes_Monitorados.geojson", "r", encoding="utf-8") as f:
     geojson_acudes = json.load(f)
-
+    
 with open("Sedes_Municipais.geojson", "r", encoding="utf-8") as f:
     geojson_sedes = json.load(f)
-
+    
 with open("c_gestoras.geojson", "r", encoding="utf-8") as f:
     geojson_c_gestoras = json.load(f)
-
+    
 with open("poligno_municipios.geojson", "r", encoding="utf-8") as f:
-    geojson_poligno = json.load(f)
+            geojson_poligno = json.load(f)
 
 st.markdown("""
     <style>
     [data-testid="stSidebar"] {
         background-color: #e0f0ff;
     }
-    [data-testid="stSidebar"]::after {
-        content: '';
-        display: block;
-        margin-top: 20px;
-        background-image: url('https://i.ibb.co/tpQrmPb0/csbh.png');
-        background-repeat: no-repeat;
-        background-position: center;
-        background-size: contain;
-        height: 80px;
-        width: 100%;
-    }
     </style>
 """, unsafe_allow_html=True)
-
 st.set_page_config(page_title="Dashboard Vazões", layout="wide")
 
 with st.sidebar:
