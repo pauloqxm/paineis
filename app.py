@@ -13,17 +13,15 @@ with open("rio_quixera.geojson", "r", encoding="utf-8") as f:
 
 with open("Açudes_Monitorados.geojson", "r", encoding="utf-8") as f:
     geojson_acudes = json.load(f)
-
+    
 with open("Sedes_Municipais.geojson", "r", encoding="utf-8") as f:
     geojson_sedes = json.load(f)
-
+    
 with open("c_gestoras.geojson", "r", encoding="utf-8") as f:
     geojson_c_gestoras = json.load(f)
-
+    
 with open("poligno_municipios.geojson", "r", encoding="utf-8") as f:
-    geojson_poligno = json.load(f)
-
-st.set_page_config(page_title="Dashboard Vazões", layout="wide")
+            geojson_poligno = json.load(f)
 
 st.markdown("""
     <style>
@@ -32,6 +30,7 @@ st.markdown("""
     }
     </style>
 """, unsafe_allow_html=True)
+st.set_page_config(page_title="Dashboard Vazões", layout="wide")
 
 with st.sidebar:
     aba = option_menu(
@@ -43,14 +42,6 @@ with st.sidebar:
         orientation="vertical"
     )
 
-    # Imagem no rodapé da barra lateral
-    st.markdown("""
-        <div style="position: fixed; bottom: 30px; left: 20px; width: 80%;">
-            <img src="https://i.ibb.co/tpQrmPb0/csbh.png" style="width: 100%;">
-        </div>
-    """, unsafe_allow_html=True)
-
-    
 if aba == "Vazões - GRBANABUIU":
     @st.cache_data
     def load_data():
