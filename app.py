@@ -79,100 +79,90 @@ if aba == "Vazões - GRBANABUIU":
 
     st.subheader("📈 Evolução da Vazão Operada por Reservatório")
 
-    
-fig = go.Figure()
-cores = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b']
-datas = df_filtrado["Data"].sort_values()
-x_range = [datas.min(), datas.max()]
+    fig = go.Figure()
+    cores = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b']
+    datas = df_filtrado["Data"].sort_values()
+    x_range = [datas.min(), datas.max()]
 
-reservatorios_filtrados = df_filtrado['Reservatório Monitorado'].unique()
-for i, reservatorio in enumerate(reservatorios_filtrados):
-    df_res = df_filtrado[df_filtrado['Reservatório Monitorado'] == reservatorio].sort_values(by="Data")
-    cor = cores[i % len(cores)]
+    reservatorios_filtrados = df_filtrado['Reservatório Monitorado'].unique()
+    for i, reservatorio in enumerate(reservatorios_filtrados):
+        df_res = df_filtrado[df_filtrado['Reservatório Monitorado'] == reservatorio].sort_values(by="Data")
+        cor = cores[i % len(cores)]
+        fig.add_trace(go.Scatter(
+            x=df_res["Data"],
+            y=df_res["Vazão Operada"],
+            mode="lines",
+            name=reservatorio,
+            line=dict(shape='linear', width=2, color=cor),
+        ))
 
-    # Suavização com média móvel
-    df_res['Vazão Suavizada'] = df_res['Vazão Operada'].rolling(window=5, min_periods=1).mean()
+    if len(reservatorios_filtrados) == 1:
+        media_res = df_filtrado["Vazão Operada"].mean()
+        fig.add_trace(go.Scatter(
+            x=x_range,
+            y=[media_res, media_res],
+            mode="lines+text",
+            name=f"Média: {media_res:.2f} l/s",
+            line=dict(color="red", width=4, dash="dash"),
+            text=[f"Média: {media_res:.2f} l/s", ""],
+            textposition="top right",
+            showlegend=False
+        ))
 
-    fig.add_trace(go.Scatter(
-        x=df_res["Data"],
-        y=df_res["Vazão Suavizada"],
-        mode="lines",
-        name=reservatorio,
-        line=dict(shape='spline', width=2, color=cor),
-    ))
-
-if len(reservatorios_filtrados) == 1:
-    media_res = df_filtrado["Vazão Operada"].mean()
-    fig.add_trace(go.Scatter(
-        x=x_range,
-        y=[media_res, media_res],
-        mode="lines+text",
-        name=f"Média: {media_res:.2f} l/s",
-        line=dict(color="red", width=4, dash="dash"),
-        text=[f"Média: {media_res:.2f} l/s", ""],
-        textposition="top right",
-        showlegend=False
-    ))
-
-fig.update_layout(
-    xaxis_title="Data",
-    yaxis_title="Vazão Operada (l/s)",
-    legend_title="Reservatório",
-    template="simple_white",
-    hovermode="x unified",
-    margin=dict(l=40, r=20, t=40, b=40),
-    yaxis=dict(
-        showgrid=True,
-        gridcolor='lightgray',
-        zeroline=False
+    fig.update_layout(
+        xaxis_title="Data",
+        yaxis_title="Vazão Operada (l/s)",
+        legend_title="Reservatório",
+        template="simple_white",
+        hovermode="x unified",
+        margin=dict(l=40, r=20, t=40, b=40)
     )
-)
 
-st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, use_container_width=True)
 
-st.subheader("🗺️ Mapa dos Reservatórios com Pinos")
-df_mapa = df_filtrado.copy()
-df_mapa[['lat', 'lon']] = df_mapa['Coordendas'].str.split(',', expand=True).astype(float)
-df_mapa = df_mapa.dropna(subset=['lat', 'lon']).drop_duplicates(subset=['Reservatório Monitorado'])
+    st.subheader("🗺️ Mapa dos Reservatórios com Pinos")
+    df_mapa = df_filtrado.copy()
+    df_mapa[['lat', 'lon']] = df_mapa['Coordendas'].str.split(',', expand=True).astype(float)
+    df_mapa = df_mapa.dropna(subset=['lat', 'lon']).drop_duplicates(subset=['Reservatório Monitorado'])
 
-tile_urls = {
-"Esri Satellite": "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
-}
-tile_attr = {
-"Esri Satellite": "Tiles © Esri — Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, etc."
-}
+    tile_urls = {
+        "Esri Satellite": "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+    }
+    tile_attr = {
+        "Esri Satellite": "Tiles © Esri — Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, etc."
+    }
 
-if not df_mapa.empty:
-    center = [df_mapa['lat'].mean(), df_mapa['lon'].mean()]
-    if mapa_tipo in tile_urls:
-        m = folium.Map(location=center, zoom_start=8, tiles=None)
-        folium.TileLayer(tiles=tile_urls[mapa_tipo], attr=tile_attr[mapa_tipo], name=mapa_tipo).add_to(m)
-    else:
-        m = folium.Map(location=center, zoom_start=8, tiles=mapa_tipo)
+    if not df_mapa.empty:
+        center = [df_mapa['lat'].mean(), df_mapa['lon'].mean()]
+        if mapa_tipo in tile_urls:
+            m = folium.Map(location=center, zoom_start=8, tiles=None)
+            folium.TileLayer(tiles=tile_urls[mapa_tipo], attr=tile_attr[mapa_tipo], name=mapa_tipo).add_to(m)
+        else:
+            m = folium.Map(location=center, zoom_start=8, tiles=mapa_tipo)
 
-#Camada Trecho Perenizado
+        #Camada Trecho Perenizado
 
         folium.GeoJson(
-        geojson_quixera,
-        name="Trecho Perenizado",
-        tooltip=folium.GeoJsonTooltip(fields=["Name"], aliases=["Trecho:"]),
-        style_function=lambda x: {"color": "darkblue", "weight": 2}
+            geojson_quixera,
+            name="Trecho Perenizado",
+            tooltip=folium.GeoJsonTooltip(fields=["Name"], aliases=["Trecho:"]),
+            style_function=lambda x: {"color": "darkblue", "weight": 2}
         ).add_to(m)
 
-# Camada Açudes Monitorados
+        # Camada Açudes Monitorados
 
         acudes_layer = folium.FeatureGroup(name="Açudes Monitorados", show=False)
 
         folium.GeoJson(
-        geojson_acudes,
-        tooltip=folium.GeoJsonTooltip(fields=["Name"], aliases=["Açude:"]),
-        style_function=lambda x: {"color": "darkgreen", "weight": 2}
+            geojson_acudes,
+            tooltip=folium.GeoJsonTooltip(fields=["Name"], aliases=["Açude:"]),
+            style_function=lambda x: {"color": "darkgreen", "weight": 2}
         ).add_to(acudes_layer)
 
         acudes_layer.add_to(m)
-
-# Camada Sedes Municipais com ícone PNG personalizado
-
+        
+        # Camada Sedes Municipais com ícone PNG personalizado
+        
         sedes_layer = folium.FeatureGroup(name="Sedes Municipais", show=False)
 
         for feature in geojson_sedes["features"]:
@@ -181,15 +171,15 @@ if not df_mapa.empty:
             nome_municipio = props.get("NOME_MUNIC", "Sem nome")
 
             folium.Marker(
-        location=[coords[1], coords[0]],
-        icon=folium.CustomIcon("https://cdn-icons-png.flaticon.com/512/854/854878.png", icon_size=(22, 22)),
-        tooltip=nome_municipio
-        ).add_to(sedes_layer)
+                location=[coords[1], coords[0]],
+                icon=folium.CustomIcon("https://cdn-icons-png.flaticon.com/512/854/854878.png", icon_size=(22, 22)),
+                tooltip=nome_municipio
+            ).add_to(sedes_layer)
 
         sedes_layer.add_to(m)
-
-# Camada Comissões Gestoras
-
+        
+        # Camada Comissões Gestoras
+        
         gestoras_layer = folium.FeatureGroup(name="Comissões Gestoras", show=False)
 
         for feature in geojson_c_gestoras["features"]:
@@ -197,101 +187,101 @@ if not df_mapa.empty:
             coords = feature["geometry"]["coordinates"]
             nome_gestora = props.get("SISTEMAH3", "Sem nome")
 
-        popup_info = f"""
-        <strong>Célula Gestora:</strong> {nome_gestora}<br>
-        <strong>Ano de Formação:</strong> {props.get("ANOFORMA1", "N/A")}<br>
-        <strong>Sistema:</strong> {props.get("SISTEMAH3", "N/A")}<br>
-        <strong>Município:</strong> {props.get("MUNICIPI6", "N/A")}
-        """
+            popup_info = f"""
+            <strong>Célula Gestora:</strong> {nome_gestora}<br>
+            <strong>Ano de Formação:</strong> {props.get("ANOFORMA1", "N/A")}<br>
+            <strong>Sistema:</strong> {props.get("SISTEMAH3", "N/A")}<br>
+            <strong>Município:</strong> {props.get("MUNICIPI6", "N/A")}
+            """
 
             folium.Marker(
-        location=[coords[1], coords[0]],
-        icon=folium.CustomIcon("https://cdn-icons-png.flaticon.com/512/4144/4144517.png", icon_size=(30, 30)),
-        tooltip=nome_gestora,
-        popup=folium.Popup(popup_info, max_width=300)
-        ).add_to(gestoras_layer)
+                location=[coords[1], coords[0]],
+                icon=folium.CustomIcon("https://cdn-icons-png.flaticon.com/512/4144/4144517.png", icon_size=(30, 30)),
+                tooltip=nome_gestora,
+                popup=folium.Popup(popup_info, max_width=300)
+            ).add_to(gestoras_layer)
 
         gestoras_layer.add_to(m)
 
-# Camada Polígono dos Municípios com borda azul fina
-
+         # Camada Polígono dos Municípios com borda azul fina
+        
         municipios_layer = folium.FeatureGroup(name="Polígonos Municipais", show=False)
 
         folium.GeoJson(
-        geojson_poligno,
-        tooltip=folium.GeoJsonTooltip(fields=["DESCRICA1"], aliases=["Município:"]),
-        style_function=lambda x: {
-        "fillOpacity": 0,
-        "color": "blue",
-        "weight": 1
-        }
+            geojson_poligno,
+            tooltip=folium.GeoJsonTooltip(fields=["DESCRICA1"], aliases=["Município:"]),
+            style_function=lambda x: {
+                "fillOpacity": 0,
+                "color": "blue",
+                "weight": 1
+            }
         ).add_to(municipios_layer)
 
         municipios_layer.add_to(m)
 
         for _, row in df_mapa.iterrows():
             popup_info = f"""
-            <strong>Reservatório:</strong> {row['Reservatório Monitorado']}<br>
-            <strong>Data:</strong> {row['Data'].date()}<br>
-            <strong>Vazão Alocada:</strong> {row['Vazao_Aloc']} l/s
-            """
-                folium.Marker(
-            location=[row["lat"], row["lon"]],
-            popup=folium.Popup(popup_info, max_width=300),
-            icon=folium.CustomIcon("https://i.ibb.co/kvvL870/hydro-dam.png", icon_size=(30, 30)),
-            tooltip=row["Reservatório Monitorado"]
+<strong>Reservatório:</strong> {row['Reservatório Monitorado']}<br>
+<strong>Data:</strong> {row['Data'].date()}<br>
+<strong>Vazão Alocada:</strong> {row['Vazao_Aloc']} l/s
+"""
+            folium.Marker(
+                location=[row["lat"], row["lon"]],
+                popup=folium.Popup(popup_info, max_width=300),
+                icon=folium.CustomIcon("https://i.ibb.co/kvvL870/hydro-dam.png", icon_size=(30, 30)),
+                tooltip=row["Reservatório Monitorado"]
             ).add_to(m)
 
         folium.LayerControl().add_to(m)
         folium_static(m)
-else:
-    st.info("Nenhum ponto com coordenadas disponíveis para plotar no mapa.")
+    else:
+        st.info("Nenhum ponto com coordenadas disponíveis para plotar no mapa.")
 
-        st.subheader("🏞️ Média da Vazão Operada por Reservatório")
-        media_vazao = df_filtrado.groupby("Reservatório Monitorado")["Vazão Operada"].mean().reset_index()
-        st.plotly_chart(
+    st.subheader("🏞️ Média da Vazão Operada por Reservatório")
+    media_vazao = df_filtrado.groupby("Reservatório Monitorado")["Vazão Operada"].mean().reset_index()
+    st.plotly_chart(
         px.bar(
-        media_vazao,
-        x="Reservatório Monitorado",
-        y="Vazão Operada",
-        text_auto='.2s'
+            media_vazao,
+            x="Reservatório Monitorado",
+            y="Vazão Operada",
+            text_auto='.2s'
         ),
         use_container_width=True
-        )
+    )
 
-        st.subheader("📋 Tabela Detalhada")
-        st.dataframe(df_filtrado.sort_values(by="Data", ascending=False), use_container_width=True)
+    st.subheader("📋 Tabela Detalhada")
+    st.dataframe(df_filtrado.sort_values(by="Data", ascending=False), use_container_width=True)
 
 elif aba == "🗺️ Açudes Monitorados":
-        st.title("🗺️ Açudes Monitorados")
+    st.title("🗺️ Açudes Monitorados")
 
-        tile_option = st.sidebar.selectbox("🗺️ Estilo do Mapa (Açudes)", [
+    tile_option = st.sidebar.selectbox("🗺️ Estilo do Mapa (Açudes)", [
         "OpenStreetMap", "Stamen Terrain", "Stamen Toner",
         "CartoDB positron", "CartoDB dark_matter", "Esri Satellite"
-        ], key="acudes_map_tile")
+    ], key="acudes_map_tile")
 
-        tile_urls = {
+    tile_urls = {
         "Esri Satellite": "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
-        }
-        tile_attr = {
+    }
+    tile_attr = {
         "Esri Satellite": "Tiles © Esri — Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, etc."
-        }
+    }
 
-        with open("Açudes_Monitorados.geojson", "r", encoding="utf-8") as f:
+    with open("Açudes_Monitorados.geojson", "r", encoding="utf-8") as f:
         geojson_data = json.load(f)
 
-        center = [-5.2, -39.2]
-        if tile_option in tile_urls:
+    center = [-5.2, -39.2]
+    if tile_option in tile_urls:
         m = folium.Map(location=center, zoom_start=7, tiles=None)
         folium.TileLayer(tiles=tile_urls[tile_option], attr=tile_attr[tile_option], name=tile_option).add_to(m)
     else:
         m = folium.Map(location=center, zoom_start=7, tiles=tile_option)
 
-        folium.GeoJson(
+    folium.GeoJson(
         geojson_data,
         name="Açudes",
         tooltip=folium.GeoJsonTooltip(fields=["Name"], aliases=["Açude:"])
-        ).add_to(m)
+    ).add_to(m)
 
-        folium.LayerControl().add_to(m)
-        folium_static(m)
+    folium.LayerControl().add_to(m)
+    folium_static(m)
