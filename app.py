@@ -152,7 +152,7 @@ if not df_mapa.empty:
 
 #Camada Trecho Perenizado
 
-        folium.GeoJson(
+        m.add_child(folium.GeoJson(
         geojson_quixera,
         name="Trecho Perenizado",
         tooltip=folium.GeoJsonTooltip(fields=["Name"], aliases=["Trecho:"]),
@@ -163,7 +163,7 @@ if not df_mapa.empty:
 
         acudes_layer = folium.FeatureGroup(name="Açudes Monitorados", show=False)
 
-        folium.GeoJson(
+        m.add_child(folium.GeoJson(
         geojson_acudes,
         tooltip=folium.GeoJsonTooltip(fields=["Name"], aliases=["Açude:"]),
         style_function=lambda x: {"color": "darkgreen", "weight": 2}
@@ -180,7 +180,7 @@ if not df_mapa.empty:
             coords = feature["geometry"]["coordinates"]
             nome_municipio = props.get("NOME_MUNIC", "Sem nome")
 
-        folium.Marker(
+            folium.Marker(
         location=[coords[1], coords[0]],
         icon=folium.CustomIcon("https://cdn-icons-png.flaticon.com/512/854/854878.png", icon_size=(22, 22)),
         tooltip=nome_municipio
@@ -204,7 +204,7 @@ if not df_mapa.empty:
         <strong>Município:</strong> {props.get("MUNICIPI6", "N/A")}
         """
 
-        folium.Marker(
+            folium.Marker(
         location=[coords[1], coords[0]],
         icon=folium.CustomIcon("https://cdn-icons-png.flaticon.com/512/4144/4144517.png", icon_size=(30, 30)),
         tooltip=nome_gestora,
@@ -217,7 +217,7 @@ if not df_mapa.empty:
 
         municipios_layer = folium.FeatureGroup(name="Polígonos Municipais", show=False)
 
-        folium.GeoJson(
+        m.add_child(folium.GeoJson(
         geojson_poligno,
         tooltip=folium.GeoJsonTooltip(fields=["DESCRICA1"], aliases=["Município:"]),
         style_function=lambda x: {
@@ -235,7 +235,7 @@ if not df_mapa.empty:
             <strong>Data:</strong> {row['Data'].date()}<br>
             <strong>Vazão Alocada:</strong> {row['Vazao_Aloc']} l/s
             """
-            folium.Marker(
+                folium.Marker(
             location=[row["lat"], row["lon"]],
             popup=folium.Popup(popup_info, max_width=300),
             icon=folium.CustomIcon("https://i.ibb.co/kvvL870/hydro-dam.png", icon_size=(30, 30)),
@@ -244,8 +244,8 @@ if not df_mapa.empty:
 
         folium.LayerControl().add_to(m)
         folium_static(m)
-    else:
-        st.info("Nenhum ponto com coordenadas disponíveis para plotar no mapa.")
+else:
+    st.info("Nenhum ponto com coordenadas disponíveis para plotar no mapa.")
 
         st.subheader("🏞️ Média da Vazão Operada por Reservatório")
         media_vazao = df_filtrado.groupby("Reservatório Monitorado")["Vazão Operada"].mean().reset_index()
@@ -262,7 +262,7 @@ if not df_mapa.empty:
         st.subheader("📋 Tabela Detalhada")
         st.dataframe(df_filtrado.sort_values(by="Data", ascending=False), use_container_width=True)
 
-        elif aba == "🗺️ Açudes Monitorados":
+elif aba == "🗺️ Açudes Monitorados":
         st.title("🗺️ Açudes Monitorados")
 
         tile_option = st.sidebar.selectbox("🗺️ Estilo do Mapa (Açudes)", [
@@ -287,7 +287,7 @@ if not df_mapa.empty:
     else:
         m = folium.Map(location=center, zoom_start=7, tiles=tile_option)
 
-        folium.GeoJson(
+        m.add_child(folium.GeoJson(
         geojson_data,
         name="Açudes",
         tooltip=folium.GeoJsonTooltip(fields=["Name"], aliases=["Açude:"])
