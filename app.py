@@ -1,4 +1,54 @@
 import streamlit as st
+import pandas as pd
+import plotly.graph_objects as go
+import plotly.express as px
+import folium
+import json
+import datetime
+from streamlit_folium import folium_static
+from streamlit_option_menu import option_menu
+
+with open("rio_quixera.geojson", "r", encoding="utf-8") as f:
+    geojson_quixera = json.load(f)
+
+with open("Açudes_Monitorados.geojson", "r", encoding="utf-8") as f:
+    geojson_acudes = json.load(f)
+    
+with open("Sedes_Municipais.geojson", "r", encoding="utf-8") as f:
+    geojson_sedes = json.load(f)
+    
+with open("c_gestoras.geojson", "r", encoding="utf-8") as f:
+    geojson_c_gestoras = json.load(f)
+    
+with open("poligno_municipios.geojson", "r", encoding="utf-8") as f:
+            geojson_poligno = json.load(f)
+
+st.markdown("""
+    <style>
+    [data-testid="stSidebar"] {
+        background-color: #e0f0ff;
+    }
+    </style>
+""", unsafe_allow_html=True)
+st.set_page_config(page_title="Dashboard Vazões", layout="wide")
+
+with st.sidebar:
+    aba = option_menu(
+        menu_title="Painel",
+        options=["Vazões - GRBANABUIU", "🗺️ Açudes Monitorados"],
+        icons=["droplet", "map"],
+        menu_icon="cast",
+        default_index=0,
+        orientation="vertical"
+    )
+
+    # Imagem no rodapé do menu lateral
+    st.markdown(
+        '<div style="margin-top: 100px; text-align: center;">'
+        '<img src="https://i.ibb.co/tpQrmPb0/csbh.png" width="160">'
+        '</div>',
+        unsafe_allow_html=True
+    )
 
 if aba == "Vazões - GRBANABUIU":
     @st.cache_data
