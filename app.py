@@ -33,10 +33,8 @@ st.markdown("""
 st.set_page_config(page_title="Dashboard Vazões", layout="wide")
 
 with st.sidebar:
-    # Container principal que ocupará todo o espaço disponível
-    main_container = st.container()
-    
-    with main_container:
+    # Main content container
+    with st.container():
         aba = option_menu(
             menu_title="Painel",
             options=["Vazões - GRBANABUIU", "🗺️ Açudes Monitorados"],
@@ -45,23 +43,9 @@ with st.sidebar:
             default_index=0,
             orientation="vertical"
         )
-        
-        if aba == "Vazões - GRBANABUIU":
-            st.header("🔎 Filtros")
-            estacoes = st.multiselect("🏞️ Reservatório Monitorado", df['Reservatório Monitorado'].dropna().unique())
-            meses = st.multiselect("📆 Mês", df['Mês'].dropna().unique())
-            datas_disponiveis = df['Data'].dropna().sort_values()
-            data_min = datas_disponiveis.min()
-            data_max = datas_disponiveis.max()
-            intervalo_data = st.date_input("📅 Intervalo de Datas", (data_min, data_max), format="DD/MM/YYYY")
-            mapa_tipo = st.selectbox("🗺️ Estilo do Mapa", [
-                "OpenStreetMap", "Stamen Terrain", "Stamen Toner",
-                "CartoDB positron", "CartoDB dark_matter", "Esri Satellite"
-            ], index=0)
     
-    # Container para o rodapé que ficará fixo na parte inferior
-    footer_container = st.container()
-    with footer_container:
+    # Footer container (will stay at bottom)
+    with st.container():
         st.markdown("---")
         st.image("https://i.ibb.co/tpQrmPb0/csbh.png", use_column_width=True)
         st.markdown("""
@@ -69,8 +53,6 @@ with st.sidebar:
             © 2023 Companhia de Gestão dos Recursos Hídricos
         </div>
         """, unsafe_allow_html=True)
-
-# Restante do código permanece igual...
 
 if aba == "Vazões - GRBANABUIU":
     @st.cache_data
@@ -117,7 +99,6 @@ if aba == "Vazões - GRBANABUIU":
     reservatorios_filtrados = df_filtrado['Reservatório Monitorado'].unique()
     for i, reservatorio in enumerate(reservatorios_filtrados):
         df_res = df_filtrado[df_filtrado['Reservatório Monitorado'] == reservatorio].sort_values(by="Data")
-        # Aplicando média móvel para suavização
         df_res['Vazão Suavizada'] = df_res['Vazão Operada'].rolling(window=5, center=True, min_periods=1).mean()
         cor = cores[i % len(cores)]
         fig.add_trace(go.Scatter(
@@ -175,7 +156,6 @@ if aba == "Vazões - GRBANABUIU":
         else:
             m = folium.Map(location=center, zoom_start=8, tiles=mapa_tipo)
 
-        #Camada Trecho Perenizado
         folium.GeoJson(
             geojson_quixera,
             name="Trecho Perenizado",
@@ -183,7 +163,6 @@ if aba == "Vazões - GRBANABUIU":
             style_function=lambda x: {"color": "darkblue", "weight": 2}
         ).add_to(m)
 
-        # Camada Açudes Monitorados
         acudes_layer = folium.FeatureGroup(name="Açudes Monitorados", show=False)
         folium.GeoJson(
             geojson_acudes,
@@ -192,7 +171,6 @@ if aba == "Vazões - GRBANABUIU":
         ).add_to(acudes_layer)
         acudes_layer.add_to(m)
         
-        # Camada Sedes Municipais com ícone PNG personalizado
         sedes_layer = folium.FeatureGroup(name="Sedes Municipais", show=False)
         for feature in geojson_sedes["features"]:
             props = feature["properties"]
@@ -205,7 +183,6 @@ if aba == "Vazões - GRBANABUIU":
             ).add_to(sedes_layer)
         sedes_layer.add_to(m)
         
-        # Camada Comissões Gestoras
         gestoras_layer = folium.FeatureGroup(name="Comissões Gestoras", show=False)
         for feature in geojson_c_gestoras["features"]:
             props = feature["properties"]
@@ -225,7 +202,6 @@ if aba == "Vazões - GRBANABUIU":
             ).add_to(gestoras_layer)
         gestoras_layer.add_to(m)
 
-        # Camada Polígono dos Municípios com borda azul fina
         municipios_layer = folium.FeatureGroup(name="Polígonos Municipais", show=False)
         folium.GeoJson(
             geojson_poligno,
@@ -252,7 +228,7 @@ if aba == "Vazões - GRBANABUIU":
             ).add_to(m)
 
         folium.LayerControl().add_to(m)
-        folium_static(m, width=1200)  # Ajuste para mapa wide
+        folium_static(m, width=1200)
     else:
         st.info("Nenhum ponto com coordenadas disponíveis para plotar no mapa.")
 
@@ -303,4 +279,4 @@ elif aba == "🗺️ Açudes Monitorados":
     ).add_to(m)
 
     folium.LayerControl().add_to(m)
-    folium_static(m, width=None)  # Ajuste para mapa wide
+    folium_static(m, width=None)
