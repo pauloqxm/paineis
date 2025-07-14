@@ -113,16 +113,20 @@ if aba == "Vazões - GRBANABUIU":
             textposition="top right",
             showlegend=False
         ))
-    # Linhas horizontais fixas para referência de valores de vazão (sem textos)
-    faixas = [500, 1000, 1500, 2000]
-    for valor in faixas:
+    # Linhas horizontais automáticas conforme faixa da vazão
+    min_vazao = df_filtrado["Vazão Operada"].min()
+    max_vazao = df_filtrado["Vazão Operada"].max()
+    intervalo = 250
+    faixas_auto = list(range(int(min_vazao // intervalo) * intervalo, int(max_vazao + intervalo), intervalo))
+
+    for valor in faixas_auto:
         fig.add_shape(
             type="line",
             x0=x_range[0],
             x1=x_range[1],
             y0=valor,
             y1=valor,
-            line=dict(color="gray", width=1, dash="dot")
+            line=dict(color="lightgray", width=1, dash="dot")
         )
 
 
