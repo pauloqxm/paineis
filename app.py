@@ -28,7 +28,7 @@ st.markdown("""
     .fixed-header {
         position: fixed;
         top: 0;
-        left: 0;
+        left: 260px;
         right: 0;
         height: 70px;
         z-index: 1000;
@@ -39,23 +39,9 @@ st.markdown("""
         padding: 10px 30px;
         border-bottom: 2px solid #ccc;
         box-sizing: border-box;
-        margin-left: calc(var(--sidebar-width, 260px));
     }
-
     .stApp {
         padding-top: 80px;
-    }
-
-    /* Ajusta a largura da sidebar como variável */
-    [data-testid="stSidebar"] {
-        --sidebar-width: 260px;
-    }
-
-    /* Remove margem duplicada quando a sidebar está recolhida */
-    @media screen and (max-width: 768px) {
-        .fixed-header {
-            margin-left: 0;
-        }
     }
     </style>
     <div class="fixed-header">
