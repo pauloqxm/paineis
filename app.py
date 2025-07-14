@@ -143,10 +143,10 @@ tile_attr = {
 }
 
 if not df_mapa.empty:
-center = [df_mapa['lat'].mean(), df_mapa['lon'].mean()]
-if mapa_tipo in tile_urls:
-m = folium.Map(location=center, zoom_start=8, tiles=None)
-folium.TileLayer(tiles=tile_urls[mapa_tipo], attr=tile_attr[mapa_tipo], name=mapa_tipo).add_to(m)
+    center = [df_mapa['lat'].mean(), df_mapa['lon'].mean()]
+    if mapa_tipo in tile_urls:
+    m = folium.Map(location=center, zoom_start=8, tiles=None)
+    folium.TileLayer(tiles=tile_urls[mapa_tipo], attr=tile_attr[mapa_tipo], name=mapa_tipo).add_to(m)
 else:
 m = folium.Map(location=center, zoom_start=8, tiles=mapa_tipo)
 
