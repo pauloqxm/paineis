@@ -33,7 +33,7 @@ st.markdown("""
     [data-testid="stSidebar"]::after {
         content: "";
         position: absolute;
-        bottom: 80px;
+        bottom: 20px;
         left: 50%;
         transform: translateX(-50%);
         width: 80%;
@@ -42,23 +42,6 @@ st.markdown("""
         background-repeat: no-repeat;
         background-size: contain;
         background-position: center;
-    }
-    [data-testid="stSidebar"]::before {
-        content: "2023 Companhia de Gestão dos Recursos Hídricos";
-        position: absolute;
-        bottom: 20px;
-        left: 50%;
-        transform: translateX(-50%);
-        font-size: 10px;
-        color: #333;
-        text-align: center;
-        width: 100%;
-    }
-    [data-testid="stSidebar"] hr {
-        border: none;
-        border-top: 3px solid #ccc;
-        margin-top: 10px;
-        margin-bottom: 10px;
     }
     </style>
     </style>
