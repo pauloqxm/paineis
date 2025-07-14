@@ -62,6 +62,30 @@ st.markdown("""
     </div>
 """, unsafe_allow_html=True)
 
+
+st.markdown("""
+    <style>
+    [data-testid="stSidebar"]::after {
+        content: "GRBANABUIU";
+        position: absolute;
+        bottom: 10px;
+        left: 0;
+        width: 100%;
+        height: 70px;
+        background-image: url('https://i.ibb.co/tpQrmPb0/csbh.png');
+        background-repeat: no-repeat;
+        background-position: center top;
+        background-size: 50px 50px;
+        padding-top: 60px;
+        text-align: center;
+        font-size: 14px;
+        font-weight: bold;
+        color: #003366;
+        pointer-events: none;
+    }
+    </style>
+""", unsafe_allow_html=True)
+
 with st.sidebar:
     aba = option_menu(
         menu_title="Painel",
@@ -71,13 +95,6 @@ with st.sidebar:
         default_index=0,
         orientation="vertical"
     )
-
-with st.sidebar:
-    st.markdown("""<div style='position: absolute; bottom: 10px; width: 100%; text-align: center;'>
-        <img src='https://i.ibb.co/tpQrmPb0/csbh.png' style='width: 60px; height: auto;'><br>
-        <span style='font-size:14px; font-weight:bold; color:#003366;'>GRBANABUIU</span>
-    </div>""", unsafe_allow_html=True)
-
 
 if aba == "Vazões - GRBANABUIU":
     @st.cache_data
