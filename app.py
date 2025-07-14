@@ -208,7 +208,7 @@ if aba == "Vazões - GRBANABUIU":
             folium.Marker(
                 location=[row["lat"], row["lon"]],
                 popup=folium.Popup(popup_info, max_width=300),
-                icon=folium.CustomIcon("https://cdn-icons-png.flaticon.com/512/1686/16866696.png", icon_size=(30, 30)),
+                icon=folium.CustomIcon("https://cdn-icons-png.flaticon.com/512/5938/5938655.png", icon_size=(30, 30)),
                 tooltip=row["Reservatório Monitorado"]
             ).add_to(m)
 
