@@ -25,20 +25,43 @@ with open("poligno_municipios.geojson", "r", encoding="utf-8") as f:
 
 st.markdown("""
     <style>
+    <style>
+    [data-testid="stSidebar"] {
+        background-color: #e0f0ff;
+        position: relative;
+    }
+   [data-testid="stSidebar"]::after {
+        content: "";
+        position: fixed;
+        bottom: 60px;
+        left: 0;
+        width: 240px;
+        height: 50px;
+        background-image: url('https://i.ibb.co/tpQrmPb0/csbh.png');
+        background-repeat: no-repeat;
+        background-size: contain;
+        background-position: center;
+        z-index: 999;
+    }
+    </style>
+    </style>
+""", unsafe_allow_html=True)
+st.set_page_config(page_title="Dashboard Vazões", layout="wide")
+
+st.markdown("""
+    <style>
     .fixed-header {
         position: fixed;
         top: 0;
         left: 0;
-        width: 260px;
+        right: 0;
         z-index: 1000;
         background-color: #e0f0ff;
         display: flex;
         align-items: center;
         gap: 12px;
-        padding: 10px 15px;
-        border-right: 2px solid #ccc;
+        padding: 10px 20px;
         border-bottom: 2px solid #ccc;
-        box-sizing: border-box;
     }
     .stApp {
         padding-top: 80px;
