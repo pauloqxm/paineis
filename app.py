@@ -33,6 +33,10 @@ st.markdown("""
 st.set_page_config(page_title="Dashboard Vazões", layout="wide")
 
 with st.sidebar:
+    st.markdown(
+        "<style>div[data-testid='stSidebar']::after {content: ''; display: block; height: 80px; background-image: url('https://i.ibb.co/tpQrmPb0/csbh.png'); background-size: contain; background-repeat: no-repeat; background-position: center bottom; margin-top: auto;}</style>",
+        unsafe_allow_html=True
+    )
     aba = option_menu(
         menu_title="Painel",
         options=["Vazões - GRBANABUIU", "🗺️ Açudes Monitorados"],
@@ -64,6 +68,10 @@ if aba == "Vazões - GRBANABUIU":
     st.title("💧 Vazões - GRBANABUIU")
 
     with st.sidebar:
+    st.markdown(
+        "<style>div[data-testid='stSidebar']::after {content: ''; display: block; height: 80px; background-image: url('https://i.ibb.co/tpQrmPb0/csbh.png'); background-size: contain; background-repeat: no-repeat; background-position: center bottom; margin-top: auto;}</style>",
+        unsafe_allow_html=True
+    )
         st.header("🔎 Filtros")
         estacoes = st.multiselect("🏞️ Reservatório Monitorado", df['Reservatório Monitorado'].dropna().unique())
         meses = st.multiselect("📆 Mês", df['Mês'].dropna().unique())
