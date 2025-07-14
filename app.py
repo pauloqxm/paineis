@@ -87,13 +87,17 @@ if aba == "Vazões - GRBANABUIU":
     reservatorios_filtrados = df_filtrado['Reservatório Monitorado'].unique()
     for i, reservatorio in enumerate(reservatorios_filtrados):
         df_res = df_filtrado[df_filtrado['Reservatório Monitorado'] == reservatorio].sort_values(by="Data")
+        # Aplicando média móvel para suavização adicional
+        df_res['Vazão Suavizada'] = df_res['Vazão Operada'].rolling(window=3, center=True, min_periods=1).mean()
         cor = cores[i % len(cores)]
         fig.add_trace(go.Scatter(
             x=df_res["Data"],
-            y=df_res["Vazão Operada"],
+            y=df_res["Vazão Suavizada"],
             mode="lines",
             name=reservatorio,
-            line=dict(shape='linear', width=2, color=cor),
+            line=dict(shape='spline', width=2, color=cor, smoothing=1.3),
+            hoverinfo='text',
+            hovertext=f"Reservatório: {reservatorio}<br>Data: {df_res['Data'].dt.strftime('%d/%m/%Y')}<br>Vazão: {df_res['Vazão Operada'].round(2)} l/s"
         ))
 
     if len(reservatorios_filtrados) == 1:
@@ -141,7 +145,6 @@ if aba == "Vazões - GRBANABUIU":
             m = folium.Map(location=center, zoom_start=8, tiles=mapa_tipo)
 
         #Camada Trecho Perenizado
-
         folium.GeoJson(
             geojson_quixera,
             name="Trecho Perenizado",
@@ -150,63 +153,49 @@ if aba == "Vazões - GRBANABUIU":
         ).add_to(m)
 
         # Camada Açudes Monitorados
-
         acudes_layer = folium.FeatureGroup(name="Açudes Monitorados", show=False)
-
         folium.GeoJson(
             geojson_acudes,
             tooltip=folium.GeoJsonTooltip(fields=["Name"], aliases=["Açude:"]),
             style_function=lambda x: {"color": "darkgreen", "weight": 2}
         ).add_to(acudes_layer)
-
         acudes_layer.add_to(m)
         
         # Camada Sedes Municipais com ícone PNG personalizado
-        
         sedes_layer = folium.FeatureGroup(name="Sedes Municipais", show=False)
-
         for feature in geojson_sedes["features"]:
             props = feature["properties"]
             coords = feature["geometry"]["coordinates"]
             nome_municipio = props.get("NOME_MUNIC", "Sem nome")
-
             folium.Marker(
                 location=[coords[1], coords[0]],
                 icon=folium.CustomIcon("https://cdn-icons-png.flaticon.com/512/854/854878.png", icon_size=(22, 22)),
                 tooltip=nome_municipio
             ).add_to(sedes_layer)
-
         sedes_layer.add_to(m)
         
         # Camada Comissões Gestoras
-        
         gestoras_layer = folium.FeatureGroup(name="Comissões Gestoras", show=False)
-
         for feature in geojson_c_gestoras["features"]:
             props = feature["properties"]
             coords = feature["geometry"]["coordinates"]
             nome_gestora = props.get("SISTEMAH3", "Sem nome")
-
             popup_info = f"""
             <strong>Célula Gestora:</strong> {nome_gestora}<br>
             <strong>Ano de Formação:</strong> {props.get("ANOFORMA1", "N/A")}<br>
             <strong>Sistema:</strong> {props.get("SISTEMAH3", "N/A")}<br>
             <strong>Município:</strong> {props.get("MUNICIPI6", "N/A")}
             """
-
             folium.Marker(
                 location=[coords[1], coords[0]],
                 icon=folium.CustomIcon("https://cdn-icons-png.flaticon.com/512/4144/4144517.png", icon_size=(30, 30)),
                 tooltip=nome_gestora,
                 popup=folium.Popup(popup_info, max_width=300)
             ).add_to(gestoras_layer)
-
         gestoras_layer.add_to(m)
 
-         # Camada Polígono dos Municípios com borda azul fina
-        
+        # Camada Polígono dos Municípios com borda azul fina
         municipios_layer = folium.FeatureGroup(name="Polígonos Municipais", show=False)
-
         folium.GeoJson(
             geojson_poligno,
             tooltip=folium.GeoJsonTooltip(fields=["DESCRICA1"], aliases=["Município:"]),
@@ -216,7 +205,6 @@ if aba == "Vazões - GRBANABUIU":
                 "weight": 1
             }
         ).add_to(municipios_layer)
-
         municipios_layer.add_to(m)
 
         for _, row in df_mapa.iterrows():
