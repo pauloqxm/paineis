@@ -48,6 +48,31 @@ st.markdown("""
 """, unsafe_allow_html=True)
 st.set_page_config(page_title="Dashboard Vazões", layout="wide")
 
+st.markdown("""
+    <style>
+    .fixed-header {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 1000;
+        background-color: #e0f0ff;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 10px 20px;
+        border-bottom: 2px solid #ccc;
+    }
+    .stApp {
+        padding-top: 80px;
+    }
+    </style>
+    <div class="fixed-header">
+        <img src="https://i.ibb.co/r2FRGkmB/cogerh-logo.png" alt="Logo COGERH" style="height: 50px;">
+        <h2 style="margin: 0; color: #003366;">Operação 2025.2</h2>
+    </div>
+""", unsafe_allow_html=True)
+
 with st.sidebar:
     aba = option_menu(
         menu_title="Painel",
