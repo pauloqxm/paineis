@@ -28,15 +28,15 @@ st.markdown("""
     .fixed-header {
         position: fixed;
         top: 0;
-        left: 0;
-        width: 260px;
+        left: 260px;
+        right: 0;
+        height: 70px;
         z-index: 1000;
         background-color: #e0f0ff;
         display: flex;
         align-items: center;
         gap: 12px;
-        padding: 10px 15px;
-        border-right: 2px solid #ccc;
+        padding: 10px 30px;
         border-bottom: 2px solid #ccc;
         box-sizing: border-box;
     }
