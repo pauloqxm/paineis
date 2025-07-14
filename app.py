@@ -130,7 +130,6 @@ fig.update_layout(
 
 st.plotly_chart(fig, use_container_width=True)
 
-
     st.subheader("🗺️ Mapa dos Reservatórios com Pinos")
     df_mapa = df_filtrado.copy()
     df_mapa[['lat', 'lon']] = df_mapa['Coordendas'].str.split(',', expand=True).astype(float)
