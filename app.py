@@ -34,6 +34,12 @@ st.set_page_config(page_title="Dashboard Vazões", layout="wide")
 
 with st.sidebar:
     aba = option_menu(
+
+    st.markdown("""
+        <div style='position: fixed; bottom: 20px; left: 15px; width: 200px;'>
+            <img src='https://i.ibb.co/tpQrmPb0/csbh.png' style='width: 100%; opacity: 0.9;'/>
+        </div>
+    """, unsafe_allow_html=True)
         menu_title="Painel",
         options=["Vazões - GRBANABUIU", "🗺️ Açudes Monitorados"],
         icons=["droplet", "map"],
