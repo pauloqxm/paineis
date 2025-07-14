@@ -55,6 +55,26 @@ st.markdown("""
             padding-right: 10px;
         }
     }
+    
+[data-testid="stSidebar"]::after {
+    content: "GRBANABUIU";
+    position: fixed;
+    bottom: 10px;
+    left: 0;
+    width: 240px;
+    height: 70px;
+    background-image: url('https://i.ibb.co/tpQrmPb0/csbh.png');
+    background-repeat: no-repeat;
+    background-size: contain;
+    background-position: center top;
+    z-index: 999;
+    text-align: center;
+    font-size: 14px;
+    font-weight: bold;
+    color: #003366;
+    padding-top: 50px;
+}
+
     </style>
     <div class="fixed-header">
         <img src="https://i.ibb.co/r2FRGkmB/cogerh-logo.png" alt="Logo COGERH" style="height: 50px;">
