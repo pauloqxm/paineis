@@ -114,24 +114,6 @@ if aba == "Vazões - GRBANABUIU":
             showlegend=False
         ))
 
-    # ADIÇÃO DAS LINHAS HORIZONTAIS DINÂMICAS
-    valores_vazao = df_filtrado['Vazão Operada'].dropna()
-    if not valores_vazao.empty:
-        # Calcular linhas nos percentis 25%, 50% e 75%
-        linhas_fixas = valores_vazao.quantile([0.25, 0.5, 0.75]).tolist()
-        percentis = [25, 50, 75]
-        
-        for valor, p in zip(linhas_fixas, percentis):
-            fig.add_hline(
-                y=valor,
-                line_dash="dot",
-                line_color="gray",
-                opacity=0.5,
-                annotation_text=f"P{p}: {valor:.0f} l/s",
-                annotation_position="right",
-                annotation_font_size=10
-            )
-
     fig.update_layout(
         xaxis_title="Data",
         yaxis_title="Vazão Operada (l/s)",
@@ -240,7 +222,7 @@ if aba == "Vazões - GRBANABUIU":
             ).add_to(m)
 
         folium.LayerControl().add_to(m)
-        folium_static(m, width=1200)
+        folium_static(m, width=1200)  # Ajuste para mapa wide
     else:
         st.info("Nenhum ponto com coordenadas disponíveis para plotar no mapa.")
 
@@ -291,4 +273,4 @@ elif aba == "🗺️ Açudes Monitorados":
     ).add_to(m)
 
     folium.LayerControl().add_to(m)
-    folium_static(m, width=None)
+    folium_static(m, width=None)  # Ajuste para mapa wide
