@@ -47,7 +47,7 @@ with st.sidebar:
     # Footer container (will stay at bottom)
     with st.container():
         st.markdown("---")
-        st.image("https://i.ibb.co/tpQrmPb0/csbh.png", use_column_width=Top)
+        st.image("https://i.ibb.co/tpQrmPb0/csbh.png", use_column_width=True)
         st.markdown("""
         <div style="text-align: center; font-size: 12px; color: #666;">
             © 2023 Companhia de Gestão dos Recursos Hídricos
