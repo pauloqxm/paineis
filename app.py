@@ -121,7 +121,7 @@ if aba == "Vazões - GRBANABUIU":
 
     min_vazao = vazoes_suavizadas.min()
     max_vazao = vazoes_suavizadas.max()
-    intervalo = 250
+    intervalo = 500
     faixas_auto = list(range(int(min_vazao // intervalo) * intervalo, int(max_vazao + intervalo), intervalo))
 
     for valor in faixas_auto:
