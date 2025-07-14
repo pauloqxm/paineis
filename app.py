@@ -56,7 +56,7 @@ st.markdown("""
     }
     [data-testid="stSidebar"] hr {
         border: none;
-        border-top: 1px solid #ccc;
+        border-top: 3px solid #ccc;
         margin-top: 10px;
         margin-bottom: 10px;
     }
