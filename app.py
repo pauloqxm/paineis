@@ -69,6 +69,10 @@ with st.sidebar:
         default_index=0,
         orientation="vertical"
     )
+    
+    st.markdown("---")
+    st.image("https://i.ibb.co/tpQrmPb0/csbh.png", width=100)
+    st.markdown("**Desenvolvido pela GRBANABUIU**", unsafe_allow_html=True)
 
 if aba == "Vazões - GRBANABUIU":
     @st.cache_data
