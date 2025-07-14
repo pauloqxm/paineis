@@ -285,3 +285,12 @@ elif aba == "🗺️ Açudes Monitorados":
 
     folium.LayerControl().add_to(m)
     folium_static(m)
+
+    st.markdown(
+        """
+        <div style='position: fixed; bottom: 30px; left: 10px; width: 230px; text-align: center;'>
+            <img src='https://i.ibb.co/tpQrmPb0/csbh.png' width='160'>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
