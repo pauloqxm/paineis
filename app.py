@@ -61,7 +61,7 @@ st.markdown("""
     position: fixed;
     bottom: 10px;
     left: 0;
-    width: 200px;
+    width: 240px;
     height: 70px;
     background-image: url('https://i.ibb.co/tpQrmPb0/csbh.png');
     background-repeat: no-repeat;
