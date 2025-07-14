@@ -273,4 +273,4 @@ elif aba == "🗺️ Açudes Monitorados":
     ).add_to(m)
 
     folium.LayerControl().add_to(m)
-    folium_static(m, width=1200)  # Ajuste para mapa wide
+    folium_static(m, width=None)  # Ajuste para mapa wide
