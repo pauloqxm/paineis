@@ -152,7 +152,7 @@ if not df_mapa.empty:
 
 #Camada Trecho Perenizado
 
-        m.add_child(folium.GeoJson(
+        folium.GeoJson(
         geojson_quixera,
         name="Trecho Perenizado",
         tooltip=folium.GeoJsonTooltip(fields=["Name"], aliases=["Trecho:"]),
@@ -163,7 +163,7 @@ if not df_mapa.empty:
 
         acudes_layer = folium.FeatureGroup(name="Açudes Monitorados", show=False)
 
-        m.add_child(folium.GeoJson(
+        folium.GeoJson(
         geojson_acudes,
         tooltip=folium.GeoJsonTooltip(fields=["Name"], aliases=["Açude:"]),
         style_function=lambda x: {"color": "darkgreen", "weight": 2}
@@ -217,7 +217,7 @@ if not df_mapa.empty:
 
         municipios_layer = folium.FeatureGroup(name="Polígonos Municipais", show=False)
 
-        m.add_child(folium.GeoJson(
+        folium.GeoJson(
         geojson_poligno,
         tooltip=folium.GeoJsonTooltip(fields=["DESCRICA1"], aliases=["Município:"]),
         style_function=lambda x: {
@@ -287,7 +287,7 @@ elif aba == "🗺️ Açudes Monitorados":
     else:
         m = folium.Map(location=center, zoom_start=7, tiles=tile_option)
 
-        m.add_child(folium.GeoJson(
+        folium.GeoJson(
         geojson_data,
         name="Açudes",
         tooltip=folium.GeoJsonTooltip(fields=["Name"], aliases=["Açude:"])
