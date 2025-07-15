@@ -192,7 +192,7 @@ if aba == "Vazões - GRBANABUIU":
         folium.GeoJson(
             geojson_quixera,
             name="Trecho Perenizado",
-            tooltip=folium.GeoJsonTooltip(fields=["Name"], aliases=["Trecho:"]),
+            tooltip=folium.GeoJsonTooltip(fields=["Name"], aliases=["Name:"]),
             style_function=lambda x: {"color": "darkblue", "weight": 2}
         ).add_to(m)
 
