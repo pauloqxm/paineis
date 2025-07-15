@@ -23,6 +23,9 @@ with open("c_gestoras.geojson", "r", encoding="utf-8") as f:
 with open("poligno_municipios.geojson", "r", encoding="utf-8") as f:
             geojson_poligno = json.load(f)
 
+with open("bacia_banabuiu.geojson", "r", encoding="utf-8") as f:
+            geojson_bacia = json.load(f)
+
 st.markdown("""
     <style>
     <style>
@@ -187,6 +190,14 @@ if aba == "Vazões - GRBANABUIU":
             folium.TileLayer(tiles=tile_urls[mapa_tipo], attr=tile_attr[mapa_tipo], name=mapa_tipo).add_to(m)
         else:
             m = folium.Map(location=center, zoom_start=8, tiles=mapa_tipo)
+
+        #Camada Bacia Hidrográfica
+        folium.GeoJson(
+            geojson_bacia,
+            name="Bacia do Banabuiu",
+            tooltip=folium.GeoJsonTooltip(fields=["Name"], aliases=["DESCRICA1:"]),
+            style_function=lambda x: {"color": "darkblue", "weight": 2}
+        ).add_to(m)
 
         #Camada Trecho Perenizado
         trechos_layer = folium.FeatureGroup(name="Trechos Perenizados", show=False)
