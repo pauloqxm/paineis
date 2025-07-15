@@ -26,6 +26,9 @@ with open("poligno_municipios.geojson", "r", encoding="utf-8") as f:
 with open("bacia_banabuiu.geojson", "r", encoding="utf-8") as f:
             geojson_bacia = json.load(f)
 
+with open("pontos_controle.geojson", "r", encoding="utf-8") as f:
+            geojson_pontos = json.load(f)
+
 st.markdown("""
     <style>
     <style>
@@ -207,6 +210,19 @@ if aba == "Vazões - GRBANABUIU":
             style_function=lambda x: {"color": "darkblue", "weight": 1}
         ).add_to(trechos_layer)
         trechos_layer.add_to(m)
+
+         # Camada Pontos de Controle
+        pontos_layer = folium.FeatureGroup(name="Pontos de Controle", show=False)
+        for feature in geojson_pontos["features"]:
+            props = feature["properties"]
+            coords = feature["geometry"]["coordinates"]
+            nome_municipio = props.get("Name", "Sem nome")
+            folium.Marker(
+                location=[coords[1], coords[0]],
+                icon=folium.CustomIcon("https://i.ibb.co/HfCcFWjb/marker.png", icon_size=(22, 22)),
+                tooltip=layer
+            ).add_to(pontos_layer)
+        sedes_layer.add_to(m)
 
         # Camada Açudes Monitorados
         acudes_layer = folium.FeatureGroup(name="Açudes Monitorados", show=False)
