@@ -189,12 +189,13 @@ if aba == "Vazões - GRBANABUIU":
             m = folium.Map(location=center, zoom_start=8, tiles=mapa_tipo)
 
         #Camada Trecho Perenizado
+        trechos_layer = folium.FeatureGroup(name="Trechos Perenizados", show=False)
         folium.GeoJson(
             geojson_trechos,
-            name="Trechos Perenizados",
             tooltip=folium.GeoJsonTooltip(fields=["Name"], aliases=["Name:"]),
-            style_function=lambda x: {"color": "darkblue", "weight": 2}
-        ).add_to(m)
+            style_function=lambda x: {"color": "darkblue", "weight": 1}
+        ).add_to(trechos_layer)
+        trechos_layer.add_to(m)
 
         # Camada Açudes Monitorados
         acudes_layer = folium.FeatureGroup(name="Açudes Monitorados", show=False)
