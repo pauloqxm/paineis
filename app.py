@@ -191,14 +191,6 @@ if aba == "Vazões - GRBANABUIU":
         else:
             m = folium.Map(location=center, zoom_start=8, tiles=mapa_tipo)
 
-        #Camada Bacia Hidrográfica
-        folium.GeoJson(
-            geojson_bacia,
-            name="Bacia do Banabuiu",
-            tooltip=folium.GeoJsonTooltip(fields=["Name"], aliases=["DESCRICA1:"]),
-            style_function=lambda x: {"color": "darkblue", "weight": 2}
-        ).add_to(m)
-
         #Camada Trecho Perenizado
         trechos_layer = folium.FeatureGroup(name="Trechos Perenizados", show=False)
         folium.GeoJson(
