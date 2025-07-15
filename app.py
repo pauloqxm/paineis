@@ -222,7 +222,7 @@ if aba == "Vazões - GRBANABUIU":
                 icon=folium.CustomIcon("https://i.ibb.co/HfCcFWjb/marker.png", icon_size=(22, 22)),
                 tooltip=nome_municipio
             ).add_to(pontos_layer)
-        sedes_layer.add_to(m)
+        pontos_layer.add_to(m)
 
         # Camada Açudes Monitorados
         acudes_layer = folium.FeatureGroup(name="Açudes Monitorados", show=False)
