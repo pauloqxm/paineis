@@ -105,20 +105,6 @@ if aba == "Vazões - GRBANABUIU":
     st.title("💧 Vazões - GRBANABUIU")
 
     with st.sidebar:
-    st.header("🗂️ Camadas do Mapa")
-    camadas_selecionadas = st.multiselect(
-        "Escolha as camadas que deseja visualizar:",
-        options=[
-            "Bacia do Banabuiu",
-            "Trechos Perenizados",
-            "Pontos de Controle",
-            "Açudes Monitorados",
-            "Sedes Municipais",
-            "Comissões Gestoras",
-            "Polígonos Municipais"
-        ],
-        default=["Bacia do Banabuiu", "Açudes Monitorados"]
-    )
         st.header("🔎 Filtros")
         estacoes = st.multiselect("🏞️ Reservatório Monitorado", df['Reservatório Monitorado'].dropna().unique())
         meses = st.multiselect("📆 Mês", df['Mês'].dropna().unique())
@@ -209,13 +195,12 @@ if aba == "Vazões - GRBANABUIU":
             m = folium.Map(location=center, zoom_start=8, tiles=mapa_tipo)
 
         #Camada Bacia Hidrográfica
-        if "Bacia do Banabuiu" in camadas_selecionadas:
-            folium.GeoJson(
-                geojson_bacia,
-                name="Bacia do Banabuiu",
-                tooltip=folium.GeoJsonTooltip(fields=["DESCRICA1"], aliases=["Bacia:"]),
-                style_function=lambda x: {"color": "darkblue", "weight": 2}
-            ).add_to(m)
+        folium.GeoJson(
+            geojson_bacia,
+            name="Bacia do Banabuiu",
+            tooltip=folium.GeoJsonTooltip(fields=["DESCRICA1"], aliases=["Bacia:"]),
+            style_function=lambda x: {"color": "darkblue", "weight": 2}
+        ).add_to(m)
 
         #Camada Trecho Perenizado
         trechos_layer = folium.FeatureGroup(name="Trechos Perenizados", show=False)
@@ -224,8 +209,7 @@ if aba == "Vazões - GRBANABUIU":
             tooltip=folium.GeoJsonTooltip(fields=["Name"], aliases=["Name:"]),
             style_function=lambda x: {"color": "darkblue", "weight": 1}
         ).add_to(trechos_layer)
-        if "Trechos Perenizados" in camadas_selecionadas:
-            trechos_layer.add_to(m)
+        trechos_layer.add_to(m)
 
          # Camada Pontos de Controle
         pontos_layer = folium.FeatureGroup(name="Pontos de Controle", show=False)
@@ -238,8 +222,7 @@ if aba == "Vazões - GRBANABUIU":
                 icon=folium.CustomIcon("https://i.ibb.co/HfCcFWjb/marker.png", icon_size=(22, 22)),
                 tooltip=nome_municipio
             ).add_to(pontos_layer)
-        if "Pontos de Controle" in camadas_selecionadas:
-            pontos_layer.add_to(m)
+        pontos_layer.add_to(m)
 
         # Camada Açudes Monitorados
         acudes_layer = folium.FeatureGroup(name="Açudes Monitorados", show=False)
@@ -248,8 +231,7 @@ if aba == "Vazões - GRBANABUIU":
             tooltip=folium.GeoJsonTooltip(fields=["Name"], aliases=["Açude:"]),
             style_function=lambda x: {"color": "darkgreen", "weight": 2}
         ).add_to(acudes_layer)
-        if "Açudes Monitorados" in camadas_selecionadas:
-            acudes_layer.add_to(m)
+        acudes_layer.add_to(m)
         
         # Camada Sedes Municipais com ícone PNG personalizado
         sedes_layer = folium.FeatureGroup(name="Sedes Municipais", show=False)
@@ -262,8 +244,7 @@ if aba == "Vazões - GRBANABUIU":
                 icon=folium.CustomIcon("https://cdn-icons-png.flaticon.com/512/854/854878.png", icon_size=(22, 22)),
                 tooltip=nome_municipio
             ).add_to(sedes_layer)
-        if "Sedes Municipais" in camadas_selecionadas:
-            sedes_layer.add_to(m)
+        sedes_layer.add_to(m)
         
         # Camada Comissões Gestoras
         gestoras_layer = folium.FeatureGroup(name="Comissões Gestoras", show=False)
@@ -283,8 +264,7 @@ if aba == "Vazões - GRBANABUIU":
                 tooltip=nome_gestora,
                 popup=folium.Popup(popup_info, max_width=300)
             ).add_to(gestoras_layer)
-        if "Comissões Gestoras" in camadas_selecionadas:
-            gestoras_layer.add_to(m)
+        gestoras_layer.add_to(m)
 
         # Camada Polígono dos Municípios com borda azul fina
         municipios_layer = folium.FeatureGroup(name="Polígonos Municipais", show=False)
@@ -297,8 +277,7 @@ if aba == "Vazões - GRBANABUIU":
                 "weight": 1
             }
         ).add_to(municipios_layer)
-        if "Polígonos Municipais" in camadas_selecionadas:
-            municipios_layer.add_to(m)
+        municipios_layer.add_to(m)
 
         for _, row in df_mapa.iterrows():
             popup_info = f"""
