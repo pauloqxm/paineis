@@ -220,7 +220,7 @@ if aba == "Vazões - GRBANABUIU":
             folium.Marker(
                 location=[coords[1], coords[0]],
                 icon=folium.CustomIcon("https://i.ibb.co/HfCcFWjb/marker.png", icon_size=(22, 22)),
-                tooltip=layer
+                tooltip=nome_municipio
             ).add_to(pontos_layer)
         sedes_layer.add_to(m)
 
