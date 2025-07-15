@@ -9,7 +9,7 @@ from streamlit_folium import folium_static
 from streamlit_option_menu import option_menu
 
 with open("trechos_perene.geojson", "r", encoding="utf-8") as f:
-    geojson_quixera = json.load(f)
+    geojson_trechos = json.load(f)
 
 with open("Açudes_Monitorados.geojson", "r", encoding="utf-8") as f:
     geojson_acudes = json.load(f)
@@ -190,8 +190,8 @@ if aba == "Vazões - GRBANABUIU":
 
         #Camada Trecho Perenizado
         folium.GeoJson(
-            geojson_quixera,
-            name="Trecho Perenizado",
+            geojson_trechos,
+            name="Trechos Perenizados",
             tooltip=folium.GeoJsonTooltip(fields=["Name"], aliases=["Trecho:"]),
             style_function=lambda x: {"color": "darkblue", "weight": 2}
         ).add_to(m)
