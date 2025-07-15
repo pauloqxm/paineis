@@ -105,7 +105,6 @@ if aba == "Vazões - GRBANABUIU":
     st.title("💧 Vazões - GRBANABUIU")
 
     with st.sidebar:
-
     st.header("🗂️ Camadas do Mapa")
     camadas_selecionadas = st.multiselect(
         "Escolha as camadas que deseja visualizar:",
@@ -120,7 +119,6 @@ if aba == "Vazões - GRBANABUIU":
         ],
         default=["Bacia do Banabuiu", "Açudes Monitorados"]
     )
-
         st.header("🔎 Filtros")
         estacoes = st.multiselect("🏞️ Reservatório Monitorado", df['Reservatório Monitorado'].dropna().unique())
         meses = st.multiselect("📆 Mês", df['Mês'].dropna().unique())
