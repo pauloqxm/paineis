@@ -112,27 +112,15 @@ if aba == "Vazões - GRBANABUIU":
     # Inicialização dos dados
     if 'df' not in st.session_state:
         st.session_state.df = carregar_dados()
-        st.session_state.last_update = datetime.datetime.now()
     
-    # Garante que last_update existe mesmo se df já estava na session_state
-    if 'last_update' not in st.session_state:
-        st.session_state.last_update = datetime.datetime.now()
-
-    # Botão de atualização
-    col1, col2 = st.columns([4, 1])
-    with col1:
-        st.title("💧 Vazões - GRBANABUIU")
-    with col2:
-        if st.button("🔄 Atualizar agora", 
-                    help="Busca os dados mais recentes diretamente da planilha"):
-            with st.spinner('Atualizando dados do Google Sheets...'):
-                st.session_state.df = carregar_dados()
-                st.session_state.last_update = datetime.datetime.now()
-            st.rerun()
+    # Título e botão simplificados
+    st.title("💧 Vazões - GRBANABUIU")
     
-    # Exibe quando os dados foram atualizados (agora com verificação segura)
-    if 'last_update' in st.session_state:
-        st.caption(f"Última atualização: {st.session_state.last_update.strftime('%d/%m/%Y %H:%M:%S')}")
+    if st.button("🔄 Atualizar agora", 
+                help="Busca os dados mais recentes diretamente da planilha"):
+        with st.spinner('Atualizando dados do Google Sheets...'):
+            st.session_state.df = carregar_dados()
+        st.rerun()
     
     df = st.session_state.df
 
