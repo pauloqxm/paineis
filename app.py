@@ -100,9 +100,8 @@ def convert_vazao(series, unidade):
     return series, "L/s"
 
 # -------- função para carregar dados --------
-@st.cache_data
 def carregar_dados():
-    """Carrega os dados das vazões"""
+    """Carrega os dados diretamente do Google Sheets SEM cache"""
     url = "https://docs.google.com/spreadsheets/d/1pbNcZ9hS8DhotdkYuPc8kIOy5dgyoYQb384-jgqLDfA/export?format=csv"
     df = pd.read_csv(url)
     df['Data'] = pd.to_datetime(df['Data'], format='%d/%m/%Y', errors='coerce')
@@ -110,14 +109,26 @@ def carregar_dados():
     return df
 
 if aba == "Vazões - GRBANABUIU":
-    # Inicialização ou recarga dos dados
+    # Inicialização dos dados
     if 'df' not in st.session_state:
         st.session_state.df = carregar_dados()
+        st.session_state.last_update = datetime.datetime.now()
 
-    if st.button("🔄 Recarregar dados", key="reload_button"):
-        st.session_state.df = carregar_dados()
-        st.rerun()
-
+    # Botão de atualização
+    col1, col2 = st.columns([4, 1])
+    with col1:
+        st.title("💧 Vazões - GRBANABUIU")
+    with col2:
+        if st.button("🔄 Atualizar agora", 
+                    help="Busca os dados mais recentes diretamente da planilha"):
+            with st.spinner('Atualizando dados do Google Sheets...'):
+                st.session_state.df = carregar_dados()
+                st.session_state.last_update = datetime.datetime.now()
+            st.rerun()
+    
+    # Exibe quando os dados foram atualizados
+    st.caption(f"Última atualização: {st.session_state.last_update.strftime('%d/%m/%Y %H:%M:%S')}")
+    
     df = st.session_state.df
 
     st.title("💧 Vazões - GRBANABUIU")
