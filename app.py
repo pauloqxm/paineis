@@ -244,7 +244,7 @@ with tab1:
             st.info("Sem dados para média mensal.")
 
     with gtab2:
-    if not df_filtrado.empty and df_filtrado['Reservatório Monitorado'].nunique() > 0:
+        if not df_filtrado.empty and df_filtrado['Reservatório Monitorado'].nunique() > 0:
         yconv, sufx = convert_vazao(df_filtrado['Vazão Operada'], unidade_sel)
         df_box = df_filtrado.copy()
         df_box['Vazão (conv)'] = yconv
@@ -299,7 +299,7 @@ with tab1:
         
         st.plotly_chart(figb, use_container_width=True, config={"displaylogo": False})
     else:
-        st.info("Sem dados suficientes para boxplot.")
+        st.info("Sem dados suficientes para boxplot.") 
 
     # -------------------- MAPA --------------------
     st.subheader("🗺️ Mapa dos Reservatórios com Camadas")
