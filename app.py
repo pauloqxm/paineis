@@ -238,6 +238,15 @@ with tab1:
             figm = px.bar(dmm, x='mes_num', y='Vazão (conv)', color='Reservatório Monitorado',
                           labels={'mes_num':'Mês','Vazão (conv)':f'Média ({sufx})'},
                           barmode='group')
+            with gtab1:
+        if not df_filtrado.empty:
+            dmm = (df_filtrado.assign(mes_num=df_filtrado['Data'].dt.to_period('M').astype(str))
+                   .groupby(['Reservatório Monitorado','mes_num'], as_index=False)['Vazão Operada'].mean())
+            yconv, sufx = convert_vazao(dmm['Vazão Operada'], unidade_sel)
+            dmm['Vazão (conv)'] = yconv
+            figm = px.bar(dmm, x='mes_num', y='Vazão (conv)', color='Reservatório Monitorado',
+                          labels={'mes_num':'Mês','Vazão (conv)':f'Média ({sufx})'},
+                          barmode='group')
             st.plotly_chart(figm, use_container_width=True, config={"displaylogo": False})
         else:
             st.info("Sem dados para média mensal.")
@@ -266,64 +275,45 @@ with gtab2:
             
             volumes.append({
                 'Reservatório Monitorado': reservatorio,
-                'Volume Acumulado': volume_total,
+                'Volume Acumulado': volume_total/1e6,  # Já em milhões de m³
                 'Volume Formatado': volume_formatado
             })
         
         df_volumes = pd.DataFrame(volumes)
         
-        # Criar figura com eixos duplos
-        figb = go.Figure()
-        
-        # Adicionar boxplot da vazão (eixo Y principal)
-        for r in df_box['Reservatório Monitorado'].unique():
-            figb.add_trace(go.Box(
-                y=df_box[df_box['Reservatório Monitorado'] == r]['Vazão (conv)'],
-                name=r,
-                boxpoints='all',
-                jitter=0.5,
-                pointpos=0,
-                marker_color='#1f77b4',
-                line_color='#1f77b4'
-            ))
-        
-        # Configurar layout com eixo secundário
-        figb.update_layout(
-            title_text='Distribuição de Vazões e Volumes Acumulados',
-            yaxis=dict(
-                title=f'Vazão Operada ({sufx})',
-                titlefont=dict(color='#1f77b4'),
-                tickfont=dict(color='#1f77b4')
-            ),
-            yaxis2=dict(
-                title='Volume Acumulado (Mm³)',
-                titlefont=dict(color='#d62728'),
-                tickfont=dict(color='#d62728'),
-                overlaying='y',
-                side='right',
-                range=[0, df_volumes['Volume Acumulado'].max()/1e6 * 1.1]
-            ),
-            showlegend=False
+        # Criar figura simples com volume no eixo Y
+        figb = px.bar(
+            df_volumes,
+            x='Reservatório Monitorado',
+            y='Volume Acumulado',
+            text='Volume Formatado',
+            labels={'Volume Acumulado': 'Volume Acumulado (Mm³)'},
+            title='Volumes Acumulados por Reservatório'
         )
         
-        # Adicionar volumes como anotações no eixo secundário
-        for i, row in df_volumes.iterrows():
-            figb.add_annotation(
-                x=row['Reservatório Monitorado'],
-                y=row['Volume Acumulado']/1e6,
-                yref='y2',
-                text=f"<b style='color:#d62728;font-size:12px'>{row['Volume Formatado']}</b>",
-                showarrow=False,
-                yshift=10,
-                font=dict(size=12),
-                bordercolor="#d62728",
-                borderwidth=1,
-                borderpad=4
+        # Ajustar formatação
+        figb.update_traces(
+            textposition='outside',
+            marker_color='#1f77b4',
+            textfont=dict(size=12, color='black')
+        )
+        
+        figb.update_layout(
+            uniformtext_minsize=8,
+            uniformtext_mode='hide',
+            yaxis=dict(
+                title='Volume Acumulado (Mm³)',
+                titlefont=dict(size=14)
+            ),
+            xaxis=dict(
+                title='Reservatório',
+                titlefont=dict(size=14)
             )
+        )
         
         st.plotly_chart(figb, use_container_width=True, config={"displaylogo": False})
     else:
-        st.info("Sem dados suficientes para boxplot.")
+        st.info("Sem dados suficientes para exibir os volumes.")
 
     # -------------------- MAPA --------------------
     st.subheader("🗺️ Mapa dos Reservatórios com Camadas")
