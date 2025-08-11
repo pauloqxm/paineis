@@ -115,7 +115,7 @@ if aba == "Vazões - GRBANABUIU":
     
     # Apenas o botão de atualização
     if st.button("🔄 Atualizar dados agora", 
-                help="Busca os dados mais recentes diretamente da planilha do Google Sheets"):
+                help="Busca os dados mais recentes diretamente do banco de dados"):
         with st.spinner('Atualizando dados...'):
             st.session_state.df = carregar_dados()
         st.rerun()
