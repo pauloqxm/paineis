@@ -171,33 +171,24 @@ if aba == "Vazões - GRBANABUIU":
             )
         ))
 
-    if len(reservatorios_filtrados) == 1:
-        # Calcula média ponderada pelo tempo
-        df_res = df_filtrado[df_filtrado['Reservatório Monitorado'] == reservatorios_filtrados[0]].sort_values(by="Data")
-        df_res = df_res.groupby('Data', as_index=False).last()
+        # Cálculo da média ponderada para cada reservatório
+        if len(df_res) > 1:
+            df_res['dias_ativos'] = df_res['Data'].diff().dt.days.fillna(0)
+            df_res.loc[df_res.index[-1], 'dias_ativos'] = (df_filtrado['Data'].max() - df_res['Data'].iloc[-1]).days + 1
+            media_pond = (df_res['Vazão Operada'] * df_res['dias_ativos']).sum() / df_res['dias_ativos'].sum()
+        else:
+            media_pond = df_res['Vazão Operada'].iloc[0] if len(df_res) == 1 else 0
         
-        # Calcula diferenças de tempo entre medições
-        df_res['time_diff'] = df_res['Data'].diff().dt.days.fillna(0)
-        if len(df_res) > 0:
-            # Para o último valor, assume que permanece até o final do período
-            df_res.loc[df_res.index[-1], 'time_diff'] = (df_filtrado['Data'].max() - df_res['Data'].iloc[-1]).days + 1
-        
-        # Calcula a média ponderada
-        weighted_sum = (df_res["Vazão Operada"] * df_res['time_diff']).sum()
-        total_days = df_res['time_diff'].sum()
-        media_val = weighted_sum / total_days if total_days > 0 else 0
-        
-        # Converte unidade
-        media_val, unit_suffix = convert_vazao(pd.Series([media_val]), unidade_sel)
-        media_val = media_val.iloc[0]
-        
+        media_pond, unit_suffix = convert_vazao(pd.Series([media_pond]), unidade_sel)
+        media_pond = media_pond.iloc[0]
+
         fig.add_trace(go.Scatter(
             x=x_range,
-            y=[media_val, media_val],
+            y=[media_pond, media_pond],
             mode="lines+text",
-            name=f"Média Ponderada: {media_val:.3f} {unit_suffix}",
-            line=dict(color="red", width=4, dash="dash"),
-            text=[f"Média Ponderada: {media_val:.3f} {unit_suffix}", ""],
+            name=f"Média Ponderada {reservatorio}",
+            line=dict(color=cor, width=2, dash="dot"),
+            text=[f"Média: {media_pond:.2f} {unit_suffix}", ""],
             textposition="top right",
             showlegend=False
         ))
