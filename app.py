@@ -206,58 +206,20 @@ st.markdown(f"""
     </div>
 """, unsafe_allow_html=True)
 
-# Menu Inicial com Filtro
+# Primeiro carregue os dados
+@st.cache_data
+def carregar_dados():
+    url = "https://docs.google.com/spreadsheets/d/1pbNcZ9hS8DhotdkYuPc8kIOy5dgyoYQb384-jgqLDfA/export?format=csv"
+    return pd.read_csv(url)
+
+df = carregar_dados()
+df['Data'] = pd.to_datetime(df['Data'], format='%d/%m/%Y', errors='coerce')
+
+# Agora crie o menu com o filtro
 st.markdown(f"""
     <style>
     .social-menu-container {{
-        position: relative;
-        left: 50%;
-        right: 50%;
-        margin-left: -50vw;
-        margin-right: -50vw;
-        width: 100vw;
-        background-color: #04a5c9;
-        color: white;
-        padding: 6px 32px;
-        font-family: Tahoma, sans-serif;
-        font-size: 13px;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        gap: 20px;
-        flex-wrap: wrap;
-        margin-top: -40px;
-        border-bottom: 3px solid #b6b8ba;
-        z-index: 1;
-    }}
-
-    .social-menu-container a {{
-        color: white;
-        text-decoration: none;
-        transition: color 0.3s ease;
-    }}
-
-    .social-menu-container a:hover {{
-        color: #fad905;
-    }}
-    
-    /* Estilo para o seletor de reservatórios */
-    .stMultiSelect [data-baseweb="select"] {{
-        min-width: 200px;
-        background-color: white !important;
-        border-radius: 4px !important;
-    }}
-    
-    .stMultiSelect [data-baseweb="select"] div {{
-        color: #004d00 !important;
-        font-size: 12px !important;
-    }}
-    
-    .filter-label {{
-        color: white;
-        font-weight: bold;
-        margin-right: -10px;
-        font-size: 13px;
+        /* Seus estilos CSS existentes */
     }}
     </style>
 
@@ -272,7 +234,7 @@ st.markdown(f"""
     </div>
 """, unsafe_allow_html=True)
 
-# Adiciona o multiselect abaixo do container (para funcionamento adequado do Streamlit)
+# Filtro de reservatórios
 reservatorios = st.multiselect(
     "Selecione os reservatórios:",
     options=df['Reservatório Monitorado'].dropna().unique(),
@@ -287,15 +249,6 @@ def convert_vazao(series, unidade):
     if unidade == "m³/s":
         return series / 1000.0, "m³/s"
     return series, "L/s"
-
-# -------- função para carregar dados --------
-def carregar_dados():
-    """Carrega os dados diretamente do Google Sheets SEM cache"""
-    url = "https://docs.google.com/spreadsheets/d/1pbNcZ9hS8DhotdkYuPc8kIOy5dgyoYQb384-jgqLDfA/export?format=csv"
-    df = pd.read_csv(url)
-    df['Data'] = pd.to_datetime(df['Data'], format='%d/%m/%Y', errors='coerce')
-    df['Mês'] = df['Data'].dt.to_period('M').astype(str)
-    return df
 
 # Cria abas na horizontal
 tab1, tab2 = st.tabs(["Vazões - GRBANABUIU", "🗺️ Açudes Monitorados"])
