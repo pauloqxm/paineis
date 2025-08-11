@@ -127,7 +127,7 @@ for i, reservatorio in enumerate(reservatorios_filtrados):
         mode="lines+markers", name=reservatorio,
         line=dict(shape='hv', width=2, color=cor),
         marker=dict(size=5),
-        hovertemplate=f"<b>{reservatorio}</b><br>Data: %{x|%d/%m/%Y}<br>Vazão: %{{y:.3f}} {unit_suffix}<extra></extra>"
+        hovertemplate=f"<b>{reservatorio}</b><br>Data: %{{x|%d/%m/%Y}}<br>Vazão: %{{y:.3f}} {unit_suffix}<extra></extra>"
     ))
 
 fig.update_yaxes(showgrid=True, gridwidth=0.5, gridcolor='lightgray')
@@ -156,19 +156,17 @@ if not df_mapa.empty:
     else:
         m = folium.Map(location=center, zoom_start=8, tiles=mapa_tipo)
 
-    # Camada Bacia Hidrográfica
+    # Camadas do mapa
     folium.GeoJson(geojson_bacia, name="Bacia do Banabuiu",
                    tooltip=folium.GeoJsonTooltip(fields=["DESCRICA1"], aliases=["Bacia:"]),
                    style_function=lambda x: {"color": "darkblue", "weight": 2}).add_to(m)
 
-    # Camada Trechos Perenizados
     trechos_layer = folium.FeatureGroup(name="Trechos Perenizados", show=False)
     folium.GeoJson(geojson_trechos,
                    tooltip=folium.GeoJsonTooltip(fields=["Name"], aliases=["Name:"]),
                    style_function=lambda x: {"color": "darkblue", "weight": 1}).add_to(trechos_layer)
     trechos_layer.add_to(m)
 
-    # Camada Pontos de Controle
     pontos_layer = folium.FeatureGroup(name="Pontos de Controle", show=False)
     for feature in geojson_pontos["features"]:
         props = feature["properties"]
@@ -179,14 +177,12 @@ if not df_mapa.empty:
                       tooltip=nome_municipio).add_to(pontos_layer)
     pontos_layer.add_to(m)
 
-    # Camada Açudes Monitorados
     acudes_layer = folium.FeatureGroup(name="Açudes Monitorados", show=False)
     folium.GeoJson(geojson_acudes,
                    tooltip=folium.GeoJsonTooltip(fields=["Name"], aliases=["Açude:"]),
                    style_function=lambda x: {"color": "darkgreen", "weight": 2}).add_to(acudes_layer)
     acudes_layer.add_to(m)
 
-    # Camada Sedes Municipais
     sedes_layer = folium.FeatureGroup(name="Sedes Municipais", show=False)
     for feature in geojson_sedes["features"]:
         props = feature["properties"]
@@ -197,7 +193,6 @@ if not df_mapa.empty:
                       tooltip=nome_municipio).add_to(sedes_layer)
     sedes_layer.add_to(m)
 
-    # Camada Comissões Gestoras
     gestoras_layer = folium.FeatureGroup(name="Comissões Gestoras", show=False)
     for feature in geojson_c_gestoras["features"]:
         props = feature["properties"]
@@ -215,7 +210,6 @@ if not df_mapa.empty:
                       popup=folium.Popup(popup_info, max_width=300)).add_to(gestoras_layer)
     gestoras_layer.add_to(m)
 
-    # Camada Polígonos Municipais
     municipios_layer = folium.FeatureGroup(name="Polígonos Municipais", show=False)
     folium.GeoJson(geojson_poligno,
                    tooltip=folium.GeoJsonTooltip(fields=["DESCRICA1"], aliases=["Município:"]),
