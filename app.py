@@ -27,7 +27,7 @@ with open("bacia_banabuiu.geojson", "r", encoding="utf-8") as f:
 with open("pontos_controle.geojson", "r", encoding="utf-8") as f:
     geojson_pontos = json.load(f)
 
-# ---------------- TOPO CUSTOM (mantive sua barra) ----------------
+# ---------------- TOPO CUSTOM ----------------
 fuso_brasilia = timezone(timedelta(hours=-3))
 agora = datetime.now(fuso_brasilia)
 dias_semana = {'Monday':'Segunda-feira','Tuesday':'Terça-feira','Wednesday':'Quarta-feira','Thursday':'Quinta-feira','Friday':'Sexta-feira','Saturday':'Sábado','Sunday':'Domingo'}
@@ -90,10 +90,9 @@ def carregar_dados():
 tab1, tab2 = st.tabs(["Vazões - GRBANABUIU", "🗺️ Açudes Monitorados"])
 
 with tab1:
-    # dados
     df = carregar_dados()
 
-    # barra de ações
+    # Ações
     cA1, cA2, cA3 = st.columns([1,1,2])
     with cA1:
         if st.button("🔄 Atualizar agora"):
@@ -101,11 +100,14 @@ with tab1:
             df = carregar_dados()
             st.success("Atualizado.")
     with cA2:
-        st.download_button("⬇️ Baixar CSV filtrado", df.to_csv(index=False).encode("utf-8"), file_name="vazoes.csv", mime="text/csv")
+        st.download_button("⬇️ Baixar CSV filtrado",
+                           df.to_csv(index=False).encode("utf-8"),
+                           file_name="vazoes.csv",
+                           mime="text/csv")
 
     st.title("💧 Vazões - GRBANABUIU")
 
-    # --------- FILTROS (mesma posição, visual novo) ----------
+    # --------- FILTROS (mesma posição) ----------
     st.markdown('<div class="filter-card">', unsafe_allow_html=True)
     st.markdown('<div class="filter-title">Filtros</div>', unsafe_allow_html=True)
     col1, col2, col3, col4 = st.columns(4)
@@ -124,7 +126,7 @@ with tab1:
         mapa_tipo = st.selectbox("🗺️ Estilo do mapa",
                                  ["OpenStreetMap","Stamen Terrain","Stamen Toner","CartoDB positron","CartoDB dark_matter","Esri Satellite"],
                                  index=0)
-    # chips de período rápido
+
     cchip1, cchip2 = st.columns([3,1])
     with cchip1:
         st.markdown(
@@ -140,7 +142,7 @@ with tab1:
 
     st.markdown('</div>', unsafe_allow_html=True)
 
-    # aplica chips (via query_params simples)
+    # aplica chips via query param
     qs = st.query_params
     if "chip" in qs:
         chip = qs["chip"]
@@ -149,7 +151,7 @@ with tab1:
         if chip == "90": intervalo_data = (fim - pd.Timedelta(days=90), fim)
         if chip == "365": intervalo_data = (fim - pd.Timedelta(days=365), fim)
 
-    # filtro no df
+    # Filtro no DF
     df_filtrado = df.copy()
     if estacoes:
         df_filtrado = df_filtrado[df_filtrado['Reservatório Monitorado'].isin(estacoes)]
@@ -169,17 +171,13 @@ with tab1:
         st.markdown('<div class="kpi-card">Registros<br><div class="kpi-value">{}</div></div>'.format(
             len(df_filtrado)), unsafe_allow_html=True)
     with k3:
-        if not df_filtrado.empty:
-            ult = df_filtrado['Data'].max()
-            ult_txt = ult.strftime("%d/%m/%Y")
-        else:
-            ult_txt = "—"
+        ult_txt = df_filtrado['Data'].max().strftime("%d/%m/%Y") if not df_filtrado.empty else "—"
         st.markdown(f'<div class="kpi-card">Última data<br><div class="kpi-value">{ult_txt}</div></div>', unsafe_allow_html=True)
     with k4:
         unidade_show = "m³/s" if unidade_sel == "m³/s" else "L/s"
         st.markdown(f'<div class="kpi-card">Unidade<br><div class="kpi-value">{unidade_show}</div></div>', unsafe_allow_html=True)
 
-    # --------- GRÁFICOS (com range slider/selector) ----------
+    # --------- GRÁFICO (com média ponderada quando 1 reservatório) ----------
     st.subheader("📈 Evolução da Vazão Operada por Reservatório")
     fig = go.Figure()
     cores = ['#1f77b4','#ff7f0e','#2ca02c','#d62728','#9467bd','#8c564b','#17becf','#e377c2']
@@ -187,7 +185,9 @@ with tab1:
 
     for i, r in enumerate(reservatorios):
         dfr = (df_filtrado[df_filtrado['Reservatório Monitorado'] == r]
-               .sort_values('Data').groupby('Data', as_index=False).last())
+               .sort_values('Data')
+               .groupby('Data', as_index=False)
+               .last())
         y_vals, unit_suffix = convert_vazao(dfr["Vazão Operada"], unidade_sel)
         fig.add_trace(go.Scatter(
             x=dfr["Data"], y=y_vals, mode="lines+markers", name=r,
@@ -195,6 +195,41 @@ with tab1:
             marker=dict(size=5),
             hovertemplate=f"<b>{r}</b><br>Data: %{{x|%d/%m/%Y}}<br>Vazão: %{{y:.3f}} {unit_suffix}<extra></extra>"
         ))
+
+    # ======= MÉDIA PONDERADA (apenas se 1 reservatório) =======
+    if len(reservatorios) == 1:
+        r = reservatorios[0]
+        dfr = (df_filtrado[df_filtrado['Reservatório Monitorado'] == r]
+               .sort_values('Data')
+               .groupby('Data', as_index=False)
+               .last())
+        if len(dfr) == 1:
+            media_pond = dfr['Vazão Operada'].iloc[0]
+        elif len(dfr) > 1:
+            dfr['dias_ativos'] = dfr['Data'].diff().dt.days.fillna(0)
+            # considera até a última data visível no filtro
+            data_limite = df_filtrado['Data'].max()
+            if pd.notna(data_limite) and pd.notna(dfr['Data'].iloc[-1]):
+                dfr.loc[dfr.index[-1], 'dias_ativos'] = (data_limite - dfr['Data'].iloc[-1]).days + 1
+            dfr.loc[dfr['dias_ativos'] <= 0, 'dias_ativos'] = 1
+            soma_pesos = dfr['dias_ativos'].sum()
+            media_pond = (dfr['Vazão Operada'] * dfr['dias_ativos']).sum() / soma_pesos if soma_pesos > 0 else 0
+        else:
+            media_pond = 0
+
+        media_conv, unit_suffix = convert_vazao(pd.Series([media_pond]), unidade_sel)
+        media_conv = float(media_conv.iloc[0])
+
+        fig.add_hline(
+            y=media_conv,
+            line_dash="dash",
+            line_width=3,
+            line_color="red",
+            annotation_text=f"Média ponderada: {media_conv:.2f} {unit_suffix}",
+            annotation_position="top right",
+            annotation_font_size=12,
+            annotation_bgcolor="white"
+        )
 
     fig.update_layout(
         xaxis_title="Data",
@@ -215,9 +250,10 @@ with tab1:
             )
         )
     )
+
     st.plotly_chart(fig, use_container_width=True, config={"displaylogo": False})
 
-    # abas extras de análise
+    # --------- ABAS EXTRA: média mensal & boxplot ----------
     gtab1, gtab2 = st.tabs(["📊 Média mensal", "📦 Distribuição (boxplot)"])
     with gtab1:
         if not df_filtrado.empty:
@@ -231,9 +267,8 @@ with tab1:
             st.plotly_chart(figm, use_container_width=True, config={"displaylogo": False})
         else:
             st.info("Sem dados para média mensal.")
-
     with gtab2:
-        if not df_filtrado.empty and df_filtrado['Reservatório Monitorado'].nunique() > 0:
+        if not df_filtrado.empty:
             yconv, sufx = convert_vazao(df_filtrado['Vazão Operada'], unidade_sel)
             df_box = df_filtrado.copy()
             df_box['Vazão (conv)'] = yconv
@@ -261,13 +296,11 @@ with tab1:
         else:
             m = folium.Map(location=center, zoom_start=8, tiles=mapa_tipo)
 
-        # plugins
         Fullscreen(position='topleft').add_to(m)
         MiniMap(toggle_display=True, minimized=True).add_to(m)
         MousePosition(position='bottomleft', separator=' | ', prefix='Coords').add_to(m)
         MeasureControl(primary_length_unit='meters').add_to(m)
 
-        # camadas
         folium.GeoJson(geojson_bacia, name="Bacia do Banabuiu",
                        tooltip=folium.GeoJsonTooltip(fields=["DESCRICA1"], aliases=["Bacia:"]),
                        style_function=lambda x: {"color":"darkblue","weight":2}).add_to(m)
@@ -324,7 +357,6 @@ with tab1:
                        style_function=lambda x: {"fillOpacity":0,"color":"blue","weight":1}).add_to(municipios_layer)
         municipios_layer.add_to(m)
 
-        # pinos reservatórios com cluster
         cluster = MarkerCluster(name="Reservatórios (pinos)").add_to(m)
         for _, row in df_mapa.iterrows():
             try:
@@ -385,7 +417,7 @@ with tab2:
     folium.LayerControl(collapsed=True).add_to(m2)
     folium_static(m2, width=None)
 
-# --------- JS simples para acionar chips ajustando query param ---------
+# --------- JS para chips ---------
 st.markdown("""
 <script>
 const setChip = (val) => {
