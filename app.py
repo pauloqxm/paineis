@@ -1,4 +1,3 @@
-
 import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
@@ -250,7 +249,7 @@ with tab1:
             df_box['Vazão (conv)'] = yconv
             
             with gtab2:
-        if not df_filtrado.empty and df_filtrado['Reservatório Monitorado'].nunique() > 0:
+    if not df_filtrado.empty and df_filtrado['Reservatório Monitorado'].nunique() > 0:
         yconv, sufx = convert_vazao(df_filtrado['Vazão Operada'], unidade_sel)
         df_box = df_filtrado.copy()
         df_box['Vazão (conv)'] = yconv
