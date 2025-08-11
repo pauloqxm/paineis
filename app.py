@@ -31,29 +31,94 @@ with open("pontos_controle.geojson", "r", encoding="utf-8") as f:
 
 st.set_page_config(page_title="Dashboard Vazões", layout="wide")
 
-st.markdown("""
+#Barra superior
+
+# Define o fuso horário de Brasília (UTC-3)
+fuso_brasilia = timezone(timedelta(hours=-3))
+agora = datetime.now(fuso_brasilia)
+
+dias_semana = {
+    'Monday': 'Segunda-feira',
+    'Tuesday': 'Terça-feira',
+    'Wednesday': 'Quarta-feira',
+    'Thursday': 'Quinta-feira',
+    'Friday': 'Sexta-feira',
+    'Saturday': 'Sábado',
+    'Sunday': 'Domingo'
+}
+
+meses = {
+    'January': 'janeiro',
+    'February': 'fevereiro',
+    'March': 'março',
+    'April': 'abril',
+    'May': 'maio',
+    'June': 'junho',
+    'July': 'julho',
+    'August': 'agosto',
+    'September': 'setembro',
+    'October': 'outubro',
+    'November': 'novembro',
+    'December': 'dezembro'
+}
+
+# Formatar data em português
+dia_semana = dias_semana[agora.strftime('%A')]
+mes = meses[agora.strftime('%B')]
+data_hoje = f"{dia_semana}, {agora.day:02d} de {mes} de {agora.year}"
+
+# Cabeçalho customizado com colunas
+st.markdown(f"""
     <style>
-    .fixed-header {
-        position: ;
-        top: 50px;
+    [data-testid="stHeader"] {{
+        visibility: hidden;
+    }}
+
+    .custom-header {{
+        position: fixed;
+        top: 0;
         left: 0;
-        right: 0;
-        z-index: 1000;
-        background-color: #e0f0ff;
+        width: 100%;
+        background-color: #04a5c9;
+        color: white;
+        padding: 10px 32px;
+        font-family: Tahoma, sans-serif;
+        border-bottom: 3px solid #fad905;
+        z-index: 9999;
+    }}
+
+    .header-top {{
         display: flex;
-        justify-content: center;
+        justify-content: space-between;
         align-items: center;
-        gap: 12px;
-        padding: 10px 20px;
-        border-bottom: 2px solid #ccc;
-    }
-    .stApp {
-        padding-top: 80px;
-    }
+        font-weight: bold;
+    }}
+
+    .header-title {{
+        font-size: 14px;
+        
+    }}
+
+    .header-location {{
+        font-size: 12px;
+    }}
+
+    .header-date {{
+        margin-top: 4px;
+        font-size: 12px;
+    }}
+
+    .main .block-container {{
+        padding-top: 70px;
+        
+    }}
     </style>
-    <div class="fixed-header">
-        <img src="https://i.ibb.co/r2FRGkmB/cogerh-logo.png" alt="Logo COGERH" style="height: 50px;">
-        <h2 style="margin: 0; color: #003366;">Operação 2025.2</h2>
+
+    <div class="custom-header">
+        <div class="header-top">
+            <div class="header-title">🔎 Você Fiscaliza | Quixeramobim - Ceará</div>            
+        </div>
+        <div class="header-date">📅 {data_hoje}</div>
     </div>
 """, unsafe_allow_html=True)
 
