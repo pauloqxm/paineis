@@ -206,8 +206,7 @@ st.markdown(f"""
     </div>
 """, unsafe_allow_html=True)
 
-# -------- Menu Inicial ---------------
-
+# Menu Inicial com Filtro
 st.markdown(f"""
     <style>
     .social-menu-container {{
@@ -225,11 +224,11 @@ st.markdown(f"""
         display: flex;
         justify-content: center;
         align-items: center;
-        gap: 30px;
+        gap: 20px;
         flex-wrap: wrap;
-        margin-top: -40px;  /* Espaço para aparecer abaixo da barra fixa */
+        margin-top: -40px;
         border-bottom: 3px solid #b6b8ba;
-        z-index: 1;  /* Mais baixo que o header fixo */
+        z-index: 1;
     }}
 
     .social-menu-container a {{
@@ -241,14 +240,46 @@ st.markdown(f"""
     .social-menu-container a:hover {{
         color: #fad905;
     }}
+    
+    /* Estilo para o seletor de reservatórios */
+    .stMultiSelect [data-baseweb="select"] {{
+        min-width: 200px;
+        background-color: white !important;
+        border-radius: 4px !important;
+    }}
+    
+    .stMultiSelect [data-baseweb="select"] div {{
+        color: #004d00 !important;
+        font-size: 12px !important;
+    }}
+    
+    .filter-label {{
+        color: white;
+        font-weight: bold;
+        margin-right: -10px;
+        font-size: 13px;
+    }}
     </style>
 
     <div class="social-menu-container">
-        <a href="https://www.instagram.com/seuusuario" target="_blank">📸 Instagran</a>
+        <a href="https://www.instagram.com/seuusuario" target="_blank">📸 Instagram</a>
         <a href="https://www.facebook.com/seuusuario" target="_blank">📘 Facebook</a>
-        <a href="https://wa.me/5588999999999" target="_blank">💬 WhatsApp</a>       
+        <a href="https://wa.me/5588999999999" target="_blank">💬 WhatsApp</a>
+        
+        <div style="display: flex; align-items: center;">
+            <span class="filter-label">🏞️ Reservatório:</span>
+        </div>
     </div>
 """, unsafe_allow_html=True)
+
+# Adiciona o multiselect abaixo do container (para funcionamento adequado do Streamlit)
+reservatorios = st.multiselect(
+    "Selecione os reservatórios:",
+    options=df['Reservatório Monitorado'].dropna().unique(),
+    default=df['Reservatório Monitorado'].dropna().unique()[0:1],
+    key="menu_reservatorios",
+    label_visibility="collapsed"
+)
 
 # -------- utilitário simples de conversão (origem: L/s) --------
 def convert_vazao(series, unidade):
