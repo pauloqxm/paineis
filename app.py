@@ -113,6 +113,10 @@ if aba == "Vazões - GRBANABUIU":
     if 'df' not in st.session_state:
         st.session_state.df = carregar_dados()
         st.session_state.last_update = datetime.datetime.now()
+    
+    # Garante que last_update existe mesmo se df já estava na session_state
+    if 'last_update' not in st.session_state:
+        st.session_state.last_update = datetime.datetime.now()
 
     # Botão de atualização
     col1, col2 = st.columns([4, 1])
@@ -126,8 +130,9 @@ if aba == "Vazões - GRBANABUIU":
                 st.session_state.last_update = datetime.datetime.now()
             st.rerun()
     
-    # Exibe quando os dados foram atualizados
-    st.caption(f"Última atualização: {st.session_state.last_update.strftime('%d/%m/%Y %H:%M:%S')}")
+    # Exibe quando os dados foram atualizados (agora com verificação segura)
+    if 'last_update' in st.session_state:
+        st.caption(f"Última atualização: {st.session_state.last_update.strftime('%d/%m/%Y %H:%M:%S')}")
     
     df = st.session_state.df
 
