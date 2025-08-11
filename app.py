@@ -241,6 +241,8 @@ with tab1:
             st.plotly_chart(figm, use_container_width=True, config={"displaylogo": False})
         else:
             st.info("Sem dados para média mensal.")
+            
+#Volume acumulado por reservatório
 
 with gtab2:
     if not df_filtrado.empty and df_filtrado['Reservatório Monitorado'].nunique() > 0:
