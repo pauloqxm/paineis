@@ -148,30 +148,7 @@ if aba == "Vazões - GRBANABUIU":
 
     reservatorios_filtrados = df_filtrado['Reservatório Monitorado'].unique()
     
-    # Primeiro adicionamos as linhas de referência horizontais
-    if len(reservatorios_filtrados) > 0:
-        # Pegamos os valores de vazão para definir os intervalos das linhas
-        vazoes = df_filtrado['Vazão Operada'].dropna()
-        if not vazoes.empty:
-            max_vazao = vazoes.max()
-            min_vazao = vazoes.min()
-            intervalo = (max_vazao - min_vazao) / 5  # Divide em 5 intervalos
-            
-            # Converte para a unidade selecionada
-            _, unit_suffix = convert_vazao(pd.Series([0]), unidade_sel)
-            
-            # Adiciona linhas horizontais
-            for vazao_ref in [min_vazao + i*intervalo for i in range(6)]:
-                vazao_conv, _ = convert_vazao(pd.Series([vazao_ref]), unidade_sel)
-                fig.add_hline(y=vazao_conv.iloc[0], 
-                             line_dash="dot", 
-                             line_width=0.5, 
-                             line_color="lightgray",
-                             annotation_text=f"{vazao_conv.iloc[0]:.1f} {unit_suffix}", 
-                             annotation_position="right",
-                             annotation_font_size=10)
-
-    # Depois adicionamos as linhas dos reservatórios
+    # Adiciona as linhas dos reservatórios primeiro
     for i, reservatorio in enumerate(reservatorios_filtrados):
         df_res = df_filtrado[df_filtrado['Reservatório Monitorado'] == reservatorio].sort_values(by="Data")
         df_res = df_res.groupby('Data', as_index=False).last()
@@ -210,17 +187,17 @@ if aba == "Vazões - GRBANABUIU":
         media_pond, unit_suffix = convert_vazao(pd.Series([media_pond]), unidade_sel)
         media_pond = media_pond.iloc[0]
 
-        fig.add_trace(go.Scatter(
-            x=x_range,
-            y=[media_pond, media_pond],
-            mode="lines+text",
-            name=f"Média Ponderada",
-            line=dict(color="red", width=3, dash="dash"),
-            text=[f"Média: {media_pond:.2f} {unit_suffix}", ""],
-            textposition="top right",
-            showlegend=True,
-            hoverinfo="skip"
-        ))
+        fig.add_hline(y=media_pond, 
+                     line_dash="dash", 
+                     line_width=3, 
+                     line_color="red",
+                     annotation_text=f"Média: {media_pond:.2f} {unit_suffix}", 
+                     annotation_position="top right",
+                     annotation_font_size=12,
+                     annotation_bgcolor="white")
+
+    # Adiciona linhas de referência horizontais finas
+    fig.update_yaxes(showgrid=True, gridwidth=0.5, gridcolor='lightgray')
 
     fig.update_layout(
         xaxis_title="Data",
@@ -229,12 +206,7 @@ if aba == "Vazões - GRBANABUIU":
         template="plotly_white",
         hovermode="closest",
         margin=dict(l=40, r=20, t=40, b=40),
-        plot_bgcolor='white',
-        yaxis=dict(
-            showgrid=True,
-            gridwidth=0.5,
-            gridcolor='lightgray'
-        )
+        plot_bgcolor='white'
     )
 
     st.plotly_chart(fig, use_container_width=True)
