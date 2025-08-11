@@ -31,6 +31,7 @@ with open("pontos_controle.geojson", "r", encoding="utf-8") as f:
 
 st.markdown("""
     <style>
+    <style>
     [data-testid="stSidebar"] {
         background-color: #e0f0ff;
         position: relative;
@@ -49,8 +50,8 @@ st.markdown("""
         z-index: 999;
     }
     </style>
+    </style>
 """, unsafe_allow_html=True)
-
 st.set_page_config(page_title="Dashboard Vazões", layout="wide")
 
 st.markdown("""
@@ -64,6 +65,7 @@ st.markdown("""
         background-color: #e0f0ff;
         display: flex;
         justify-content: center;
+        
         align-items: center;
         gap: 12px;
         padding: 10px 20px;
@@ -122,10 +124,7 @@ if aba == "Vazões - GRBANABUIU":
         df_filtrado = df_filtrado[df_filtrado['Mês'].isin(meses)]
     if isinstance(intervalo_data, tuple) and len(intervalo_data) == 2:
         inicio, fim = intervalo_data
-        df_filtrado = df_filtrado[
-            (df_filtrado['Data'] >= pd.to_datetime(inicio)) &
-            (df_filtrado['Data'] <= pd.to_datetime(fim))
-        ]
+        df_filtrado = df_filtrado[(df_filtrado['Data'] >= pd.to_datetime(inicio)) & (df_filtrado['Data'] <= pd.to_datetime(fim))]
 
     st.subheader("📈 Evolução da Vazão Operada por Reservatório")
 
@@ -137,8 +136,7 @@ if aba == "Vazões - GRBANABUIU":
     reservatorios_filtrados = df_filtrado['Reservatório Monitorado'].unique()
     for i, reservatorio in enumerate(reservatorios_filtrados):
         df_res = df_filtrado[df_filtrado['Reservatório Monitorado'] == reservatorio].sort_values(by="Data")
-        
-        # 🔹 Remove datas duplicadas mantendo o último valor
+        # ✅ Remove duplicatas por data, mantendo o último valor
         df_res = df_res.groupby('Data', as_index=False).last()
 
         cor = cores[i % len(cores)]
@@ -181,7 +179,7 @@ if aba == "Vazões - GRBANABUIU":
 
     st.plotly_chart(fig, use_container_width=True)
 
-    # -------------------- Mapa --------------------
+    # -------------------- Mapa (todas as camadas restauradas) --------------------
     st.subheader("🗺️ Mapa dos Reservatórios com Pinos")
     df_mapa = df_filtrado.copy()
     df_mapa[['lat', 'lon']] = df_mapa['Coordendas'].str.split(',', expand=True).astype(float)
@@ -202,10 +200,103 @@ if aba == "Vazões - GRBANABUIU":
         else:
             m = folium.Map(location=center, zoom_start=8, tiles=mapa_tipo)
 
-        # ... (restante das camadas do mapa igual ao seu código original) ...
+        # Camada Bacia Hidrográfica
+        folium.GeoJson(
+            geojson_bacia,
+            name="Bacia do Banabuiu",
+            tooltip=folium.GeoJsonTooltip(fields=["DESCRICA1"], aliases=["Bacia:"]),
+            style_function=lambda x: {"color": "darkblue", "weight": 2}
+        ).add_to(m)
+
+        # Camada Trechos Perenizados
+        trechos_layer = folium.FeatureGroup(name="Trechos Perenizados", show=False)
+        folium.GeoJson(
+            geojson_trechos,
+            tooltip=folium.GeoJsonTooltip(fields=["Name"], aliases=["Name:"]),
+            style_function=lambda x: {"color": "darkblue", "weight": 1}
+        ).add_to(trechos_layer)
+        trechos_layer.add_to(m)
+
+        # Camada Pontos de Controle
+        pontos_layer = folium.FeatureGroup(name="Pontos de Controle", show=False)
+        for feature in geojson_pontos["features"]:
+            props = feature["properties"]
+            coords = feature["geometry"]["coordinates"]
+            nome_municipio = props.get("Name", "Sem nome")
+            folium.Marker(
+                location=[coords[1], coords[0]],
+                icon=folium.CustomIcon("https://i.ibb.co/HfCcFWjb/marker.png", icon_size=(22, 22)),
+                tooltip=nome_municipio
+            ).add_to(pontos_layer)
+        pontos_layer.add_to(m)
+
+        # Camada Açudes Monitorados
+        acudes_layer = folium.FeatureGroup(name="Açudes Monitorados", show=False)
+        folium.GeoJson(
+            geojson_acudes,
+            tooltip=folium.GeoJsonTooltip(fields=["Name"], aliases=["Açude:"]),
+            style_function=lambda x: {"color": "darkgreen", "weight": 2}
+        ).add_to(acudes_layer)
+        acudes_layer.add_to(m)
         
+        # Camada Sedes Municipais (ícone personalizado)
+        sedes_layer = folium.FeatureGroup(name="Sedes Municipais", show=False)
+        for feature in geojson_sedes["features"]:
+            props = feature["properties"]
+            coords = feature["geometry"]["coordinates"]
+            nome_municipio = props.get("NOME_MUNIC", "Sem nome")
+            folium.Marker(
+                location=[coords[1], coords[0]],
+                icon=folium.CustomIcon("https://cdn-icons-png.flaticon.com/512/854/854878.png", icon_size=(22, 22)),
+                tooltip=nome_municipio
+            ).add_to(sedes_layer)
+        sedes_layer.add_to(m)
+        
+        # Camada Comissões Gestoras
+        gestoras_layer = folium.FeatureGroup(name="Comissões Gestoras", show=False)
+        for feature in geojson_c_gestoras["features"]:
+            props = feature["properties"]
+            coords = feature["geometry"]["coordinates"]
+            nome_gestora = props.get("SISTEMAH3", "Sem nome")
+            popup_info = f"""
+            <strong>Célula Gestora:</strong> {nome_gestora}<br>
+            <strong>Ano de Formação:</strong> {props.get("ANOFORMA1", "N/A")}<br>
+            <strong>Sistema:</strong> {props.get("SISTEMAH3", "N/A")}<br>
+            <strong>Município:</strong> {props.get("MUNICIPI6", "N/A")}
+            """
+            folium.Marker(
+                location=[coords[1], coords[0]],
+                icon=folium.CustomIcon("https://cdn-icons-png.flaticon.com/512/4144/4144517.png", icon_size=(30, 30)),
+                tooltip=nome_gestora,
+                popup=folium.Popup(popup_info, max_width=300)
+            ).add_to(gestoras_layer)
+        gestoras_layer.add_to(m)
+
+        # Camada Polígonos Municipais (borda azul fina)
+        municipios_layer = folium.FeatureGroup(name="Polígonos Municipais", show=False)
+        folium.GeoJson(
+            geojson_poligno,
+            tooltip=folium.GeoJsonTooltip(fields=["DESCRICA1"], aliases=["Município:"]),
+            style_function=lambda x: {"fillOpacity": 0, "color": "blue", "weight": 1}
+        ).add_to(municipios_layer)
+        municipios_layer.add_to(m)
+
+        # Pinos dos Reservatórios (df_mapa)
+        for _, row in df_mapa.iterrows():
+            popup_info = f"""
+<strong>Reservatório:</strong> {row['Reservatório Monitorado']}<br>
+<strong>Data:</strong> {row['Data'].date()}<br>
+<strong>Vazão Alocada:</strong> {row['Vazao_Aloc']} l/s
+"""
+            folium.Marker(
+                location=[row["lat"], row["lon"]],
+                popup=folium.Popup(popup_info, max_width=300),
+                icon=folium.CustomIcon("https://i.ibb.co/kvvL870/hydro-dam.png", icon_size=(30, 30)),
+                tooltip=row["Reservatório Monitorado"]
+            ).add_to(m)
+
         folium.LayerControl().add_to(m)
-        folium_static(m, width=1200)
+        folium_static(m, width=1200)  # Ajuste para mapa wide
     else:
         st.info("Nenhum ponto com coordenadas disponíveis para plotar no mapa.")
 
@@ -256,4 +347,4 @@ elif aba == "🗺️ Açudes Monitorados":
     ).add_to(m)
 
     folium.LayerControl().add_to(m)
-    folium_static(m, width=None)
+    folium_static(m, width=None)  # Ajuste para mapa wide
