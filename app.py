@@ -289,7 +289,7 @@ with gtab2:
         
         # Configurar layout com eixo secundário
         figb.update_layout(
-            title='Distribuição de Vazões e Volumes Acumulados',
+            title_text='Distribuição de Vazões e Volumes Acumulados',
             yaxis=dict(
                 title=f'Vazão Operada ({sufx})',
                 titlefont=dict(color='#1f77b4'),
@@ -301,7 +301,7 @@ with gtab2:
                 tickfont=dict(color='#d62728'),
                 overlaying='y',
                 side='right',
-                range=[0, df_volumes['Volume Acumulado'].max()/1e6 * 1.1]  # Ajuste automático do range
+                range=[0, df_volumes['Volume Acumulado'].max()/1e6 * 1.1]
             ),
             showlegend=False
         )
