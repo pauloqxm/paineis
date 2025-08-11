@@ -7,6 +7,7 @@ import json
 import datetime
 from streamlit_folium import folium_static
 from streamlit_option_menu import option_menu
+from datetime import datetime, timedelta, timezone
 
 with open("trechos_perene.geojson", "r", encoding="utf-8") as f:
     geojson_trechos = json.load(f)
