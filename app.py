@@ -207,10 +207,10 @@ st.markdown(f"""
     </div>
 """, unsafe_allow_html=True)
 
-# -------- Menu Inicial ---------------
-
+# -------- Menu Inicial com Hamburger Menu ---------------
 st.markdown(f"""
     <style>
+    /* Estilo base do menu */
     .social-menu-container {{
         position: relative;
         left: 50%;
@@ -224,13 +224,17 @@ st.markdown(f"""
         font-family: Tahoma, sans-serif;
         font-size: 13px;
         display: flex;
-        justify-content: center;
+        justify-content: space-between;
         align-items: center;
-        gap: 30px;
         flex-wrap: wrap;
-        margin-top: -40px;  /* Espaço para aparecer abaixo da barra fixa */
+        margin-top: -40px;
         border-bottom: 3px solid #b6b8ba;
-        z-index: 1;  /* Mais baixo que o header fixo */
+        z-index: 1;
+    }}
+
+    .social-links {{
+        display: flex;
+        gap: 30px;
     }}
 
     .social-menu-container a {{
@@ -242,14 +246,154 @@ st.markdown(f"""
     .social-menu-container a:hover {{
         color: #fad905;
     }}
+
+    /* Menu sanduíche */
+    .menu-toggle {{
+        display: none;
+        cursor: pointer;
+        padding: 5px;
+    }}
+
+    .menu-icon {{
+        display: inline-block;
+        width: 25px;
+        height: 3px;
+        background-color: white;
+        position: relative;
+        transition: all 0.3s;
+    }}
+
+    .menu-icon:before, .menu-icon:after {{
+        content: '';
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        background-color: white;
+        transition: all 0.3s;
+    }}
+
+    .menu-icon:before {{
+        top: -8px;
+    }}
+
+    .menu-icon:after {{
+        top: 8px;
+    }}
+
+    /* Filtros dropdown */
+    .filters-dropdown {{
+        display: none;
+        width: 100%;
+        padding: 10px 0;
+        background-color: #038db5;
+    }}
+
+    .filters-dropdown.show {{
+        display: block;
+    }}
+
+    .filter-group {{
+        margin-bottom: 10px;
+    }}
+
+    .filter-label {{
+        color: white;
+        font-weight: bold;
+        margin-right: 10px;
+        font-size: 13px;
+    }}
+
+    /* Estilo para os selects */
+    .stMultiSelect, .stSelectbox {{
+        width: 100% !important;
+    }}
+
+    /* Responsividade */
+    @media (max-width: 768px) {{
+        .social-links {{
+            display: none;
+        }}
+        
+        .menu-toggle {{
+            display: block;
+        }}
+        
+        .social-menu-container {{
+            flex-direction: column;
+            align-items: flex-start;
+            padding: 10px 20px;
+        }}
+    }}
+
+    @media (min-width: 769px) {{
+        .filters-dropdown {{
+            display: block !important;
+        }}
+    }}
     </style>
 
     <div class="social-menu-container">
-        <a href="https://www.instagram.com/seuusuario" target="_blank">📸 Instagran</a>
-        <a href="https://www.facebook.com/seuusuario" target="_blank">📘 Facebook</a>
-        <a href="https://wa.me/5588999999999" target="_blank">💬 WhatsApp</a>       
+        <div class="social-links">
+            <a href="https://www.instagram.com/seuusuario" target="_blank">📸 Instagram</a>
+            <a href="https://www.facebook.com/seuusuario" target="_blank">📘 Facebook</a>
+            <a href="https://wa.me/5588999999999" target="_blank">💬 WhatsApp</a>
+        </div>
+        
+        <div class="menu-toggle" onclick="toggleFilters()">
+            <div class="menu-icon"></div>
+        </div>
+        
+        <div class="filters-dropdown" id="filtersDropdown">
+            <div class="filter-group">
+                <span class="filter-label">🏞️ Reservatórios:</span>
+            </div>
+            <div class="filter-group">
+                <span class="filter-label">🏞️ Açudes Monitorados:</span>
+            </div>
+        </div>
     </div>
+
+    <script>
+    function toggleFilters() {{
+        var dropdown = document.getElementById('filtersDropdown');
+        dropdown.classList.toggle('show');
+        
+        var icon = document.querySelector('.menu-icon');
+        if (dropdown.classList.contains('show')) {{
+            icon.style.transform = 'rotate(45deg)';
+            icon.style.top = '0';
+            icon:before.style.transform = 'rotate(90deg)';
+            icon:before.style.top = '0';
+            icon:after.style.opacity = '0';
+        }} else {{
+            icon.style.transform = 'rotate(0)';
+            icon:before.style.transform = 'rotate(0)';
+            icon:after.style.opacity = '1';
+        }}
+    }}
+    </script>
 """, unsafe_allow_html=True)
+
+# Adicionando os filtros (fora do HTML para funcionamento correto do Streamlit)
+col1, col2 = st.columns(2)
+
+with col1:
+    reservatorios = st.multiselect(
+        "Selecione os reservatórios:",
+        options=df['Reservatório Monitorado'].dropna().unique(),
+        default=df['Reservatório Monitorado'].dropna().unique()[0:1],
+        key="filtro_reservatorios",
+        label_visibility="collapsed"
+    )
+
+with col2:
+    acudes = st.multiselect(
+        "Selecione os açudes:",
+        options=df['Açude Monitorado'].dropna().unique(),  # Ajuste para sua coluna real
+        default=df['Açude Monitorado'].dropna().unique()[0:1],
+        key="filtro_acudes",
+        label_visibility="collapsed"
+    )
 
 # -------- utilitário simples de conversão (origem: L/s) --------
 def convert_vazao(series, unidade):
