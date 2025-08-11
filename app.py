@@ -1,4 +1,5 @@
 
+
 import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
@@ -394,91 +395,11 @@ with gtab2:
         for feature in geojson_c_gestoras["features"]:
             props = feature["properties"]; coords = feature["geometry"]["coordinates"]
             nome_g = props.get("SISTEMAH3","Sem nome")
-           popup_info = f"""
-<div style='
-    font-family: "Segoe UI", Arial, sans-serif;
-    padding: 14px;
-    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-    border-radius: 10px;
-    box-shadow: 0 4px 14px rgba(0,0,0,0.12);
-    border-left: 5px solid #3498db;
-    min-width: 240px;
-    max-width: 300px;
-'>
-    <div style='
-        font-size: 17px;
-        font-weight: 700;
-        color: #2c3e50;
-        margin-bottom: 10px;
-        padding-bottom: 8px;
-        border-bottom: 2px solid #e0e0e0;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    '>
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM12 20C7.59 20 4 16.41 4 12C4 7.59 7.59 4 12 4C16.41 4 20 7.59 20 12C20 16.41 16.41 20 12 20Z" fill="#3498db"/>
-            <path d="M12 6C9.79 6 8 7.79 8 10C8 12.21 9.79 14 12 14C14.21 14 16 12.21 16 10C16 7.79 14.21 6 12 6ZM12 12C10.9 12 10 11.1 10 10C10 8.9 10.9 8 12 8C13.1 8 14 8.9 14 10C14 11.1 13.1 12 12 12Z" fill="#3498db"/>
-            <path d="M12 16C10.33 16 5 17.34 5 19V20H19V19C19 17.34 13.67 16 12 16Z" fill="#3498db"/>
-        </svg>
-        Célula Gestora
-    </div>
-    
-    <div style='margin-bottom: 6px;'>
-        <span style='
-            display: inline-block;
-            width: 110px;
-            font-weight: 600;
-            color: #7f8c8d;
-        '>Nome:</span>
-        <span style='color: #2c3e50; font-weight: 500;'>{nome_g}</span>
-    </div>
-    
-    <div style='margin-bottom: 6px;'>
-        <span style='
-            display: inline-block;
-            width: 110px;
-            font-weight: 600;
-            color: #7f8c8d;
-        '>Ano Formação:</span>
-        <span style='color: #e67e22; font-weight: 500;'>{props.get("ANOFORMA1","N/A")}</span>
-    </div>
-    
-    <div style='margin-bottom: 6px;'>
-        <span style='
-            display: inline-block;
-            width: 110px;
-            font-weight: 600;
-            color: #7f8c8d;
-        '>Sistema:</span>
-        <span style='color: #2c3e50; font-weight: 500;'>{props.get("SISTEMAH3","N/A")}</span>
-    </div>
-    
-    <div style='margin-bottom: 6px;'>
-        <span style='
-            display: inline-block;
-            width: 110px;
-            font-weight: 600;
-            color: #7f8c8d;
-        '>Município:</span>
-        <span style='color: #27ae60; font-weight: 500;'>{props.get("MUNICIPI6","N/A")}</span>
-    </div>
-    
-    <div style='
-        margin-top: 12px;
-        padding-top: 8px;
-        border-top: 1px dashed #ddd;
-        font-size: 11px;
-        color: #95a5a6;
-        text-align: center;
-    '>
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style='vertical-align: middle; margin-right: 4px;'>
-            <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM12 20C7.59 20 4 16.41 4 12C4 7.59 7.59 4 12 4C16.41 4 20 7.59 20 12C20 16.41 16.41 20 12 20Z" fill="#95a5a6"/>
-            <path d="M11 7H13V9H11V7ZM11 11H13V17H11V11Z" fill="#95a5a6"/>
-        </svg>
-        Dados atualizados em {datetime.now().strftime('%d/%m/%Y')}
-    </div>
-</div>
+            popup_info = f"""
+<strong>Célula Gestora:</strong> {nome_g}<br>
+<strong>Ano de Formação:</strong> {props.get("ANOFORMA1","N/A")}<br>
+<strong>Sistema:</strong> {props.get("SISTEMAH3","N/A")}<br>
+<strong>Município:</strong> {props.get("MUNICIPI6","N/A")}
 """
             folium.Marker([coords[1], coords[0]],
                           icon=folium.CustomIcon("https://cdn-icons-png.flaticon.com/512/4144/4144517.png", icon_size=(30,30)),
