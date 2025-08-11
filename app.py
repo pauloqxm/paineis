@@ -99,16 +99,26 @@ def convert_vazao(series, unidade):
         return series / 1000.0, "m³/s"
     return series, "L/s"
 
-if aba == "Vazões - GRBANABUIU":
-    @st.cache_data
-    def load_data():
-        url = "https://docs.google.com/spreadsheets/d/1pbNcZ9hS8DhotdkYuPc8kIOy5dgyoYQb384-jgqLDfA/export?format=csv"
-        df = pd.read_csv(url)
-        df['Data'] = pd.to_datetime(df['Data'], format='%d/%m/%Y', errors='coerce')
-        df['Mês'] = df['Data'].dt.to_period('M').astype(str)
-        return df
+# -------- função para carregar dados --------
+@st.cache_data
+def carregar_dados():
+    """Carrega os dados das vazões"""
+    url = "https://docs.google.com/spreadsheets/d/1pbNcZ9hS8DhotdkYuPc8kIOy5dgyoYQb384-jgqLDfA/export?format=csv"
+    df = pd.read_csv(url)
+    df['Data'] = pd.to_datetime(df['Data'], format='%d/%m/%Y', errors='coerce')
+    df['Mês'] = df['Data'].dt.to_period('M').astype(str)
+    return df
 
-    df = load_data()
+if aba == "Vazões - GRBANABUIU":
+    # Inicialização ou recarga dos dados
+    if 'df' not in st.session_state:
+        st.session_state.df = carregar_dados()
+
+    if st.button("🔄 Recarregar dados", key="reload_button"):
+        st.session_state.df = carregar_dados()
+        st.rerun()
+
+    df = st.session_state.df
 
     st.title("💧 Vazões - GRBANABUIU")
 
@@ -120,7 +130,7 @@ if aba == "Vazões - GRBANABUIU":
         data_min = datas_disponiveis.min()
         data_max = datas_disponiveis.max()
         intervalo_data = st.date_input("📅 Intervalo de Datas", (data_min, data_max), format="DD/MM/YYYY")
-        unidade_sel = st.selectbox("🧪 Unidade de Vazão", ["L/s", "m³/s"], index=0)  # << NOVO
+        unidade_sel = st.selectbox("🧪 Unidade de Vazão", ["L/s", "m³/s"], index=0)
         mapa_tipo = st.selectbox("🗺️ Estilo do Mapa", [
             "OpenStreetMap", "Stamen Terrain", "Stamen Toner",
             "CartoDB positron", "CartoDB dark_matter", "Esri Satellite"
