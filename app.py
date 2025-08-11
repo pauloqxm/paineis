@@ -80,46 +80,81 @@ st.markdown(f"""
         top: 0;
         left: 0;
         width: 100%;
-        background-color: #04a5c9;
+        background: linear-gradient(135deg, #228B22 0%, #006400 50%, #004d00 100%);
         color: white;
-        padding: 10px 32px;
-        font-family: Tahoma, sans-serif;
-        border-bottom: 3px solid #fad905;
+        padding: 12px 32px;
+        font-family: 'Segoe UI', Roboto, sans-serif;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         z-index: 9999;
     }}
 
-    .header-top {{
+    .header-container {{
+        max-width: 1200px;
+        margin: 0 auto;
         display: flex;
         justify-content: space-between;
         align-items: center;
-        font-weight: bold;
+    }}
+
+    .header-brand {{
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }}
+
+    .header-logo {{
+        height: 40px;
+        filter: drop-shadow(0 2px 2px rgba(0,0,0,0.2));
     }}
 
     .header-title {{
-        font-size: 14px;
-        
+        font-size: 18px;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        text-shadow: 0 1px 3px rgba(0,0,0,0.3);
     }}
 
-    .header-location {{
-        font-size: 12px;
+    .header-subtitle {{
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 14px;
+        margin-top: 4px;
+        opacity: 0.9;
     }}
 
     .header-date {{
-        margin-top: 4px;
-        font-size: 12px;
+        background: rgba(255,255,255,0.15);
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 13px;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        backdrop-filter: blur(5px);
     }}
 
     .main .block-container {{
-        padding-top: 70px;
-        
+        padding-top: 90px;
     }}
     </style>
 
     <div class="custom-header">
-        <div class="header-top">
-            <div class="header-title">🔎 Você Fiscaliza | Quixeramobim - Ceará</div>            
+        <div class="header-container">
+            <div class="header-brand">
+                <img src="https://cdn-icons-png.flaticon.com/512/1006/1006363.png" class="header-logo">
+                <div>
+                    <div class="header-title">Você Fiscaliza | Quixeramobim - CE</div>
+                    <div class="header-subtitle">
+                        <span>📌 Monitoramento de Recursos Públicos</span>
+                    </div>
+                </div>
+            </div>
+            <div class="header-date">
+                📅 {data_hoje}
+            </div>
         </div>
-        <div class="header-date">📅 {data_hoje}</div>
     </div>
 """, unsafe_allow_html=True)
 
