@@ -66,7 +66,7 @@ with st.sidebar:
 
 # Flow conversion function
 def convert_vazao(series, unidade):
-    """Convert flow values between L/s and m³/s"""
+    """Convert flow values between L/s and m³/s (input em L/s, retorna (valores, sufixo))"""
     if unidade == "m³/s":
         return series / 1000.0, "m³/s"
     return series, "L/s"
@@ -88,8 +88,8 @@ if aba == "Vazões - GRBANABUIU":
     # Filters
     with st.sidebar:
         st.header("🔎 Filtros")
-        estacoes = st.multiselect("🏞️ Reservatório Monitorado", df['Reservatório Monitorado'].unique())
-        meses = st.multiselect("📆 Mês", df['Mês'].unique())
+        estacoes = st.multiselect("🏞️ Reservatório Monitorado", df['Reservatório Monitorado'].dropna().unique())
+        meses = st.multiselect("📆 Mês", df['Mês'].dropna().unique())
         data_min, data_max = df['Data'].min(), df['Data'].max()
         inicio, fim = st.date_input("📅 Intervalo de Datas", [data_min, data_max])
         unidade_sel = st.selectbox("🧪 Unidade de Vazão", ["L/s", "m³/s"])
@@ -114,10 +114,12 @@ if aba == "Vazões - GRBANABUIU":
     
     fig = go.Figure()
     cores = px.colors.qualitative.Plotly
-    
-    for i, reservatorio in enumerate(df_filtrado['Reservatório Monitorado'].unique()):
+    y_unit = "m³/s" if unidade_sel == "m³/s" else "L/s"  # evita 'unit' indefinido
+
+    for i, reservatorio in enumerate(df_filtrado['Reservatório Monitorado'].dropna().unique()):
         df_res = df_filtrado[df_filtrado['Reservatório Monitorado'] == reservatorio].sort_values('Data')
-        df_res = df_res.groupby('Data').last().reset_index()
+        # remove duplicatas por dia, mantendo o último registro
+        df_res = df_res.groupby('Data', as_index=False).last()
         
         y_vals, unit = convert_vazao(df_res['Vazão Operada'], unidade_sel)
         
@@ -126,14 +128,18 @@ if aba == "Vazões - GRBANABUIU":
             y=y_vals,
             mode='lines+markers',
             name=reservatorio,
-            line=dict(shape='hv', width=2, color=cores[i]),
+            line=dict(shape='hv', width=2, color=cores[i % len(cores)]),
             marker=dict(size=6),
-            hovertemplate=f"<b>{reservatorio}</b><br>Data: %{{x|%d/%m/%Y}}<br>Vazão: %{{y:.2f}} {unit}<extra></extra>"
+            hovertemplate=(
+                f"<b>{reservatorio}</b><br>"
+                "Data: %{x|%d/%m/%Y}<br>"
+                f"Vazão: %{{y:.2f}} {unit}<extra></extra>"
+            )
         ))
 
     fig.update_layout(
         xaxis_title='Data',
-        yaxis_title=f'Vazão Operada ({unit})',
+        yaxis_title=f'Vazão Operada ({y_unit})',
         template='plotly_white',
         hovermode='x unified'
     )
@@ -144,7 +150,10 @@ if aba == "Vazões - GRBANABUIU":
     
     # Prepare map data
     df_mapa = df_filtrado.copy()
-    df_mapa[['lat', 'lon']] = df_mapa['Coordendas'].str.split(',', expand=True).astype(float)
+    # lida com "lat, lon" com espaços
+    df_mapa[['lat', 'lon']] = df_mapa['Coordendas'].str.split(',', expand=True)
+    df_mapa['lat'] = pd.to_numeric(df_mapa['lat'].str.strip(), errors='coerce')
+    df_mapa['lon'] = pd.to_numeric(df_mapa['lon'].str.strip(), errors='coerce')
     df_mapa = df_mapa.dropna(subset=['lat', 'lon']).drop_duplicates('Reservatório Monitorado')
 
     if not df_mapa.empty:
@@ -277,32 +286,46 @@ if aba == "Vazões - GRBANABUIU":
     else:
         st.warning("Nenhum dado disponível para exibir no mapa.")
 
-    # Weighted average calculation
+    # ---------------- Média PONDERADA por reservatório (corrigida) ----------------
     st.subheader("📊 Média Ponderada por Reservatório")
-    
-    def calcular_media_ponderada(df):
-        df = df.sort_values('Data')
-        df['dias'] = df['Data'].diff().dt.days.fillna(0)
-        if len(df) > 0:
-            df.iloc[-1, df.columns.get_loc('dias')] = (df['Data'].max() - df['Data'].iloc[-1]).days + 1
-        soma_ponderada = (df['Vazão Operada'] * df['dias']).sum()
-        total_dias = df['dias'].sum()
-        return soma_ponderada / total_dias if total_dias > 0 else 0
-    
-    medias = df_filtrado.groupby('Reservatório Monitorado').apply(calcular_media_ponderada).reset_index()
-    medias.columns = ['Reservatório', 'Média Ponderada']
-    medias['Vazão'], unit = convert_vazao(medias['Média Ponderada'], unidade_sel)
-    
-    fig = px.bar(
+
+    # usamos o período do filtro (inicio, fim) para ponderar corretamente até o fim do intervalo
+    periodo_fim = pd.to_datetime(fim)
+
+    def calcular_media_ponderada(grp):
+        g = grp.sort_values('Data').copy()
+        # remove duplicatas por dia (último valor)
+        g = g.groupby('Data', as_index=False).last()
+        if g.empty:
+            return 0.0
+        # próxima data (para duração do patamar)
+        g['prox_data'] = g['Data'].shift(-1)
+        g.loc[g.index[-1], 'prox_data'] = periodo_fim  # último patamar vai até o fim do intervalo
+        # duração em dias (inclusivo no último dia do patamar)
+        g['dias'] = (g['prox_data'] - g['Data']).dt.days
+        g.loc[g['dias'] < 0, 'dias'] = 0  # segurança
+        # média ponderada
+        numerador = (g['Vazão Operada'] * g['dias']).sum()
+        denominador = g['dias'].sum()
+        return float(numerador / denominador) if denominador > 0 else 0.0
+
+    medias = (df_filtrado.groupby('Reservatório Monitorado', as_index=True)
+              .apply(calcular_media_ponderada)
+              .reset_index(name='Média Ponderada (L/s)'))
+
+    # converte para unidade escolhida
+    medias['Média Conv'], unit_bar = convert_vazao(medias['Média Ponderada (L/s)'], unidade_sel)
+
+    fig_bar = px.bar(
         medias,
-        x='Reservatório',
-        y='Vazão',
+        x='Reservatório Monitorado',
+        y='Média Conv',
         text_auto='.2f',
-        labels={'Vazão': f'Média Ponderada ({unit})'},
-        color='Reservatório',
+        labels={'Reservatório Monitorado': 'Reservatório', 'Média Conv': f'Média Ponderada ({unit_bar})'},
+        color='Reservatório Monitorado',
         color_discrete_sequence=px.colors.qualitative.Plotly
     )
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig_bar, use_container_width=True)
 
     # Data table
     st.subheader("📋 Dados Completos")
