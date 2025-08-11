@@ -1,4 +1,3 @@
-Corrija apenas a identação e deixe a linha de média, apenas no reservatório selecionado:
 
 import streamlit as st
 import pandas as pd
