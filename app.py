@@ -206,6 +206,50 @@ st.markdown(f"""
     </div>
 """, unsafe_allow_html=True)
 
+# -------- Menu Inicial ---------------
+
+st.markdown(f"""
+    <style>
+    .social-menu-container {{
+        position: relative;
+        left: 50%;
+        right: 50%;
+        margin-left: -50vw;
+        margin-right: -50vw;
+        width: 100vw;
+        background-color: #04a5c9;
+        color: white;
+        padding: 6px 32px;
+        font-family: Tahoma, sans-serif;
+        font-size: 13px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 30px;
+        flex-wrap: wrap;
+        margin-top: -40px;  /* Espaço para aparecer abaixo da barra fixa */
+        border-bottom: 3px solid #b6b8ba;
+        z-index: 1;  /* Mais baixo que o header fixo */
+    }}
+
+    .social-menu-container a {{
+        color: white;
+        text-decoration: none;
+        transition: color 0.3s ease;
+    }}
+
+    .social-menu-container a:hover {{
+        color: #fad905;
+    }}
+    </style>
+
+    <div class="social-menu-container">
+        <a href="https://www.instagram.com/seuusuario" target="_blank">📸 Instagran</a>
+        <a href="https://www.facebook.com/seuusuario" target="_blank">📘 Facebook</a>
+        <a href="https://wa.me/5588999999999" target="_blank">💬 WhatsApp</a>       
+    </div>
+""", unsafe_allow_html=True)
+
 # -------- utilitário simples de conversão (origem: L/s) --------
 def convert_vazao(series, unidade):
     """Retorna (valores_convertidos, sufixo_unidade). Espera valores em L/s."""
