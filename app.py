@@ -57,7 +57,7 @@ st.set_page_config(page_title="Dashboard Vazões", layout="wide")
 st.markdown("""
     <style>
     .fixed-header {
-        position: fixed;
+        position: ;
         top: 50px;
         left: 0;
         right: 0;
