@@ -265,9 +265,15 @@ if aba == "Vazões - GRBANABUIU":
 
         # Controle de camadas
         folium.LayerControl(collapsed=False).add_to(m)
-        folium_static(m, width=1200, height=600)
-    else:
-        st.warning("Nenhum dado disponível para exibição no mapa.")
+        
+        # Corrigindo a exibição do mapa
+        try:
+            # Tente primeiro o método mais recente
+            folium_static(m, width=1200)
+        except Exception as e:
+            st.warning(f"Ocorreu um erro ao exibir o mapa: {str(e)}")
+            # Método alternativo para exibir o mapa
+            st.components.v1.html(m._repr_html_(), width=1200, height=600)
 
     # Média Ponderada
     st.subheader("📊 Média Ponderada por Reservatório")
