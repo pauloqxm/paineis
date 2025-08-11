@@ -82,7 +82,7 @@ st.markdown(f"""
         width: 100%;
         background: linear-gradient(135deg, #228B22 0%, #006400 50%, #004d00 100%);
         color: white;
-        padding: 12px 32px;
+        padding: 12px 5%;
         font-family: 'Segoe UI', Roboto, sans-serif;
         box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         z-index: 9999;
@@ -92,51 +92,99 @@ st.markdown(f"""
         max-width: 1200px;
         margin: 0 auto;
         display: flex;
+        flex-wrap: wrap;
         justify-content: space-between;
         align-items: center;
+        gap: 10px;
     }}
 
     .header-brand {{
         display: flex;
         align-items: center;
-        gap: 15px;
+        gap: 10px;
+        flex: 1;
+        min-width: 200px;
     }}
 
     .header-logo {{
-        height: 40px;
+        height: 36px;
         filter: drop-shadow(0 2px 2px rgba(0,0,0,0.2));
     }}
 
+    .header-text {{
+        flex: 1;
+        min-width: 150px;
+    }}
+
     .header-title {{
-        font-size: 18px;
+        font-size: clamp(14px, 3vw, 18px);
         font-weight: 600;
         letter-spacing: 0.5px;
         text-shadow: 0 1px 3px rgba(0,0,0,0.3);
+        line-height: 1.2;
     }}
 
     .header-subtitle {{
         display: flex;
         align-items: center;
-        gap: 10px;
-        font-size: 14px;
-        margin-top: 4px;
+        gap: 6px;
+        font-size: clamp(10px, 2.5vw, 14px);
+        margin-top: 2px;
         opacity: 0.9;
+        flex-wrap: wrap;
     }}
 
     .header-date {{
         background: rgba(255,255,255,0.15);
-        padding: 6px 12px;
+        padding: 4px 10px;
         border-radius: 20px;
-        font-size: 13px;
+        font-size: clamp(10px, 2.5vw, 13px);
         font-weight: 500;
         display: flex;
         align-items: center;
         gap: 6px;
         backdrop-filter: blur(5px);
+        white-space: nowrap;
     }}
 
     .main .block-container {{
         padding-top: 90px;
+    }}
+
+    /* Media Queries para Mobile */
+    @media (max-width: 600px) {{
+        .custom-header {{
+            padding: 8px 4%;
+        }}
+        
+        .header-container {{
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 8px;
+        }}
+        
+        .header-brand {{
+            width: 100%;
+            min-width: auto;
+        }}
+        
+        .header-logo {{
+            height: 30px;
+        }}
+        
+        .header-date {{
+            align-self: flex-end;
+            margin-top: -5px;
+            padding: 3px 8px;
+        }}
+        
+        .header-subtitle span {{
+            display: none;
+        }}
+        
+        .main .block-container {{
+            padding-top: 110px;
+        }}
     }}
     </style>
 
@@ -144,7 +192,7 @@ st.markdown(f"""
         <div class="header-container">
             <div class="header-brand">
                 <img src="https://cdn-icons-png.flaticon.com/512/1006/1006363.png" class="header-logo">
-                <div>
+                <div class="header-text">
                     <div class="header-title">Você Fiscaliza | Quixeramobim - CE</div>
                     <div class="header-subtitle">
                         <span>📌 Monitoramento de Recursos Públicos</span>
