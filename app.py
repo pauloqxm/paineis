@@ -91,6 +91,13 @@ with st.sidebar:
         orientation="vertical"
     )
 
+# -------- utilitário simples de conversão --------
+def convert_vazao(series, unidade):
+    """Retorna (valores_convertidos, sufixo_unidade). Espera valores em L/s."""
+    if unidade == "m³/s":
+        return series / 1000.0, "m³/s"
+    return series, "l/s"
+
 if aba == "Vazões - GRBANABUIU":
     @st.cache_data
     def load_data():
@@ -112,6 +119,7 @@ if aba == "Vazões - GRBANABUIU":
         data_min = datas_disponiveis.min()
         data_max = datas_disponiveis.max()
         intervalo_data = st.date_input("📅 Intervalo de Datas", (data_min, data_max), format="DD/MM/YYYY")
+        unidade_sel = st.selectbox("🧪 Unidade de Vazão", ["L/s", "m³/s"], index=0)  # << NOVO
         mapa_tipo = st.selectbox("🗺️ Estilo do Mapa", [
             "OpenStreetMap", "Stamen Terrain", "Stamen Toner",
             "CartoDB positron", "CartoDB dark_matter", "Esri Satellite"
@@ -136,13 +144,16 @@ if aba == "Vazões - GRBANABUIU":
     reservatorios_filtrados = df_filtrado['Reservatório Monitorado'].unique()
     for i, reservatorio in enumerate(reservatorios_filtrados):
         df_res = df_filtrado[df_filtrado['Reservatório Monitorado'] == reservatorio].sort_values(by="Data")
-        # ✅ Remove duplicatas por data, mantendo o último valor
+        # remove duplicatas por dia
         df_res = df_res.groupby('Data', as_index=False).last()
+
+        # aplica conversão para a unidade escolhida (origem: L/s)
+        y_vals, unit_suffix = convert_vazao(df_res["Vazão Operada"], unidade_sel)
 
         cor = cores[i % len(cores)]
         fig.add_trace(go.Scatter(
             x=df_res["Data"],
-            y=df_res["Vazão Operada"],
+            y=y_vals,
             mode="lines+markers",
             name=reservatorio,
             line=dict(shape='hv', width=2, color=cor),  # degraus
@@ -151,26 +162,27 @@ if aba == "Vazões - GRBANABUIU":
             hovertemplate=(
                 f"<b>{reservatorio}</b><br>"
                 "Data: %{x|%d/%m/%Y}<br>"
-                "Vazão: %{y:.2f} l/s<extra></extra>"
+                f"Vazão: %{y:.3f} {unit_suffix}<extra></extra>"
             )
         ))
 
     if len(reservatorios_filtrados) == 1:
-        media_res = df_filtrado["Vazão Operada"].mean()
+        media_res, unit_suffix = convert_vazao(df_filtrado["Vazão Operada"], unidade_sel)
+        media_val = media_res.mean()
         fig.add_trace(go.Scatter(
             x=x_range,
-            y=[media_res, media_res],
+            y=[media_val, media_val],
             mode="lines+text",
-            name=f"Média: {media_res:.2f} l/s",
+            name=f"Média: {media_val:.3f} {unit_suffix}",
             line=dict(color="red", width=4, dash="dash"),
-            text=[f"Média: {media_res:.2f} l/s", ""],
+            text=[f"Média: {media_val:.3f} {unit_suffix}", ""],
             textposition="top right",
             showlegend=False
         ))
 
     fig.update_layout(
         xaxis_title="Data",
-        yaxis_title="Vazão Operada (l/s)",
+        yaxis_title=f"Vazão Operada ({'m³/s' if unidade_sel=='m³/s' else 'L/s'})",
         legend_title="Reservatório",
         template="simple_white",
         hovermode="closest",
@@ -179,7 +191,7 @@ if aba == "Vazões - GRBANABUIU":
 
     st.plotly_chart(fig, use_container_width=True)
 
-    # -------------------- Mapa (todas as camadas restauradas) --------------------
+    # -------------------- Mapa --------------------
     st.subheader("🗺️ Mapa dos Reservatórios com Pinos")
     df_mapa = df_filtrado.copy()
     df_mapa[['lat', 'lon']] = df_mapa['Coordendas'].str.split(',', expand=True).astype(float)
@@ -281,12 +293,21 @@ if aba == "Vazões - GRBANABUIU":
         ).add_to(municipios_layer)
         municipios_layer.add_to(m)
 
-        # Pinos dos Reservatórios (df_mapa)
+        # Pinos dos Reservatórios (df_mapa) com unidade escolhida
         for _, row in df_mapa.iterrows():
+            # Converte vazão alocada (se existir) para a unidade escolhida; origem suposta: L/s
+            try:
+                val = float(row.get('Vazao_Aloc', float('nan')))
+            except Exception:
+                val = float('nan')
+            val_conv, unit_suf = convert_vazao(pd.Series([val]), unidade_sel)
+            val_txt = f"{val_conv.iloc[0]:.3f} {unit_suf}" if pd.notna(val_conv.iloc[0]) else "—"
+
+            data_txt = row['Data'].date() if pd.notna(row['Data']) else "—"
             popup_info = f"""
 <strong>Reservatório:</strong> {row['Reservatório Monitorado']}<br>
-<strong>Data:</strong> {row['Data'].date()}<br>
-<strong>Vazão Alocada:</strong> {row['Vazao_Aloc']} l/s
+<strong>Data:</strong> {data_txt}<br>
+<strong>Vazão Alocada:</strong> {val_txt}
 """
             folium.Marker(
                 location=[row["lat"], row["lon"]],
@@ -302,12 +323,17 @@ if aba == "Vazões - GRBANABUIU":
 
     st.subheader("🏞️ Média da Vazão Operada por Reservatório")
     media_vazao = df_filtrado.groupby("Reservatório Monitorado")["Vazão Operada"].mean().reset_index()
+    # converte para unidade escolhida (origem: L/s)
+    media_conv, unit_bar = convert_vazao(media_vazao["Vazão Operada"], unidade_sel)
+    media_vazao["Vazão (conv)"] = media_conv
+
     st.plotly_chart(
         px.bar(
             media_vazao,
             x="Reservatório Monitorado",
-            y="Vazão Operada",
-            text_auto='.2s'
+            y="Vazão (conv)",
+            text_auto='.2s',
+            labels={"Vazão (conv)": f"Média ({unit_bar})"}
         ),
         use_container_width=True
     )
@@ -347,4 +373,4 @@ elif aba == "🗺️ Açudes Monitorados":
     ).add_to(m)
 
     folium.LayerControl().add_to(m)
-    folium_static(m, width=None)  # Ajuste para mapa wide
+    folium_static(m, width=None)
