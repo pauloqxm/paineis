@@ -9,7 +9,6 @@ from streamlit_folium import folium_static
 from streamlit_option_menu import option_menu
 from datetime import datetime, timedelta, timezone
 
-# Load GeoJSON files
 with open("trechos_perene.geojson", "r", encoding="utf-8") as f:
     geojson_trechos = json.load(f)
 
@@ -31,22 +30,11 @@ with open("bacia_banabuiu.geojson", "r", encoding="utf-8") as f:
 with open("pontos_controle.geojson", "r", encoding="utf-8") as f:
     geojson_pontos = json.load(f)
 
-# Configure page
 st.set_page_config(page_title="Dashboard Vazões", layout="wide")
 
-# -------- Data Loading --------
-@st.cache_data
-def carregar_dados():
-    """Load data from Google Sheets"""
-    url = "https://docs.google.com/spreadsheets/d/1pbNcZ9hS8DhotdkYuPc8kIOy5dgyoYQb384-jgqLDfA/export?format=csv"
-    df = pd.read_csv(url)
-    df['Data'] = pd.to_datetime(df['Data'], format='%d/%m/%Y', errors='coerce')
-    df['Mês'] = df['Data'].dt.to_period('M').astype(str)
-    return df
+#Barra superior
 
-df = carregar_dados()
-
-# -------- Header with Date --------
+# Define o fuso horário de Brasília (UTC-3)
 fuso_brasilia = timezone(timedelta(hours=-3))
 agora = datetime.now(fuso_brasilia)
 
@@ -75,10 +63,12 @@ meses = {
     'December': 'dezembro'
 }
 
+# Formatar data em português
 dia_semana = dias_semana[agora.strftime('%A')]
 mes = meses[agora.strftime('%B')]
 data_hoje = f"{dia_semana}, {agora.day:02d} de {mes} de {agora.year}"
 
+# Cabeçalho customizado com colunas
 st.markdown(f"""
     <style>
     [data-testid="stHeader"] {{
@@ -102,42 +92,99 @@ st.markdown(f"""
         max-width: 1200px;
         margin: 0 auto;
         display: flex;
+        flex-wrap: wrap;
         justify-content: space-between;
         align-items: center;
+        gap: 10px;
     }}
 
     .header-brand {{
         display: flex;
         align-items: center;
-        gap: 15px;
+        gap: 10px;
+        flex: 1;
+        min-width: 200px;
     }}
 
     .header-logo {{
-        height: 40px;
+        height: 36px;
         filter: drop-shadow(0 2px 2px rgba(0,0,0,0.2));
     }}
 
+    .header-text {{
+        flex: 1;
+        min-width: 150px;
+    }}
+
     .header-title {{
-        font-size: 18px;
+        font-size: clamp(14px, 3vw, 18px);
         font-weight: 600;
         letter-spacing: 0.5px;
         text-shadow: 0 1px 3px rgba(0,0,0,0.3);
+        line-height: 1.2;
+    }}
+
+    .header-subtitle {{
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: clamp(10px, 2.5vw, 14px);
+        margin-top: 2px;
+        opacity: 0.9;
+        flex-wrap: wrap;
     }}
 
     .header-date {{
         background: rgba(255,255,255,0.15);
-        padding: 6px 12px;
+        padding: 4px 10px;
         border-radius: 20px;
-        font-size: 13px;
+        font-size: clamp(10px, 2.5vw, 13px);
         font-weight: 500;
         display: flex;
         align-items: center;
         gap: 6px;
         backdrop-filter: blur(5px);
+        white-space: nowrap;
     }}
 
     .main .block-container {{
         padding-top: 90px;
+    }}
+
+    /* Media Queries para Mobile */
+    @media (max-width: 600px) {{
+        .custom-header {{
+            padding: 8px 4%;
+        }}
+        
+        .header-container {{
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 8px;
+        }}
+        
+        .header-brand {{
+            width: 100%;
+            min-width: auto;
+        }}
+        
+        .header-logo {{
+            height: 30px;
+        }}
+        
+        .header-date {{
+            align-self: flex-end;
+            margin-top: -5px;
+            padding: 3px 8px;
+        }}
+        
+        .header-subtitle span {{
+            display: none;
+        }}
+        
+        .main .block-container {{
+            padding-top: 110px;
+        }}
     }}
     </style>
 
@@ -145,8 +192,11 @@ st.markdown(f"""
         <div class="header-container">
             <div class="header-brand">
                 <img src="https://cdn-icons-png.flaticon.com/512/1006/1006363.png" class="header-logo">
-                <div>
+                <div class="header-text">
                     <div class="header-title">Você Fiscaliza | Quixeramobim - CE</div>
+                    <div class="header-subtitle">
+                        <span>📌 Monitoramento de Recursos Públicos</span>
+                    </div>
                 </div>
             </div>
             <div class="header-date">
@@ -156,7 +206,8 @@ st.markdown(f"""
     </div>
 """, unsafe_allow_html=True)
 
-# -------- Social Menu with Filters --------
+# -------- Menu Inicial ---------------
+
 st.markdown(f"""
     <style>
     .social-menu-container {{
@@ -172,17 +223,13 @@ st.markdown(f"""
         font-family: Tahoma, sans-serif;
         font-size: 13px;
         display: flex;
-        justify-content: space-between;
+        justify-content: center;
         align-items: center;
-        flex-wrap: wrap;
-        margin-top: -40px;
-        border-bottom: 3px solid #b6b8ba;
-        z-index: 1;
-    }}
-
-    .social-links {{
-        display: flex;
         gap: 30px;
+        flex-wrap: wrap;
+        margin-top: -40px;  /* Espaço para aparecer abaixo da barra fixa */
+        border-bottom: 3px solid #b6b8ba;
+        z-index: 1;  /* Mais baixo que o header fixo */
     }}
 
     .social-menu-container a {{
@@ -194,176 +241,75 @@ st.markdown(f"""
     .social-menu-container a:hover {{
         color: #fad905;
     }}
-
-    .menu-toggle {{
-        display: none;
-        cursor: pointer;
-        padding: 5px;
-    }}
-
-    .menu-icon {{
-        display: inline-block;
-        width: 25px;
-        height: 3px;
-        background-color: white;
-        position: relative;
-    }}
-
-    .menu-icon:before, .menu-icon:after {{
-        content: '';
-        position: absolute;
-        width: 100%;
-        height: 100%;
-        background-color: white;
-    }}
-
-    .menu-icon:before {{
-        top: -8px;
-    }}
-
-    .menu-icon:after {{
-        top: 8px;
-    }}
-
-    .filters-dropdown {{
-        width: 100%;
-        padding: 10px 0;
-        background-color: #038db5;
-    }}
-
-    .filter-group {{
-        margin-bottom: 10px;
-    }}
-
-    .filter-label {{
-        color: white;
-        font-weight: bold;
-        margin-right: 10px;
-        font-size: 13px;
-    }}
-
-    @media (max-width: 768px) {{
-        .social-links {{
-            display: none;
-        }}
-        
-        .menu-toggle {{
-            display: block;
-        }}
-        
-        .social-menu-container {{
-            flex-direction: column;
-            align-items: flex-start;
-            padding: 10px 20px;
-        }}
-        
-        .filters-dropdown {{
-            display: none;
-        }}
-        
-        .filters-dropdown.show {{
-            display: block;
-        }}
-    }}
-
-    @media (min-width: 769px) {{
-        .filters-dropdown {{
-            display: block !important;
-        }}
-    }}
     </style>
 
     <div class="social-menu-container">
-        <div class="social-links">
-            <a href="https://www.instagram.com/seuusuario" target="_blank">📸 Instagram</a>
-            <a href="https://www.facebook.com/seuusuario" target="_blank">📘 Facebook</a>
-            <a href="https://wa.me/5588999999999" target="_blank">💬 WhatsApp</a>
-        </div>
-        
-        <div class="menu-toggle" onclick="toggleFilters()">
-            <div class="menu-icon"></div>
-        </div>
-        
-        <div class="filters-dropdown" id="filtersDropdown">
-            <div class="filter-group">
-                <span class="filter-label">🏞️ Reservatórios:</span>
-            </div>
-            <div class="filter-group">
-                <span class="filter-label">🏞️ Açudes Monitorados:</span>
-            </div>
-        </div>
+        <a href="https://www.instagram.com/seuusuario" target="_blank">📸 Instagran</a>
+        <a href="https://www.facebook.com/seuusuario" target="_blank">📘 Facebook</a>
+        <a href="https://wa.me/5588999999999" target="_blank">💬 WhatsApp</a>       
     </div>
-
-    <script>
-    function toggleFilters() {{
-        var dropdown = document.getElementById('filtersDropdown');
-        dropdown.classList.toggle('show');
-    }}
-    </script>
 """, unsafe_allow_html=True)
 
-# Add filters below the menu
-col1, col2 = st.columns(2)
-
-with col1:
-    reservatorios = st.multiselect(
-        "Selecione os reservatórios:",
-        options=df['Reservatório Monitorado'].dropna().unique(),
-        default=df['Reservatório Monitorado'].dropna().unique()[0:1],
-        key="filtro_reservatorios",
-        label_visibility="collapsed"
-    )
-
-with col2:
-    acudes = st.multiselect(
-        "Selecione os açudes:",
-        options=df['Açude Monitorado'].dropna().unique(),
-        default=df['Açude Monitorado'].dropna().unique()[0:1],
-        key="filtro_acudes",
-        label_visibility="collapsed"
-    )
-
-# -------- Utility Functions --------
+# -------- utilitário simples de conversão (origem: L/s) --------
 def convert_vazao(series, unidade):
-    """Convert flow units between L/s and m³/s"""
+    """Retorna (valores_convertidos, sufixo_unidade). Espera valores em L/s."""
     if unidade == "m³/s":
         return series / 1000.0, "m³/s"
     return series, "L/s"
 
-# -------- Main Tabs --------
+# -------- função para carregar dados --------
+def carregar_dados():
+    """Carrega os dados diretamente do Google Sheets SEM cache"""
+    url = "https://docs.google.com/spreadsheets/d/1pbNcZ9hS8DhotdkYuPc8kIOy5dgyoYQb384-jgqLDfA/export?format=csv"
+    df = pd.read_csv(url)
+    df['Data'] = pd.to_datetime(df['Data'], format='%d/%m/%Y', errors='coerce')
+    df['Mês'] = df['Data'].dt.to_period('M').astype(str)
+    return df
+
+# Cria abas na horizontal
 tab1, tab2 = st.tabs(["Vazões - GRBANABUIU", "🗺️ Açudes Monitorados"])
 
 with tab1:
-    if st.button("🔄 Atualizar dados agora"):
+    # Inicialização dos dados
+    if 'df' not in st.session_state:
+        st.session_state.df = carregar_dados()
+    
+    # Apenas o botão de atualização
+    if st.button("🔄 Atualizar dados agora", 
+                help="Busca os dados mais recentes diretamente do banco de dados"):
         with st.spinner('Atualizando dados...'):
-            df = carregar_dados()
+            st.session_state.df = carregar_dados()
         st.rerun()
     
+    df = st.session_state.df
+
+    #Gráfico de linhas
     st.title("💧 Vazões - GRBANABUIU")
 
-    # Filter data based on selections
-    df_filtrado = df.copy()
-    if reservatorios:
-        df_filtrado = df_filtrado[df_filtrado['Reservatório Monitorado'].isin(reservatorios)]
-    if acudes:
-        df_filtrado = df_filtrado[df_filtrado['Açude Monitorado'].isin(acudes)]
-
-    # Add date filter
-    datas_disponiveis = df_filtrado['Data'].dropna().sort_values()
-    data_min = datas_disponiveis.min()
-    data_max = datas_disponiveis.max()
+    # Cria colunas para os filtros
+    col1, col2, col3, col4 = st.columns(4)
     
-    col1, col2, col3 = st.columns(3)
     with col1:
-        intervalo_data = st.date_input("📅 Intervalo de Datas", (data_min, data_max), format="DD/MM/YYYY")
+        estacoes = st.multiselect("🏞️ Reservatório Monitorado", df['Reservatório Monitorado'].dropna().unique())
     with col2:
-        unidade_sel = st.selectbox("🧪 Unidade de Vazão", ["L/s", "m³/s"], index=0)
+        meses = st.multiselect("📆 Mês", df['Mês'].dropna().unique())
     with col3:
+        datas_disponiveis = df['Data'].dropna().sort_values()
+        data_min = datas_disponiveis.min()
+        data_max = datas_disponiveis.max()
+        intervalo_data = st.date_input("📅 Intervalo de Datas", (data_min, data_max), format="DD/MM/YYYY")
+    with col4:
+        unidade_sel = st.selectbox("🧪 Unidade de Vazão", ["L/s", "m³/s"], index=0)
         mapa_tipo = st.selectbox("🗺️ Estilo do Mapa", [
             "OpenStreetMap", "Stamen Terrain", "Stamen Toner",
             "CartoDB positron", "CartoDB dark_matter", "Esri Satellite"
         ], index=0)
 
+    df_filtrado = df.copy()
+    if estacoes:
+        df_filtrado = df_filtrado[df_filtrado['Reservatório Monitorado'].isin(estacoes)]
+    if meses:
+        df_filtrado = df_filtrado[df_filtrado['Mês'].isin(meses)]
     if isinstance(intervalo_data, tuple) and len(intervalo_data) == 2:
         inicio, fim = intervalo_data
         df_filtrado = df_filtrado[
@@ -371,30 +317,66 @@ with tab1:
             (df_filtrado['Data'] <= pd.to_datetime(fim))
         ]
 
-    # Flow evolution chart
+    # ---------------------- GRÁFICO MELHORADO ----------------------
     st.subheader("📈 Evolução da Vazão Operada por Reservatório")
+
     fig = go.Figure()
     cores = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b']
+    datas = df_filtrado["Data"].sort_values()
+    x_range = [datas.min(), datas.max()]
+
+    reservatorios_filtrados = df_filtrado['Reservatório Monitorado'].unique()
     
-    for i, reservatorio in enumerate(df_filtrado['Reservatório Monitorado'].unique()):
+    # Adiciona as linhas dos reservatórios primeiro
+    for i, reservatorio in enumerate(reservatorios_filtrados):
         df_res = df_filtrado[df_filtrado['Reservatório Monitorado'] == reservatorio].sort_values(by="Data")
         df_res = df_res.groupby('Data', as_index=False).last()
 
         y_vals, unit_suffix = convert_vazao(df_res["Vazão Operada"], unidade_sel)
 
+        cor = cores[i % len(cores)]
         fig.add_trace(go.Scatter(
             x=df_res["Data"],
             y=y_vals,
             mode="lines+markers",
             name=reservatorio,
-            line=dict(shape='hv', width=2, color=cores[i % len(cores)]),
+            line=dict(shape='hv', width=2, color=cor),
             marker=dict(size=5),
+            connectgaps=False,
             hovertemplate=(
                 f"<b>{reservatorio}</b><br>"
                 "Data: %{x|%d/%m/%Y}<br>"
                 f"Vazão: %{{y:.3f}} {unit_suffix}<extra></extra>"
             )
         ))
+
+    # Mostra a média apenas quando um único reservatório estiver selecionado
+    if len(reservatorios_filtrados) == 1:
+        df_res = df_filtrado[df_filtrado['Reservatório Monitorado'] == reservatorios_filtrados[0]].sort_values(by="Data")
+        df_res = df_res.groupby('Data', as_index=False).last()
+        
+        # Cálculo da média ponderada
+        if len(df_res) > 1:
+            df_res['dias_ativos'] = df_res['Data'].diff().dt.days.fillna(0)
+            df_res.loc[df_res.index[-1], 'dias_ativos'] = (df_filtrado['Data'].max() - df_res['Data'].iloc[-1]).days + 1
+            media_pond = (df_res['Vazão Operada'] * df_res['dias_ativos']).sum() / df_res['dias_ativos'].sum()
+        else:
+            media_pond = df_res['Vazão Operada'].iloc[0] if len(df_res) == 1 else 0
+        
+        media_pond, unit_suffix = convert_vazao(pd.Series([media_pond]), unidade_sel)
+        media_pond = media_pond.iloc[0]
+
+        fig.add_hline(y=media_pond, 
+                     line_dash="dash", 
+                     line_width=3, 
+                     line_color="red",
+                     annotation_text=f"Média: {media_pond:.2f} {unit_suffix}", 
+                     annotation_position="top right",
+                     annotation_font_size=12,
+                     annotation_bgcolor="white")
+
+    # Adiciona linhas de referência horizontais finas
+    fig.update_yaxes(showgrid=True, gridwidth=0.5, gridcolor='lightgray')
 
     fig.update_layout(
         xaxis_title="Data",
@@ -405,59 +387,189 @@ with tab1:
         margin=dict(l=40, r=20, t=40, b=40),
         plot_bgcolor='white'
     )
+
     st.plotly_chart(fig, use_container_width=True)
 
-    # Map visualization
+    # -------------------- Mapa --------------------
     st.subheader("🗺️ Mapa dos Reservatórios com Pinos")
     df_mapa = df_filtrado.copy()
     df_mapa[['lat', 'lon']] = df_mapa['Coordendas'].str.split(',', expand=True).astype(float)
     df_mapa = df_mapa.dropna(subset=['lat', 'lon']).drop_duplicates(subset=['Reservatório Monitorado'])
 
+    tile_urls = {
+        "Esri Satellite": "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+    }
+    tile_attr = {
+        "Esri Satellite": "Tiles © Esri — Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, etc."
+    }
+
     if not df_mapa.empty:
         center = [df_mapa['lat'].mean(), df_mapa['lon'].mean()]
-        m = folium.Map(location=center, zoom_start=8, tiles=mapa_tipo)
+        if mapa_tipo in tile_urls:
+            m = folium.Map(location=center, zoom_start=8, tiles=None)
+            folium.TileLayer(tiles=tile_urls[mapa_tipo], attr=tile_attr[mapa_tipo], name=mapa_tipo).add_to(m)
+        else:
+            m = folium.Map(location=center, zoom_start=8, tiles=mapa_tipo)
 
-        # Add all your GeoJSON layers here...
+        # Camada Bacia Hidrográfica
         folium.GeoJson(
             geojson_bacia,
             name="Bacia do Banabuiu",
+            tooltip=folium.GeoJsonTooltip(fields=["DESCRICA1"], aliases=["Bacia:"]),
             style_function=lambda x: {"color": "darkblue", "weight": 2}
         ).add_to(m)
 
-        # Add markers for reservoirs
+        # Camada Trechos Perenizados
+        trechos_layer = folium.FeatureGroup(name="Trechos Perenizados", show=False)
+        folium.GeoJson(
+            geojson_trechos,
+            tooltip=folium.GeoJsonTooltip(fields=["Name"], aliases=["Name:"]),
+            style_function=lambda x: {"color": "darkblue", "weight": 1}
+        ).add_to(trechos_layer)
+        trechos_layer.add_to(m)
+
+        # Camada Pontos de Controle
+        pontos_layer = folium.FeatureGroup(name="Pontos de Controle", show=False)
+        for feature in geojson_pontos["features"]:
+            props = feature["properties"]
+            coords = feature["geometry"]["coordinates"]
+            nome_municipio = props.get("Name", "Sem nome")
+            folium.Marker(
+                location=[coords[1], coords[0]],
+                icon=folium.CustomIcon("https://i.ibb.co/HfCcFWjb/marker.png", icon_size=(22, 22)),
+                tooltip=nome_municipio
+            ).add_to(pontos_layer)
+        pontos_layer.add_to(m)
+
+        # Camada Açudes Monitorados
+        acudes_layer = folium.FeatureGroup(name="Açudes Monitorados", show=False)
+        folium.GeoJson(
+            geojson_acudes,
+            tooltip=folium.GeoJsonTooltip(fields=["Name"], aliases=["Açude:"]),
+            style_function=lambda x: {"color": "darkgreen", "weight": 2}
+        ).add_to(acudes_layer)
+        acudes_layer.add_to(m)
+        
+        # Camada Sedes Municipais (ícone personalizado)
+        sedes_layer = folium.FeatureGroup(name="Sedes Municipais", show=False)
+        for feature in geojson_sedes["features"]:
+            props = feature["properties"]
+            coords = feature["geometry"]["coordinates"]
+            nome_municipio = props.get("NOME_MUNIC", "Sem nome")
+            folium.Marker(
+                location=[coords[1], coords[0]],
+                icon=folium.CustomIcon("https://cdn-icons-png.flaticon.com/512/854/854878.png", icon_size=(22, 22)),
+                tooltip=nome_municipio
+            ).add_to(sedes_layer)
+        sedes_layer.add_to(m)
+        
+        # Camada Comissões Gestoras
+        gestoras_layer = folium.FeatureGroup(name="Comissões Gestoras", show=False)
+        for feature in geojson_c_gestoras["features"]:
+            props = feature["properties"]
+            coords = feature["geometry"]["coordinates"]
+            nome_gestora = props.get("SISTEMAH3", "Sem nome")
+            popup_info = f"""
+            <strong>Célula Gestora:</strong> {nome_gestora}<br>
+            <strong>Ano de Formação:</strong> {props.get("ANOFORMA1", "N/A")}<br>
+            <strong>Sistema:</strong> {props.get("SISTEMAH3", "N/A")}<br>
+            <strong>Município:</strong> {props.get("MUNICIPI6", "N/A")}
+            """
+            folium.Marker(
+                location=[coords[1], coords[0]],
+                icon=folium.CustomIcon("https://cdn-icons-png.flaticon.com/512/4144/4144517.png", icon_size=(30, 30)),
+                tooltip=nome_gestora,
+                popup=folium.Popup(popup_info, max_width=300)
+            ).add_to(gestoras_layer)
+        gestoras_layer.add_to(m)
+
+        # Camada Polígonos Municipais (borda azul fina)
+        municipios_layer = folium.FeatureGroup(name="Polígonos Municipais", show=False)
+        folium.GeoJson(
+            geojson_poligno,
+            tooltip=folium.GeoJsonTooltip(fields=["DESCRICA1"], aliases=["Município:"]),
+            style_function=lambda x: {"fillOpacity": 0, "color": "blue", "weight": 1}
+        ).add_to(municipios_layer)
+        municipios_layer.add_to(m)
+
+        # Pinos dos Reservatórios (df_mapa) com unidade escolhida
         for _, row in df_mapa.iterrows():
+            # converte 'Vazao_Aloc' para a unidade escolhida; origem suposta: L/s
+            try:
+                val = float(row.get('Vazao_Aloc', float('nan')))
+            except Exception:
+                val = float('nan')
+            val_conv, unit_suf = convert_vazao(pd.Series([val]), unidade_sel)
+            val_txt = f"{val_conv.iloc[0]:.3f} {unit_suf}" if pd.notna(val_conv.iloc[0]) else "—"
+
+            data_txt = row['Data'].date() if pd.notna(row['Data']) else "—"
+            popup_info = f"""
+<strong>Reservatório:</strong> {row['Reservatório Monitorado']}<br>
+<strong>Data:</strong> {data_txt}<br>
+<strong>Vazão Alocada:</strong> {val_txt}
+"""
             folium.Marker(
                 location=[row["lat"], row["lon"]],
-                popup=row["Reservatório Monitorado"],
-                icon=folium.CustomIcon("https://i.ibb.co/kvvL870/hydro-dam.png", icon_size=(30, 30))
+                popup=folium.Popup(popup_info, max_width=300),
+                icon=folium.CustomIcon("https://i.ibb.co/kvvL870/hydro-dam.png", icon_size=(30, 30)),
+                tooltip=row["Reservatório Monitorado"]
             ).add_to(m)
 
         folium.LayerControl().add_to(m)
-        folium_static(m, width=1200)
+        folium_static(m, width=1200)  # Ajuste para mapa wide
     else:
         st.info("Nenhum ponto com coordenadas disponíveis para plotar no mapa.")
 
-    # Average flow bar chart
+    # ---------------------- BARRA (MÉDIA) ----------------------
     st.subheader("🏞️ Média da Vazão Operada por Reservatório")
     media_vazao = df_filtrado.groupby("Reservatório Monitorado")["Vazão Operada"].mean().reset_index()
     media_conv, unit_bar = convert_vazao(media_vazao["Vazão Operada"], unidade_sel)
-    
+    media_vazao["Vazão (conv)"] = media_conv
+
     st.plotly_chart(
         px.bar(
             media_vazao,
             x="Reservatório Monitorado",
-            y=media_conv,
-            labels={"y": f"Média ({unit_bar})"}
+            y="Vazão (conv)",
+            text_auto='.2s',
+            labels={"Vazão (conv)": f"Média ({unit_bar})"}
         ),
         use_container_width=True
     )
 
-    # Data table
     st.subheader("📋 Tabela Detalhada")
     st.dataframe(df_filtrado.sort_values(by="Data", ascending=False), use_container_width=True)
 
 with tab2:
     st.title("🗺️ Açudes Monitorados")
-    
-    # Add your açudes monitoring content here...
-    # This would include similar visualizations but focused on açudes
+
+    tile_option = st.selectbox("🗺️ Estilo do Mapa (Açudes)", [
+        "OpenStreetMap", "Stamen Terrain", "Stamen Toner",
+        "CartoDB positron", "CartoDB dark_matter", "Esri Satellite"
+    ], key="acudes_map_tile")
+
+    tile_urls = {
+        "Esri Satellite": "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+    }
+    tile_attr = {
+        "Esri Satellite": "Tiles © Esri — Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, etc."
+    }
+
+    with open("Açudes_Monitorados.geojson", "r", encoding="utf-8") as f:
+        geojson_data = json.load(f)
+
+    center = [-5.2, -39.2]
+    if tile_option in tile_urls:
+        m = folium.Map(location=center, zoom_start=7, tiles=None)
+        folium.TileLayer(tiles=tile_urls[tile_option], attr=tile_attr[tile_option], name=tile_option).add_to(m)
+    else:
+        m = folium.Map(location=center, zoom_start=7, tiles=tile_option)
+
+    folium.GeoJson(
+        geojson_data,
+        name="Açudes",
+        tooltip=folium.GeoJsonTooltip(fields=["Name"], aliases=["Açude:"])
+    ).add_to(m)
+
+    folium.LayerControl().add_to(m)
+    folium_static(m, width=None)
