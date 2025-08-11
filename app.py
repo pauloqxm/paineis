@@ -171,7 +171,12 @@ if aba == "Vazões - GRBANABUIU":
             )
         ))
 
-        # Cálculo da média ponderada para cada reservatório
+    # Mostra a média apenas quando um único reservatório estiver selecionado
+    if len(reservatorios_filtrados) == 1:
+        df_res = df_filtrado[df_filtrado['Reservatório Monitorado'] == reservatorios_filtrados[0]].sort_values(by="Data")
+        df_res = df_res.groupby('Data', as_index=False).last()
+        
+        # Cálculo da média ponderada
         if len(df_res) > 1:
             df_res['dias_ativos'] = df_res['Data'].diff().dt.days.fillna(0)
             df_res.loc[df_res.index[-1], 'dias_ativos'] = (df_filtrado['Data'].max() - df_res['Data'].iloc[-1]).days + 1
@@ -186,11 +191,12 @@ if aba == "Vazões - GRBANABUIU":
             x=x_range,
             y=[media_pond, media_pond],
             mode="lines+text",
-            name=f"Média Ponderada {reservatorio}",
-            line=dict(color=cor, width=2, dash="dot"),
+            name=f"Média Ponderada",
+            line=dict(color="red", width=3, dash="dash"),
             text=[f"Média: {media_pond:.2f} {unit_suffix}", ""],
             textposition="top right",
-            showlegend=False
+            showlegend=True,
+            hoverinfo="skip"
         ))
 
     fig.update_layout(
