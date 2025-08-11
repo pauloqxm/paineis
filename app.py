@@ -1,5 +1,3 @@
-
-
 import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
@@ -244,61 +242,84 @@ with tab1:
         else:
             st.info("Sem dados para média mensal.")
 
-    with gtab2:
+with gtab2:
     if not df_filtrado.empty and df_filtrado['Reservatório Monitorado'].nunique() > 0:
         yconv, sufx = convert_vazao(df_filtrado['Vazão Operada'], unidade_sel)
         df_box = df_filtrado.copy()
         df_box['Vazão (conv)'] = yconv
         
-        # Cálculo do volume acumulado em m³
+        # Cálculo do volume acumulado
         volumes = []
         for reservatorio in df_box['Reservatório Monitorado'].unique():
             df_res = df_box[df_box['Reservatório Monitorado'] == reservatorio].sort_values('Data')
             
-            # Calcula dias entre medições
             df_res['dias_entre_medicoes'] = df_res['Data'].diff().dt.days.fillna(0)
-            
-            # Para o último registro, calcula dias até o final do período
             ultima_data = df_res['Data'].iloc[-1]
             fim_periodo = df_box['Data'].max() if pd.notna(df_box['Data'].max()) else ultima_data
             df_res.loc[df_res.index[-1], 'dias_entre_medicoes'] = (fim_periodo - ultima_data).days + 1
             
-            # Calcula volume em m³ (vazão * segundos no dia * dias ativos)
             segundos_por_dia = 86400
-            df_res['volume_periodo_m3'] = df_res['Vazão (conv)'] * segundos_por_dia * df_res['dias_entre_medicoes']
+            df_res['volume_periodo'] = df_res['Vazão (conv)'] * segundos_por_dia * df_res['dias_entre_medicoes']
+            volume_total = df_res['volume_periodo'].sum()
             
-            # Volume total acumulado em milhões de m³
-            volume_total_m3 = df_res['volume_periodo_m3'].sum() / 1e6  # Convertendo para milhões de m³
+            volume_formatado = f"{volume_total/1e6:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".") + " Mm³"
             
             volumes.append({
                 'Reservatório Monitorado': reservatorio,
-                'Volume Acumulado (Mm³)': volume_total_m3
+                'Volume Acumulado': volume_total,
+                'Volume Formatado': volume_formatado
             })
         
         df_volumes = pd.DataFrame(volumes)
         
-        figb = px.box(df_box, x='Reservatório Monitorado', y='Vazão (conv)',
-                     labels={'Vazão (conv)': f'Vazão ({sufx})'})
+        # Criar figura com eixos duplos
+        figb = go.Figure()
         
-        # Adiciona anotações com o volume acumulado em destaque vermelho
+        # Adicionar boxplot da vazão (eixo Y principal)
+        for r in df_box['Reservatório Monitorado'].unique():
+            figb.add_trace(go.Box(
+                y=df_box[df_box['Reservatório Monitorado'] == r]['Vazão (conv)'],
+                name=r,
+                boxpoints='all',
+                jitter=0.5,
+                pointpos=0,
+                marker_color='#1f77b4',
+                line_color='#1f77b4'
+            ))
+        
+        # Configurar layout com eixo secundário
+        figb.update_layout(
+            title='Distribuição de Vazões e Volumes Acumulados',
+            yaxis=dict(
+                title=f'Vazão Operada ({sufx})',
+                titlefont=dict(color='#1f77b4'),
+                tickfont=dict(color='#1f77b4')
+            ),
+            yaxis2=dict(
+                title='Volume Acumulado (Mm³)',
+                titlefont=dict(color='#d62728'),
+                tickfont=dict(color='#d62728'),
+                overlaying='y',
+                side='right',
+                range=[0, df_volumes['Volume Acumulado'].max()/1e6 * 1.1]  # Ajuste automático do range
+            ),
+            showlegend=False
+        )
+        
+        # Adicionar volumes como anotações no eixo secundário
         for i, row in df_volumes.iterrows():
             figb.add_annotation(
                 x=row['Reservatório Monitorado'],
-                y=df_box[df_box['Reservatório Monitorado'] == row['Reservatório Monitorado']]['Vazão (conv)'].max(),
-                text=f"<b>Volume: {row['Volume Acumulado (Mm³)']:.2f} Mm³</b>",
+                y=row['Volume Acumulado']/1e6,
+                yref='y2',
+                text=f"<b style='color:#d62728;font-size:12px'>{row['Volume Formatado']}</b>",
                 showarrow=False,
-                yshift=20,
-                font=dict(size=14, color='red'),
-                bgcolor='white',
-                bordercolor='red',
+                yshift=10,
+                font=dict(size=12),
+                bordercolor="#d62728",
                 borderwidth=1,
                 borderpad=4
             )
-        
-        figb.update_layout(
-            title_text="Distribuição de Vazões com Volumes Acumulados",
-            title_x=0.5,
-            title_font=dict(size=16)
         
         st.plotly_chart(figb, use_container_width=True, config={"displaylogo": False})
     else:
