@@ -248,21 +248,28 @@ with gtab2:
         df_box = df_filtrado.copy()
         df_box['Vazão (conv)'] = yconv
         
-        # Cálculo do volume acumulado
+        # Cálculo do volume acumulado CORRETO (considerando intervalos de tempo)
         volumes = []
         for reservatorio in df_box['Reservatório Monitorado'].unique():
             df_res = df_box[df_box['Reservatório Monitorado'] == reservatorio].sort_values('Data')
             
+            # Calcula dias entre medições
             df_res['dias_entre_medicoes'] = df_res['Data'].diff().dt.days.fillna(0)
+            
+            # Para o último registro, calcula dias até o final do período
             ultima_data = df_res['Data'].iloc[-1]
             fim_periodo = df_box['Data'].max() if pd.notna(df_box['Data'].max()) else ultima_data
             df_res.loc[df_res.index[-1], 'dias_entre_medicoes'] = (fim_periodo - ultima_data).days + 1
             
+            # Calcula volume para cada período (vazão * segundos no dia * dias ativos)
             segundos_por_dia = 86400
             df_res['volume_periodo'] = df_res['Vazão (conv)'] * segundos_por_dia * df_res['dias_entre_medicoes']
+            
+            # Volume total acumulado para este reservatório
             volume_total = df_res['volume_periodo'].sum()
             
-            volume_formatado = f"{volume_total/1e6:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".") + " Mm³"
+            # Formatação do valor com separadores de milhar e decimal
+            volume_formatado = f"{volume_total/1e6:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".") + " milhões m³"
             
             volumes.append({
                 'Reservatório Monitorado': reservatorio,
@@ -272,51 +279,19 @@ with gtab2:
         
         df_volumes = pd.DataFrame(volumes)
         
-        # Criar figura com eixos duplos
-        figb = go.Figure()
+        figb = px.box(df_box, x='Reservatório Monitorado', y='Vazão (conv)',
+                     labels={'Vazão (conv)': f'Vazão ({sufx})'})
         
-        # Adicionar boxplot da vazão (eixo Y principal)
-        for r in df_box['Reservatório Monitorado'].unique():
-            figb.add_trace(go.Box(
-                y=df_box[df_box['Reservatório Monitorado'] == r]['Vazão (conv)'],
-                name=r,
-                boxpoints='all',
-                jitter=0.5,
-                pointpos=0,
-                marker_color='#1f77b4',
-                line_color='#1f77b4'
-            ))
-        
-        # Configurar layout com eixo secundário
-        figb.update_layout(
-            title='Distribuição de Vazões e Volumes Acumulados',
-            yaxis=dict(
-                title=f'Vazão Operada ({sufx})',
-                titlefont=dict(color='#1f77b4'),
-                tickfont=dict(color='#1f77b4')
-            ),
-            yaxis2=dict(
-                title='Volume Acumulado (Mm³)',
-                titlefont=dict(color='#d62728'),
-                tickfont=dict(color='#d62728'),
-                overlaying='y',
-                side='right',
-                range=[0, df_volumes['Volume Acumulado'].max()/1e6 * 1.1]  # Ajuste automático do range
-            ),
-            showlegend=False
-        )
-        
-        # Adicionar volumes como anotações no eixo secundário
+        # Adiciona anotações com o volume acumulado formatado
         for i, row in df_volumes.iterrows():
             figb.add_annotation(
                 x=row['Reservatório Monitorado'],
-                y=row['Volume Acumulado']/1e6,
-                yref='y2',
-                text=f"<b style='color:#d62728;font-size:12px'>{row['Volume Formatado']}</b>",
+                y=df_box[df_box['Reservatório Monitorado'] == row['Reservatório Monitorado']]['Vazão (conv)'].max(),
+                text=f"<b style='color:red;font-size:14px'>VOLUME: {row['Volume Formatado']}</b>",
                 showarrow=False,
-                yshift=10,
+                yshift=20,
                 font=dict(size=12),
-                bordercolor="#d62728",
+                bordercolor="red",
                 borderwidth=1,
                 borderpad=4
             )
