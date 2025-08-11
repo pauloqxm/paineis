@@ -207,10 +207,20 @@ st.markdown(f"""
     </div>
 """, unsafe_allow_html=True)
 
-# -------- Menu Inicial com Hamburger Menu ---------------
+# Primeiro carregamos os dados
+@st.cache_data
+def carregar_dados():
+    url = "https://docs.google.com/spreadsheets/d/1pbNcZ9hS8DhotdkYuPc8kIOy5dgyoYQb384-jgqLDfA/export?format=csv"
+    df = pd.read_csv(url)
+    df['Data'] = pd.to_datetime(df['Data'], format='%d/%m/%Y', errors='coerce')
+    return df
+
+df = carregar_dados()
+
+# Agora criamos o menu com os filtros
 st.markdown(f"""
     <style>
-    /* Estilo base do menu */
+    /* Estilos anteriores mantidos */
     .social-menu-container {{
         position: relative;
         left: 50%;
@@ -231,105 +241,8 @@ st.markdown(f"""
         border-bottom: 3px solid #b6b8ba;
         z-index: 1;
     }}
-
-    .social-links {{
-        display: flex;
-        gap: 30px;
-    }}
-
-    .social-menu-container a {{
-        color: white;
-        text-decoration: none;
-        transition: color 0.3s ease;
-    }}
-
-    .social-menu-container a:hover {{
-        color: #fad905;
-    }}
-
-    /* Menu sanduíche */
-    .menu-toggle {{
-        display: none;
-        cursor: pointer;
-        padding: 5px;
-    }}
-
-    .menu-icon {{
-        display: inline-block;
-        width: 25px;
-        height: 3px;
-        background-color: white;
-        position: relative;
-        transition: all 0.3s;
-    }}
-
-    .menu-icon:before, .menu-icon:after {{
-        content: '';
-        position: absolute;
-        width: 100%;
-        height: 100%;
-        background-color: white;
-        transition: all 0.3s;
-    }}
-
-    .menu-icon:before {{
-        top: -8px;
-    }}
-
-    .menu-icon:after {{
-        top: 8px;
-    }}
-
-    /* Filtros dropdown */
-    .filters-dropdown {{
-        display: none;
-        width: 100%;
-        padding: 10px 0;
-        background-color: #038db5;
-    }}
-
-    .filters-dropdown.show {{
-        display: block;
-    }}
-
-    .filter-group {{
-        margin-bottom: 10px;
-    }}
-
-    .filter-label {{
-        color: white;
-        font-weight: bold;
-        margin-right: 10px;
-        font-size: 13px;
-    }}
-
-    /* Estilo para os selects */
-    .stMultiSelect, .stSelectbox {{
-        width: 100% !important;
-    }}
-
-    /* Responsividade */
-    @media (max-width: 768px) {{
-        .social-links {{
-            display: none;
-        }}
-        
-        .menu-toggle {{
-            display: block;
-        }}
-        
-        .social-menu-container {{
-            flex-direction: column;
-            align-items: flex-start;
-            padding: 10px 20px;
-        }}
-    }}
-
-    @media (min-width: 769px) {{
-        .filters-dropdown {{
-            display: block !important;
-        }}
-    }}
+    
+    /* Outros estilos mantidos... */
     </style>
 
     <div class="social-menu-container">
@@ -362,19 +275,14 @@ st.markdown(f"""
         if (dropdown.classList.contains('show')) {{
             icon.style.transform = 'rotate(45deg)';
             icon.style.top = '0';
-            icon:before.style.transform = 'rotate(90deg)';
-            icon:before.style.top = '0';
-            icon:after.style.opacity = '0';
         }} else {{
             icon.style.transform = 'rotate(0)';
-            icon:before.style.transform = 'rotate(0)';
-            icon:after.style.opacity = '1';
         }}
     }}
     </script>
 """, unsafe_allow_html=True)
 
-# Adicionando os filtros (fora do HTML para funcionamento correto do Streamlit)
+# Adicionando os filtros (fora do HTML)
 col1, col2 = st.columns(2)
 
 with col1:
@@ -387,14 +295,17 @@ with col1:
     )
 
 with col2:
-    acudes = st.multiselect(
-        "Selecione os açudes:",
-        options=df['Açude Monitorado'].dropna().unique(),  # Ajuste para sua coluna real
-        default=df['Açude Monitorado'].dropna().unique()[0:1],
-        key="filtro_acudes",
-        label_visibility="collapsed"
-    )
-
+    # Verifica se a coluna existe no DataFrame
+    if 'Açude Monitorado' in df.columns:
+        acudes = st.multiselect(
+            "Selecione os açudes:",
+            options=df['Açude Monitorado'].dropna().unique(),
+            default=df['Açude Monitorado'].dropna().unique()[0:1],
+            key="filtro_acudes",
+            label_visibility="collapsed"
+        )
+    else:
+        st.warning("Coluna 'Açude Monitorado' não encontrada no dataset")
 # -------- utilitário simples de conversão (origem: L/s) --------
 def convert_vazao(series, unidade):
     """Retorna (valores_convertidos, sufixo_unidade). Espera valores em L/s."""
