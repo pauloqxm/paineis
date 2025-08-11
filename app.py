@@ -313,9 +313,10 @@ with gtab2:
         
         st.plotly_chart(figb, use_container_width=True, config={"displaylogo": False})
     else:
-        st.info("Sem dados suficientes para exibir os volumes.")
-
-    # -------------------- MAPA --------------------
+        st.info("Sem dados suficientes para exibir os volumes.")  
+        
+# -------------------- MAPA --------------------
+    
     st.subheader("🗺️ Mapa dos Reservatórios com Camadas")
     df_mapa = df_filtrado.copy()
     if 'Coordendas' in df_mapa.columns:
