@@ -244,13 +244,13 @@ with tab1:
 
     with gtab2:
         if not df_filtrado.empty and df_filtrado['Reservatório Monitorado'].nunique() > 0:
-        yconv, sufx = convert_vazao(df_filtrado['Vazão Operada'], unidade_sel)
-        df_box = df_filtrado.copy()
-        df_box['Vazão (conv)'] = yconv
+            yconv, sufx = convert_vazao(df_filtrado['Vazão Operada'], unidade_sel)
+            df_box = df_filtrado.copy()
+            df_box['Vazão (conv)'] = yconv
         
         # Cálculo do volume acumulado CORRETO (considerando intervalos de tempo)
-        volumes = []
-        for reservatorio in df_box['Reservatório Monitorado'].unique():
+            volumes = []
+            for reservatorio in df_box['Reservatório Monitorado'].unique():
             df_res = df_box[df_box['Reservatório Monitorado'] == reservatorio].sort_values('Data')
             
             # Calcula dias entre medições
