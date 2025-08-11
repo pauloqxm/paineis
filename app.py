@@ -242,39 +242,39 @@ with tab1:
         else:
             st.info("Sem dados para média mensal.")
 
-    with gtab2:
-        if not df_filtrado.empty and df_filtrado['Reservatório Monitorado'].nunique() > 0:
-            yconv, sufx = convert_vazao(df_filtrado['Vazão Operada'], unidade_sel)
-            df_box = df_filtrado.copy()
-            df_box['Vazão (conv)'] = yconv
+with gtab2:
+    if not df_filtrado.empty and df_filtrado['Reservatório Monitorado'].nunique() > 0:
+        yconv, sufx = convert_vazao(df_filtrado['Vazão Operada'], unidade_sel)
+        df_box = df_filtrado.copy()
+        df_box['Vazão (conv)'] = yconv
         
         # Cálculo do volume acumulado CORRETO (considerando intervalos de tempo)
-            volumes = []
-            for reservatorio in df_box['Reservatório Monitorado'].unique():
-                df_res = df_box[df_box['Reservatório Monitorado'] == reservatorio].sort_values('Data')
+        volumes = []
+        for reservatorio in df_box['Reservatório Monitorado'].unique():
+            df_res = df_box[df_box['Reservatório Monitorado'] == reservatorio].sort_values('Data')
             
             # Calcula dias entre medições
-                df_res['dias_entre_medicoes'] = df_res['Data'].diff().dt.days.fillna(0)
+            df_res['dias_entre_medicoes'] = df_res['Data'].diff().dt.days.fillna(0)
             
             # Para o último registro, calcula dias até o final do período
-                ultima_data = df_res['Data'].iloc[-1]
-                fim_periodo = df_box['Data'].max() if pd.notna(df_box['Data'].max()) else ultima_data
-                df_res.loc[df_res.index[-1], 'dias_entre_medicoes'] = (fim_periodo - ultima_data).days + 1
+            ultima_data = df_res['Data'].iloc[-1]
+            fim_periodo = df_box['Data'].max() if pd.notna(df_box['Data'].max()) else ultima_data
+            df_res.loc[df_res.index[-1], 'dias_entre_medicoes'] = (fim_periodo - ultima_data).days + 1
             
             # Calcula volume para cada período (vazão * segundos no dia * dias ativos)
-                segundos_por_dia = 86400
-                df_res['volume_periodo'] = df_res['Vazão (conv)'] * segundos_por_dia * df_res['dias_entre_medicoes']
+            segundos_por_dia = 86400
+            df_res['volume_periodo'] = df_res['Vazão (conv)'] * segundos_por_dia * df_res['dias_entre_medicoes']
             
             # Volume total acumulado para este reservatório
-                volume_total = df_res['volume_periodo'].sum()
+            volume_total = df_res['volume_periodo'].sum()
             
-            # Formatação do valor com separadores de milhar
-                volume_formatado = "{:,.2f} milhões m³".format(volume_total/1e6).replace(",", "X").replace(".", ",").replace("X", ".")
+            # Formatação do valor com separadores de milhar e decimal
+            volume_formatado = f"{volume_total/1e6:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".") + " milhões m³"
             
-                volumes.append({
-                    'Reservatório Monitorado': reservatorio,
-                    'Volume Acumulado': volume_total,
-                    'Volume Formatado': volume_formatado
+            volumes.append({
+                'Reservatório Monitorado': reservatorio,
+                'Volume Acumulado': volume_total,
+                'Volume Formatado': volume_formatado
             })
         
         df_volumes = pd.DataFrame(volumes)
@@ -282,7 +282,7 @@ with tab1:
         figb = px.box(df_box, x='Reservatório Monitorado', y='Vazão (conv)',
                      labels={'Vazão (conv)': f'Vazão ({sufx})'})
         
-        # Adiciona anotações com o volume acumulado CORRETO
+        # Adiciona anotações com o volume acumulado formatado
         for i, row in df_volumes.iterrows():
             figb.add_annotation(
                 x=row['Reservatório Monitorado'],
