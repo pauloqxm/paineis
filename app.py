@@ -1,5 +1,4 @@
 
-
 import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
@@ -396,11 +395,41 @@ with gtab2:
             props = feature["properties"]; coords = feature["geometry"]["coordinates"]
             nome_g = props.get("SISTEMAH3","Sem nome")
             popup_info = f"""
-<strong>Célula Gestora:</strong> {nome_g}<br>
-<strong>Ano de Formação:</strong> {props.get("ANOFORMA1","N/A")}<br>
-<strong>Sistema:</strong> {props.get("SISTEMAH3","N/A")}<br>
-<strong>Município:</strong> {props.get("MUNICIPI6","N/A")}
+<div style='
+    font-family: "Segoe UI", Arial, sans-serif;
+    padding: 12px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    border-top: 4px solid #228B22;
+    min-width: 200px;
+'>
+    <div style='
+        font-size: 16px; 
+        font-weight: 600; 
+        color: #2c3e50;
+        margin-bottom: 8px;
+    '>
+        {nome_g}
+    </div>
+    
+    <div style='margin: 6px 0;'>
+        <div style='font-weight: 500; color: #7f8c8d;'>Ano de Formação</div>
+        <div style='color: #2c3e50;'>{props.get("ANOFORMA1","N/A")}</div>
+    </div>
+    
+    <div style='margin: 6px 0;'>
+        <div style='font-weight: 500; color: #7f8c8d;'>Sistema</div>
+        <div style='color: #2c3e50;'>{props.get("SISTEMAH3","N/A")}</div>
+    </div>
+    
+    <div style='margin: 6px 0;'>
+        <div style='font-weight: 500; color: #7f8c8d;'>Município</div>
+        <div style='color: #228B22; font-weight: 500;'>{props.get("MUNICIPI6","N/A")}</div>
+    </div>
+</div>
 """
+            
             folium.Marker([coords[1], coords[0]],
                           icon=folium.CustomIcon("https://cdn-icons-png.flaticon.com/512/4144/4144517.png", icon_size=(30,30)),
                           tooltip=nome_g,
