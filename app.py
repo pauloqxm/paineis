@@ -263,7 +263,7 @@ with tab1:
             
             # Calcula volume para cada período (vazão * segundos no dia * dias ativos)
                 segundos_por_dia = 86400
-            df_res['volume_periodo'] = df_res['Vazão (conv)'] * segundos_por_dia * df_res['dias_entre_medicoes']
+                df_res['volume_periodo'] = df_res['Vazão (conv)'] * segundos_por_dia * df_res['dias_entre_medicoes']
             
             # Volume total acumulado para este reservatório
                 volume_total = df_res['volume_periodo'].sum()
