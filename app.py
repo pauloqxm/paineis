@@ -27,7 +27,7 @@ with open("bacia_banabuiu.geojson", "r", encoding="utf-8") as f:
 with open("pontos_controle.geojson", "r", encoding="utf-8") as f:
     geojson_pontos = json.load(f)
 
-# ---------------- TOPO CUSTOM (mantive sua barra) ----------------
+# ---------------- TOPO CUSTOM ----------------
 fuso_brasilia = timezone(timedelta(hours=-3))
 agora = datetime.now(fuso_brasilia)
 dias_semana = {'Monday':'Segunda-feira','Tuesday':'Terça-feira','Wednesday':'Quarta-feira','Thursday':'Quinta-feira','Friday':'Sexta-feira','Saturday':'Sábado','Sunday':'Domingo'}
@@ -105,7 +105,7 @@ with tab1:
 
     st.title("💧 Vazões - GRBANABUIU")
 
-    # --------- FILTROS (mesma posição, visual novo) ----------
+    # --------- FILTROS ----------
     st.markdown('<div class="filter-card">', unsafe_allow_html=True)
     st.markdown('<div class="filter-title">Filtros</div>', unsafe_allow_html=True)
     col1, col2, col3, col4 = st.columns(4)
@@ -179,7 +179,7 @@ with tab1:
         unidade_show = "m³/s" if unidade_sel == "m³/s" else "L/s"
         st.markdown(f'<div class="kpi-card">Unidade<br><div class="kpi-value">{unidade_show}</div></div>', unsafe_allow_html=True)
 
-    # --------- GRÁFICOS (com range slider/selector) ----------
+    # --------- GRÁFICOS ----------
     st.subheader("📈 Evolução da Vazão Operada por Reservatório")
     fig = go.Figure()
     cores = ['#1f77b4','#ff7f0e','#2ca02c','#d62728','#9467bd','#8c564b','#17becf','#e377c2']
@@ -195,6 +195,16 @@ with tab1:
             marker=dict(size=5),
             hovertemplate=f"<b>{r}</b><br>Data: %{{x|%d/%m/%Y}}<br>Vazão: %{{y:.3f}} {unit_suffix}<extra></extra>"
         ))
+        
+        # Adiciona linha da média ponderada
+        if len(dfr) > 1:
+            dfr['dias_ativos'] = dfr['Data'].diff().dt.days.fillna(0)
+            dfr.loc[dfr.index[-1], 'dias_ativos'] = (df_filtrado['Data'].max() - dfr['Data'].iloc[-1]).days + 1
+            media_pond = (dfr['Vazão Operada'] * dfr['dias_ativos']).sum() / dfr['dias_ativos'].sum()
+            media_pond_conv, _ = convert_vazao(pd.Series([media_pond]), unidade_sel)
+            fig.add_hline(y=media_pond_conv.iloc[0], line_dash="dash", line_width=2, line_color="red",
+                          annotation_text=f"Média Ponderada: {media_pond_conv.iloc[0]:.2f} {unit_suffix}",
+                          annotation_position="top right")
 
     fig.update_layout(
         xaxis_title="Data",
@@ -237,13 +247,35 @@ with tab1:
             yconv, sufx = convert_vazao(df_filtrado['Vazão Operada'], unidade_sel)
             df_box = df_filtrado.copy()
             df_box['Vazão (conv)'] = yconv
+            
+            # Calcula volume acumulado por reservatório no período filtrado
+            df_box['dias_ativos'] = df_box.groupby('Reservatório Monitorado')['Data'].diff().dt.days.fillna(0)
+            df_box['volume_diario'] = df_box['Vazão (conv)'] * 86400  # Converter para m³/dia (se m³/s) ou L/dia (se L/s)
+            volume_acumulado = df_box.groupby('Reservatório Monitorado')['volume_diario'].sum().reset_index()
+            volume_acumulado['volume_formatado'] = volume_acumulado['volume_diario'].apply(
+                lambda x: f"{x/1e6:.2f} milhões m³" if unidade_sel == "m³/s" else f"{x/1e6:.2f} milhões L"
+            )
+            
             figb = px.box(df_box, x='Reservatório Monitorado', y='Vazão (conv)',
                           labels={'Vazão (conv)': f'Vazão ({sufx})'})
+            
+            # Adiciona anotações com o volume acumulado
+            for i, r in enumerate(reservatorios):
+                vol = volume_acumulado[volume_acumulado['Reservatório Monitorado'] == r]['volume_formatado'].values
+                if len(vol) > 0:
+                    figb.add_annotation(
+                        x=r,
+                        y=df_box[df_box['Reservatório Monitorado'] == r]['Vazão (conv)'].max(),
+                        text=f"Vol. acumulado: {vol[0]}",
+                        showarrow=False,
+                        yshift=10
+                    )
+            
             st.plotly_chart(figb, use_container_width=True, config={"displaylogo": False})
         else:
             st.info("Sem dados suficientes para boxplot.")
 
-    # -------------------- MAPA (com extras) --------------------
+    # -------------------- MAPA --------------------
     st.subheader("🗺️ Mapa dos Reservatórios com Camadas")
     df_mapa = df_filtrado.copy()
     if 'Coordendas' in df_mapa.columns:
