@@ -58,7 +58,7 @@ st.markdown("""
     <style>
     .fixed-header {
         position: fixed;
-        top: -20px;
+        top: 20px;
         left: 0;
         right: 0;
         z-index: 1000;
