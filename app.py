@@ -147,12 +147,35 @@ if aba == "Vazões - GRBANABUIU":
     x_range = [datas.min(), datas.max()]
 
     reservatorios_filtrados = df_filtrado['Reservatório Monitorado'].unique()
+    
+    # Primeiro adicionamos as linhas de referência horizontais
+    if len(reservatorios_filtrados) > 0:
+        # Pegamos os valores de vazão para definir os intervalos das linhas
+        vazoes = df_filtrado['Vazão Operada'].dropna()
+        if not vazoes.empty:
+            max_vazao = vazoes.max()
+            min_vazao = vazoes.min()
+            intervalo = (max_vazao - min_vazao) / 5  # Divide em 5 intervalos
+            
+            # Converte para a unidade selecionada
+            _, unit_suffix = convert_vazao(pd.Series([0]), unidade_sel)
+            
+            # Adiciona linhas horizontais
+            for vazao_ref in [min_vazao + i*intervalo for i in range(6)]:
+                vazao_conv, _ = convert_vazao(pd.Series([vazao_ref]), unidade_sel)
+                fig.add_hline(y=vazao_conv.iloc[0], 
+                             line_dash="dot", 
+                             line_width=0.5, 
+                             line_color="lightgray",
+                             annotation_text=f"{vazao_conv.iloc[0]:.1f} {unit_suffix}", 
+                             annotation_position="right",
+                             annotation_font_size=10)
+
+    # Depois adicionamos as linhas dos reservatórios
     for i, reservatorio in enumerate(reservatorios_filtrados):
         df_res = df_filtrado[df_filtrado['Reservatório Monitorado'] == reservatorio].sort_values(by="Data")
-        # remove duplicatas por dia (mantém o último valor)
         df_res = df_res.groupby('Data', as_index=False).last()
 
-        # converte valores para a unidade escolhida (origem L/s)
         y_vals, unit_suffix = convert_vazao(df_res["Vazão Operada"], unidade_sel)
 
         cor = cores[i % len(cores)]
@@ -161,7 +184,7 @@ if aba == "Vazões - GRBANABUIU":
             y=y_vals,
             mode="lines+markers",
             name=reservatorio,
-            line=dict(shape='hv', width=2, color=cor),  # degraus
+            line=dict(shape='hv', width=2, color=cor),
             marker=dict(size=5),
             connectgaps=False,
             hovertemplate=(
@@ -203,9 +226,15 @@ if aba == "Vazões - GRBANABUIU":
         xaxis_title="Data",
         yaxis_title=f"Vazão Operada ({'m³/s' if unidade_sel=='m³/s' else 'L/s'})",
         legend_title="Reservatório",
-        template="simple_white",
+        template="plotly_white",
         hovermode="closest",
-        margin=dict(l=40, r=20, t=40, b=40)
+        margin=dict(l=40, r=20, t=40, b=40),
+        plot_bgcolor='white',
+        yaxis=dict(
+            showgrid=True,
+            gridwidth=0.5,
+            gridcolor='lightgray'
+        )
     )
 
     st.plotly_chart(fig, use_container_width=True)
