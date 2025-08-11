@@ -1,3 +1,4 @@
+
 import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
@@ -206,42 +207,49 @@ st.markdown(f"""
     </div>
 """, unsafe_allow_html=True)
 
-# Primeiro carregue os dados
-@st.cache_data
-def carregar_dados():
-    url = "https://docs.google.com/spreadsheets/d/1pbNcZ9hS8DhotdkYuPc8kIOy5dgyoYQb384-jgqLDfA/export?format=csv"
-    return pd.read_csv(url)
+# -------- Menu Inicial ---------------
 
-df = carregar_dados()
-df['Data'] = pd.to_datetime(df['Data'], format='%d/%m/%Y', errors='coerce')
-
-# Agora crie o menu com o filtro
 st.markdown(f"""
     <style>
     .social-menu-container {{
-        /* Seus estilos CSS existentes */
+        position: relative;
+        left: 50%;
+        right: 50%;
+        margin-left: -50vw;
+        margin-right: -50vw;
+        width: 100vw;
+        background-color: #04a5c9;
+        color: white;
+        padding: 6px 32px;
+        font-family: Tahoma, sans-serif;
+        font-size: 13px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 30px;
+        flex-wrap: wrap;
+        margin-top: -40px;  /* Espaço para aparecer abaixo da barra fixa */
+        border-bottom: 3px solid #b6b8ba;
+        z-index: 1;  /* Mais baixo que o header fixo */
+    }}
+
+    .social-menu-container a {{
+        color: white;
+        text-decoration: none;
+        transition: color 0.3s ease;
+    }}
+
+    .social-menu-container a:hover {{
+        color: #fad905;
     }}
     </style>
 
     <div class="social-menu-container">
-        <a href="https://www.instagram.com/seuusuario" target="_blank">📸 Instagram</a>
+        <a href="https://www.instagram.com/seuusuario" target="_blank">📸 Instagran</a>
         <a href="https://www.facebook.com/seuusuario" target="_blank">📘 Facebook</a>
-        <a href="https://wa.me/5588999999999" target="_blank">💬 WhatsApp</a>
-        
-        <div style="display: flex; align-items: center;">
-            <span class="filter-label">🏞️ Reservatório:</span>
-        </div>
+        <a href="https://wa.me/5588999999999" target="_blank">💬 WhatsApp</a>       
     </div>
 """, unsafe_allow_html=True)
-
-# Filtro de reservatórios
-reservatorios = st.multiselect(
-    "Selecione os reservatórios:",
-    options=df['Reservatório Monitorado'].dropna().unique(),
-    default=df['Reservatório Monitorado'].dropna().unique()[0:1],
-    key="menu_reservatorios",
-    label_visibility="collapsed"
-)
 
 # -------- utilitário simples de conversão (origem: L/s) --------
 def convert_vazao(series, unidade):
@@ -249,6 +257,15 @@ def convert_vazao(series, unidade):
     if unidade == "m³/s":
         return series / 1000.0, "m³/s"
     return series, "L/s"
+
+# -------- função para carregar dados --------
+def carregar_dados():
+    """Carrega os dados diretamente do Google Sheets SEM cache"""
+    url = "https://docs.google.com/spreadsheets/d/1pbNcZ9hS8DhotdkYuPc8kIOy5dgyoYQb384-jgqLDfA/export?format=csv"
+    df = pd.read_csv(url)
+    df['Data'] = pd.to_datetime(df['Data'], format='%d/%m/%Y', errors='coerce')
+    df['Mês'] = df['Data'].dt.to_period('M').astype(str)
+    return df
 
 # Cria abas na horizontal
 tab1, tab2 = st.tabs(["Vazões - GRBANABUIU", "🗺️ Açudes Monitorados"])
