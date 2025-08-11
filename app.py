@@ -113,16 +113,16 @@ if aba == "Vazões - GRBANABUIU":
     if 'df' not in st.session_state:
         st.session_state.df = carregar_dados()
     
-    # Título e botão simplificados
-    st.title("💧 Vazões - GRBANABUIU")
-    
-    if st.button("🔄 Atualizar agora", 
-                help="Busca os dados mais recentes diretamente da planilha"):
-        with st.spinner('Atualizando dados do Google Sheets...'):
+    # Apenas o botão de atualização
+    if st.button("🔄 Atualizar dados agora", 
+                help="Busca os dados mais recentes diretamente da planilha do Google Sheets"):
+        with st.spinner('Atualizando dados...'):
             st.session_state.df = carregar_dados()
         st.rerun()
     
     df = st.session_state.df
+
+    #Gráfico de linhas
 
     st.title("💧 Vazões - GRBANABUIU")
 
