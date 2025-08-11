@@ -251,20 +251,27 @@ with gtab2:
         df_box = df_filtrado.copy()
         df_box['Vazão (conv)'] = yconv
         
-        # Cálculo do volume acumulado
+        # Cálculo do volume acumulado CORRETO (considerando intervalos de tempo)
         volumes = []
         for reservatorio in df_box['Reservatório Monitorado'].unique():
             df_res = df_box[df_box['Reservatório Monitorado'] == reservatorio].sort_values('Data')
             
+            # Calcula dias entre medições
             df_res['dias_entre_medicoes'] = df_res['Data'].diff().dt.days.fillna(0)
+            
+            # Para o último registro, calcula dias até o final do período
             ultima_data = df_res['Data'].iloc[-1]
             fim_periodo = df_box['Data'].max() if pd.notna(df_box['Data'].max()) else ultima_data
             df_res.loc[df_res.index[-1], 'dias_entre_medicoes'] = (fim_periodo - ultima_data).days + 1
             
+            # Calcula volume para cada período (vazão * segundos no dia * dias ativos)
             segundos_por_dia = 86400
             df_res['volume_periodo'] = df_res['Vazão (conv)'] * segundos_por_dia * df_res['dias_entre_medicoes']
+            
+            # Volume total acumulado para este reservatório
             volume_total = df_res['volume_periodo'].sum()
             
+            # Formatação do valor com separadores de milhar e decimal
             volume_formatado = f"{volume_total/1e6:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".") + " milhões m³"
             
             volumes.append({
@@ -275,45 +282,10 @@ with gtab2:
         
         df_volumes = pd.DataFrame(volumes)
         
-        # Criar figura do boxplot
-        figb = go.Figure()
+        figb = px.box(df_box, x='Reservatório Monitorado', y='Vazão (conv)',
+                     labels={'Vazão (conv)': f'Vazão ({sufx})'})
         
-        # Adicionar boxplot para cada reservatório
-        for r in df_box['Reservatório Monitorado'].unique():
-            figb.add_trace(go.Box(
-                y=df_box[df_box['Reservatório Monitorado'] == r]['Vazão (conv)'],
-                name=r,
-                boxpoints='all',
-                jitter=0.5,
-                pointpos=0,
-                marker_color='#1f77b4',
-                line_color='#1f77b4',
-                # Personalizar o hover para mostrar apenas o volume
-                hoverinfo='none'  # Desativa o hover padrão
-            ))
-        
-        # Adicionar dados de volume como scatter invisível apenas para o hover
-        for i, row in df_volumes.iterrows():
-            figb.add_trace(go.Scatter(
-                x=[row['Reservatório Monitorado']],
-                y=[df_box[df_box['Reservatório Monitorado'] == row['Reservatório Monitorado']]['Vazão (conv)'].max()],
-                mode='markers',
-                marker=dict(opacity=0),  # Marcador invisível
-                hoverinfo='text',
-                hovertext=f"Volume Acumulado: {row['Volume Formatado']}",
-                showlegend=False
-            ))
-        
-        # Configurar layout
-        figb.update_layout(
-            title='Distribuição de Vazões',
-            xaxis_title='Reservatório',
-            yaxis_title=f'Vazão Operada ({sufx})',
-            showlegend=False,
-            hovermode='closest'
-        )
-        
-        # Adicionar anotações com os volumes (opcional)
+        # Adiciona anotações com o volume acumulado formatado
         for i, row in df_volumes.iterrows():
             figb.add_annotation(
                 x=row['Reservatório Monitorado'],
