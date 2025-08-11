@@ -52,6 +52,7 @@ st.markdown("""
     </style>
     </style>
 """, unsafe_allow_html=True)
+
 st.set_page_config(page_title="Dashboard Vazões", layout="wide")
 
 st.markdown("""
@@ -91,12 +92,12 @@ with st.sidebar:
         orientation="vertical"
     )
 
-# -------- utilitário simples de conversão --------
+# -------- utilitário simples de conversão (origem: L/s) --------
 def convert_vazao(series, unidade):
     """Retorna (valores_convertidos, sufixo_unidade). Espera valores em L/s."""
     if unidade == "m³/s":
         return series / 1000.0, "m³/s"
-    return series, "l/s"
+    return series, "L/s"
 
 if aba == "Vazões - GRBANABUIU":
     @st.cache_data
@@ -132,8 +133,12 @@ if aba == "Vazões - GRBANABUIU":
         df_filtrado = df_filtrado[df_filtrado['Mês'].isin(meses)]
     if isinstance(intervalo_data, tuple) and len(intervalo_data) == 2:
         inicio, fim = intervalo_data
-        df_filtrado = df_filtrado[(df_filtrado['Data'] >= pd.to_datetime(inicio)) & (df_filtrado['Data'] <= pd.to_datetime(fim))]
+        df_filtrado = df_filtrado[
+            (df_filtrado['Data'] >= pd.to_datetime(inicio)) &
+            (df_filtrado['Data'] <= pd.to_datetime(fim))
+        ]
 
+    # ---------------------- GRÁFICO MELHORADO ----------------------
     st.subheader("📈 Evolução da Vazão Operada por Reservatório")
 
     fig = go.Figure()
@@ -144,10 +149,10 @@ if aba == "Vazões - GRBANABUIU":
     reservatorios_filtrados = df_filtrado['Reservatório Monitorado'].unique()
     for i, reservatorio in enumerate(reservatorios_filtrados):
         df_res = df_filtrado[df_filtrado['Reservatório Monitorado'] == reservatorio].sort_values(by="Data")
-        # remove duplicatas por dia
+        # remove duplicatas por dia (mantém o último valor)
         df_res = df_res.groupby('Data', as_index=False).last()
 
-        # aplica conversão para a unidade escolhida (origem: L/s)
+        # converte valores para a unidade escolhida (origem L/s)
         y_vals, unit_suffix = convert_vazao(df_res["Vazão Operada"], unidade_sel)
 
         cor = cores[i % len(cores)]
@@ -162,7 +167,7 @@ if aba == "Vazões - GRBANABUIU":
             hovertemplate=(
                 f"<b>{reservatorio}</b><br>"
                 "Data: %{x|%d/%m/%Y}<br>"
-                f"Vazão: %{y:.3f} {unit_suffix}<extra></extra>"
+                f"Vazão: %{{y:.3f}} {unit_suffix}<extra></extra>"
             )
         ))
 
@@ -295,7 +300,7 @@ if aba == "Vazões - GRBANABUIU":
 
         # Pinos dos Reservatórios (df_mapa) com unidade escolhida
         for _, row in df_mapa.iterrows():
-            # Converte vazão alocada (se existir) para a unidade escolhida; origem suposta: L/s
+            # converte 'Vazao_Aloc' para a unidade escolhida; origem suposta: L/s
             try:
                 val = float(row.get('Vazao_Aloc', float('nan')))
             except Exception:
@@ -321,9 +326,9 @@ if aba == "Vazões - GRBANABUIU":
     else:
         st.info("Nenhum ponto com coordenadas disponíveis para plotar no mapa.")
 
+    # ---------------------- BARRA (MÉDIA) ----------------------
     st.subheader("🏞️ Média da Vazão Operada por Reservatório")
     media_vazao = df_filtrado.groupby("Reservatório Monitorado")["Vazão Operada"].mean().reset_index()
-    # converte para unidade escolhida (origem: L/s)
     media_conv, unit_bar = convert_vazao(media_vazao["Vazão Operada"], unidade_sel)
     media_vazao["Vazão (conv)"] = media_conv
 
