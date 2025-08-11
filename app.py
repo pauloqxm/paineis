@@ -242,7 +242,7 @@ with tab1:
         else:
             st.info("Sem dados para média mensal.")
 
-     with gtab2:
+    with gtab2:
         if not df_filtrado.empty and df_filtrado['Reservatório Monitorado'].nunique() > 0:
             yconv, sufx = convert_vazao(df_filtrado['Vazão Operada'], unidade_sel)
             df_box = df_filtrado.copy()
