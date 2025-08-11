@@ -7,7 +7,7 @@ import json
 from streamlit_folium import folium_static
 from streamlit_option_menu import option_menu
 
-# Carregar os arquivos GeoJSON
+# Load GeoJSON files
 with open("trechos_perene.geojson", "r", encoding="utf-8") as f:
     geojson_trechos = json.load(f)
 
@@ -29,7 +29,10 @@ with open("bacia_banabuiu.geojson", "r", encoding="utf-8") as f:
 with open("pontos_controle.geojson", "r", encoding="utf-8") as f:
     geojson_pontos = json.load(f)
 
-# Configuração do estilo da página
+# Page configuration
+st.set_page_config(page_title="Dashboard Vazões", layout="wide")
+
+# Custom CSS
 st.markdown("""
     <style>
     [data-testid="stSidebar"] {
@@ -51,9 +54,7 @@ st.markdown("""
     </div>
 """, unsafe_allow_html=True)
 
-st.set_page_config(page_title="Dashboard Vazões", layout="wide")
-
-# Menu de navegação
+# Navigation menu
 with st.sidebar:
     aba = option_menu(
         menu_title="Painel",
@@ -63,9 +64,9 @@ with st.sidebar:
         default_index=0
     )
 
-# Função para conversão de unidades de vazão
+# Flow conversion function
 def convert_vazao(series, unidade):
-    """Converte valores de vazão entre L/s e m³/s"""
+    """Convert flow values between L/s and m³/s"""
     if unidade == "m³/s":
         return series / 1000.0, "m³/s"
     return series, "L/s"
@@ -73,7 +74,7 @@ def convert_vazao(series, unidade):
 if aba == "Vazões - GRBANABUIU":
     @st.cache_data
     def load_data():
-        """Carrega os dados das vazões"""
+        """Load flow data from Google Sheets"""
         url = "https://docs.google.com/spreadsheets/d/1pbNcZ9hS8DhotdkYuPc8kIOy5dgyoYQb384-jgqLDfA/export?format=csv"
         df = pd.read_csv(url)
         df['Data'] = pd.to_datetime(df['Data'], format='%d/%m/%Y', errors='coerce')
@@ -84,7 +85,7 @@ if aba == "Vazões - GRBANABUIU":
 
     st.title("💧 Vazões - GRBANABUIU")
 
-    # Filtros
+    # Filters
     with st.sidebar:
         st.header("🔎 Filtros")
         estacoes = st.multiselect("🏞️ Reservatório Monitorado", df['Reservatório Monitorado'].unique())
@@ -97,7 +98,7 @@ if aba == "Vazões - GRBANABUIU":
             "CartoDB positron", "CartoDB dark_matter", "Esri Satellite"
         ])
 
-    # Aplicar filtros
+    # Apply filters
     df_filtrado = df.copy()
     if estacoes:
         df_filtrado = df_filtrado[df_filtrado['Reservatório Monitorado'].isin(estacoes)]
@@ -108,7 +109,7 @@ if aba == "Vazões - GRBANABUIU":
         (df_filtrado['Data'] <= pd.to_datetime(fim))
     ]
 
-    # Gráfico de evolução temporal
+    # Time series chart
     st.subheader("📈 Evolução da Vazão Operada")
     
     fig = go.Figure()
@@ -138,23 +139,24 @@ if aba == "Vazões - GRBANABUIU":
     )
     st.plotly_chart(fig, use_container_width=True)
 
-    # Mapa interativo
+    # Interactive map
     st.subheader("🗺️ Mapa dos Reservatórios")
     
-    # Preparar dados para o mapa
+    # Prepare map data
     df_mapa = df_filtrado.copy()
     df_mapa[['lat', 'lon']] = df_mapa['Coordendas'].str.split(',', expand=True).astype(float)
     df_mapa = df_mapa.dropna(subset=['lat', 'lon']).drop_duplicates('Reservatório Monitorado')
 
     if not df_mapa.empty:
-        # Configuração do mapa base
+        # Base map configuration
         m = folium.Map(
             location=[df_mapa['lat'].mean(), df_mapa['lon'].mean()],
             zoom_start=8,
-            tiles=mapa_tipo if mapa_tipo not in ['Esri Satellite'] else None
+            tiles=mapa_tipo if mapa_tipo not in ['Esri Satellite'] else None,
+            control_scale=True
         )
         
-        # Adicionar tile layer especial se necessário
+        # Add special tile layer if needed
         if mapa_tipo == 'Esri Satellite':
             folium.TileLayer(
                 tiles='https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
@@ -162,7 +164,7 @@ if aba == "Vazões - GRBANABUIU":
                 name='Satélite'
             ).add_to(m)
 
-        # 1. Camada Bacia Hidrográfica
+        # 1. Watershed layer
         folium.GeoJson(
             geojson_bacia,
             name='Bacia do Banabuiú',
@@ -175,7 +177,7 @@ if aba == "Vazões - GRBANABUIU":
             tooltip=folium.GeoJsonTooltip(fields=['DESCRICA1'], aliases=['Bacia:'])
         ).add_to(m)
 
-        # 2. Camada Trechos Perenizados
+        # 2. Perennial streams
         folium.GeoJson(
             geojson_trechos,
             name='Trechos Perenizados',
@@ -187,7 +189,7 @@ if aba == "Vazões - GRBANABUIU":
             tooltip=folium.GeoJsonTooltip(fields=['Name'], aliases=['Trecho:'])
         ).add_to(m)
 
-        # 3. Camada Açudes Monitorados
+        # 3. Monitored reservoirs
         folium.GeoJson(
             geojson_acudes,
             name='Açudes Monitorados',
@@ -200,7 +202,7 @@ if aba == "Vazões - GRBANABUIU":
             tooltip=folium.GeoJsonTooltip(fields=['Name', 'Capacidade'], aliases=['Açude:', 'Capacidade (m³):'])
         ).add_to(m)
 
-        # 4. Camada Municípios
+        # 4. Municipal boundaries
         folium.GeoJson(
             geojson_poligno,
             name='Municípios',
@@ -212,7 +214,7 @@ if aba == "Vazões - GRBANABUIU":
             tooltip=folium.GeoJsonTooltip(fields=['DESCRICA1'], aliases=['Município:'])
         ).add_to(m)
 
-        # 5. Camada Pontos de Controle
+        # 5. Control points
         for feature in geojson_pontos['features']:
             coords = feature['geometry']['coordinates']
             nome = feature['properties']['Name']
@@ -223,7 +225,7 @@ if aba == "Vazões - GRBANABUIU":
                 popup=f'<b>Ponto de Controle:</b> {nome}'
             ).add_to(m)
 
-        # 6. Camada Sedes Municipais
+        # 6. Municipal seats
         for feature in geojson_sedes['features']:
             coords = feature['geometry']['coordinates']
             nome = feature['properties']['NOME_MUNIC']
@@ -234,7 +236,7 @@ if aba == "Vazões - GRBANABUIU":
                 popup=f'<b>Sede Municipal:</b> {nome}'
             ).add_to(m)
 
-        # 7. Camada Comissões Gestoras
+        # 7. Management committees
         for feature in geojson_c_gestoras['features']:
             coords = feature['geometry']['coordinates']
             props = feature['properties']
@@ -249,7 +251,7 @@ if aba == "Vazões - GRBANABUIU":
                 """
             ).add_to(m)
 
-        # 8. Reservatórios Monitorados
+        # 8. Monitored reservoirs (points)
         for _, row in df_mapa.iterrows():
             vazao, unit = convert_vazao(pd.Series([row['Vazão Operada']]), unidade_sel)
             folium.Marker(
@@ -263,19 +265,19 @@ if aba == "Vazões - GRBANABUIU":
                 """
             ).add_to(m)
 
-        # Controle de camadas
+        # Layer control
         folium.LayerControl(collapsed=False).add_to(m)
         
-        # Corrigindo a exibição do mapa
+        # Display map with error handling
         try:
-            # Tente primeiro o método mais recente
             folium_static(m, width=1200)
         except Exception as e:
-            st.warning(f"Ocorreu um erro ao exibir o mapa: {str(e)}")
-            # Método alternativo para exibir o mapa
+            st.warning(f"Erro ao renderizar mapa: {str(e)}")
             st.components.v1.html(m._repr_html_(), width=1200, height=600)
+    else:
+        st.warning("Nenhum dado disponível para exibir no mapa.")
 
-    # Média Ponderada
+    # Weighted average calculation
     st.subheader("📊 Média Ponderada por Reservatório")
     
     def calcular_media_ponderada(df):
@@ -302,7 +304,7 @@ if aba == "Vazões - GRBANABUIU":
     )
     st.plotly_chart(fig, use_container_width=True)
 
-    # Tabela de dados
+    # Data table
     st.subheader("📋 Dados Completos")
     st.dataframe(df_filtrado.sort_values('Data', ascending=False), use_container_width=True)
 
@@ -323,4 +325,9 @@ elif aba == "🗺️ Açudes Monitorados":
     ).add_to(m)
     
     folium.LayerControl().add_to(m)
-    folium_static(m, width=1200, height=600)
+    
+    try:
+        folium_static(m, width=1200)
+    except Exception as e:
+        st.warning(f"Erro ao renderizar mapa: {str(e)}")
+        st.components.v1.html(m._repr_html_(), width=1200, height=600)
