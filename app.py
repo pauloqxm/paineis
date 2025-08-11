@@ -421,7 +421,60 @@ with gtab2:
             val_conv, unit_suf = convert_vazao(pd.Series([val]), unidade_sel)
             val_txt = f"{val_conv.iloc[0]:.3f} {unit_suf}" if pd.notna(val_conv.iloc[0]) else "—"
             data_txt = row['Data'].date() if pd.notna(row['Data']) else "—"
-            popup_info = f"<strong>Reservatório:</strong> {row['Reservatório Monitorado']}<br><strong>Data:</strong> {data_txt}<br><strong>Vazão Alocada:</strong> {val_txt}"
+            popup_info = f"""
+<div style='
+    font-family: "Segoe UI", Arial, sans-serif;
+    padding: 12px;
+    background: linear-gradient(135deg, #f5f7fa 0%, #e4e8eb 100%);
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    border-left: 4px solid #228B22;
+    min-width: 220px;
+'>
+    <div style='
+        font-size: 16px; 
+        font-weight: 600; 
+        color: #2c3e50;
+        margin-bottom: 8px;
+        border-bottom: 1px solid #dfe6e9;
+        padding-bottom: 6px;
+    '>
+        {row['Reservatório Monitorado']}
+    </div>
+    
+    <div style='margin-bottom: 4px;'>
+        <span style='
+            display: inline-block;
+            width: 100px;
+            font-weight: 500;
+            color: #7f8c8d;
+        '>Data:</span>
+        <span style='color: #2c3e50;'>{data_txt}</span>
+    </div>
+    
+    <div style='margin-bottom: 4px;'>
+        <span style='
+            display: inline-block;
+            width: 100px;
+            font-weight: 500;
+            color: #7f8c8d;
+        '>Vazão:</span>
+        <span style='
+            color: #228B22;
+            font-weight: 600;
+        '>{val_txt}</span>
+    </div>
+    
+    <div style='
+        margin-top: 8px;
+        font-size: 12px;
+        color: #7f8c8d;
+        text-align: right;
+    '>
+        Sistema de Monitoramento
+    </div>
+</div>
+"""
             folium.Marker([row["lat"], row["lon"]],
                           popup=folium.Popup(popup_info, max_width=300),
                           icon=folium.CustomIcon("https://i.ibb.co/kvvL870/hydro-dam.png", icon_size=(30,30)),
