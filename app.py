@@ -757,6 +757,7 @@ th {
 <table>
 <tr>
     <th>Operação</th>
+    <th>Reservatório/Sistema</th>
     <th>Data</th>
     <th>Local</th>
     <th>Apresentação</th>
@@ -767,6 +768,7 @@ th {
 if not df.empty:
     for _, row in df.iterrows():
         operacao = row.get('Operação', '')
+        reservatorio = row.get('Reservatório/Sistema', '')
         data_reuniao = row.get('Data da Reunião', '')
         local_reuniao = row.get('Local da Reunião', '')
 
@@ -783,12 +785,13 @@ if not df.empty:
         else:
             ata_link = "—"
 
-        html += f"<tr><td>{operacao}</td><td>{data_reuniao}</td><td>{local_reuniao}</td><td>{ap_link}</td><td>{ata_link}</td></tr>"
+        html += f"<tr><td>{operacao}</td><td>{reservatorio}</td><td>{data_reuniao}</td><td>{local_reuniao}</td><td>{ap_link}</td><td>{ata_link}</td></tr>"
 else:
-    html += "<tr><td colspan='5'>Nenhum dado disponível</td></tr>"
+    html += "<tr><td colspan='6'>Nenhum dado disponível</td></tr>"
 
 html += "</table>"
 
 # Exibir no Streamlit
 st.markdown("### 📜 Documentos para Download")
 st.markdown(html, unsafe_allow_html=True)
+
