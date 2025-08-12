@@ -218,11 +218,55 @@ with tab1:
 # --- KPIs Modernos ---
     st.markdown("""
     <style>
-    ... CSS ...
+    .kpi-container {
+        display: flex;
+        gap: 16px;
+        margin: 20px 0;
+        flex-wrap: wrap;
+        justify-content: space-between;
+    }
+    
+    .kpi-card {
+        flex: 1;
+        min-width: 180px;
+        background: linear-gradient(135deg, #e0f5ec, #b2dfdb);
+        border-radius: 12px;
+        padding: 16px;
+        box-shadow: 0 3px 8px rgba(0,0,0,0.08);
+        text-align: center;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    
+    .kpi-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+    }
+    
+    .kpi-label {
+        font-size: 14px;
+        font-weight: 600;
+        color: #004d40;
+        margin-bottom: 6px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .kpi-value {
+        font-size: 24px;
+        font-weight: 700;
+        color: #00695c;
+    }
+    
+    /* Mobile: empilhar KPIs */
+    @media (max-width: 768px) {
+        .kpi-container {
+            flex-direction: column;
+        }
+    }
     </style>
     """, unsafe_allow_html=True)
     
-# KPIs em HTML
+    # KPIs em HTML
     reservatorios_count = df_filtrado['Reservatório Monitorado'].nunique()
     registros_count = len(df_filtrado)
     ultima_data = df_filtrado['Data'].max().strftime("%d/%m/%Y") if not df_filtrado.empty else "—"
@@ -248,8 +292,7 @@ with tab1:
         </div>
     </div>
     """, unsafe_allow_html=True)
-    
-# --------- GRÁFICOS ----------    
+# --------- GRÁFICOS ----------  
 
 
     st.subheader("📈 Evolução da Vazão Operada por Reservatório")
