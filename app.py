@@ -215,32 +215,39 @@ with tab1:
         df_filtrado = df_filtrado[(df_filtrado['Data'] >= pd.to_datetime(inicio)) &
                                   (df_filtrado['Data'] <= pd.to_datetime(fim))]
 
-    # KPIs
-    k1, k2, k3, k4 = st.columns(4)
-    with k1:
-        st.markdown('<div class="kpi-card">Reservatórios<br><div class="kpi-value">{}</div></div>'.format(
-            df_filtrado['Reservatório Monitorado'].nunique()), unsafe_allow_html=True)
-    with k2:
-        st.markdown('<div class="kpi-card">Registros<br><div class="kpi-value">{}</div></div>'.format(
-            len(df_filtrado)), unsafe_allow_html=True)
-    with k3:
-        if not df_filtrado.empty:
-            ult = df_filtrado['Data'].max()
-            ult_txt = ult.strftime("%d/%m/%Y")
-        else:
-            ult_txt = "—"
-        st.markdown(f'<div class="kpi-card">Última data<br><div class="kpi-value">{ult_txt}</div></div>', unsafe_allow_html=True)
-    with k4:
-        unidade_show = "m³/s" if unidade_sel == "m³/s" else "L/s"
-        st.markdown(f'<div class="kpi-card">Unidade<br><div class="kpi-value">{unidade_show}</div></div>', unsafe_allow_html=True)
-
-    # --------- GRÁFICOS ----------
-    st.subheader("📈 Evolução da Vazão Operada por Reservatório")
-    fig = go.Figure()
-    cores = ['#1f77b4','#ff7f0e','#2ca02c','#d62728','#9467bd','#8c564b','#17becf','#e377c2']
-    reservatorios = df_filtrado['Reservatório Monitorado'].dropna().unique()
+        # --- KPIs Modernos ---
+    st.markdown("""
+    <style>
+    ... CSS ...
+    </style>
+    """, unsafe_allow_html=True)
     
-    for i, r in enumerate(reservatorios):
+    # KPIs em HTML
+    reservatorios_count = df_filtrado['Reservatório Monitorado'].nunique()
+    registros_count = len(df_filtrado)
+    ultima_data = df_filtrado['Data'].max().strftime("%d/%m/%Y") if not df_filtrado.empty else "—"
+    unidade_show = "m³/s" if unidade_sel == "m³/s" else "L/s"
+    
+    st.markdown(f"""
+    <div class="kpi-container">
+        <div class="kpi-card">
+            <div class="kpi-label">Reservatórios</div>
+            <div class="kpi-value">{reservatorios_count}</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-label">Registros</div>
+            <div class="kpi-value">{registros_count}</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-label">Última Data</div>
+            <div class="kpi-value">{ultima_data}</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-label">Unidade</div>
+            <div class="kpi-value">{unidade_show}</div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
         dfr = (df_filtrado[df_filtrado['Reservatório Monitorado'] == r]
                .sort_values('Data').groupby('Data', as_index=False).last())
         y_vals, unit_suffix = convert_vazao(dfr["Vazão Operada"], unidade_sel)
