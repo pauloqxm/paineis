@@ -322,32 +322,32 @@ with tab1:
         else:
             st.info("Sem dados suficientes para boxplot.")
 
-    # -------------------- MAPA --------------------
+# -------------------- MAPA --------------------
     st.subheader("🗺️ Mapa dos Reservatórios com Camadas")
-    df_mapa = df_filtrado.copy()
-    if 'Coordendas' in df_mapa.columns:
-        df_mapa[['lat','lon']] = df_mapa['Coordendas'].str.split(',', expand=True).astype(float)
-    df_mapa = df_mapa.dropna(subset=['lat','lon']).drop_duplicates(subset=['Reservatório Monitorado'])
-
-    # Adicionando o seletor de estilo do mapa ao lado do mapa
-    mapa_col1, mapa_col2 = st.columns([3, 1])
-    with mapa_col2:
-        mapa_tipo = st.selectbox(
-            "Estilo do Mapa",
-            ["OpenStreetMap", "Stamen Terrain", "Stamen Toner", 
-             "CartoDB positron", "CartoDB dark_matter", "Esri Satellite"],
-            index=0,
-            key="map_style_selector"
-        )
-
-    tile_urls = {
-        "OpenStreetMap": None,
-        "Stamen Terrain": "https://stamen-tiles.a.ssl.fastly.net/terrain/{z}/{x}/{y}.png",
-        "Stamen Toner": "https://stamen-tiles.a.ssl.fastly.net/toner/{z}/{x}/{y}.png",
-        "CartoDB positron": "https://cartodb-basemaps-a.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png",
-        "CartoDB dark_matter": "https://cartodb-basemaps-a.global.ssl.fastly.net/dark_all/{z}/{x}/{y}.png",
-        "Esri Satellite": "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
-    }
+        df_mapa = df_filtrado.copy()
+        if 'Coordendas' in df_mapa.columns:
+            df_mapa[['lat','lon']] = df_mapa['Coordendas'].str.split(',', expand=True).astype(float)
+        df_mapa = df_mapa.dropna(subset=['lat','lon']).drop_duplicates(subset=['Reservatório Monitorado'])
+    
+        # Menu hamburguer para seleção do estilo do mapa
+        with st.expander("☰ Estilo do Mapa", expanded=False):
+            mapa_tipo = st.selectbox(
+                "Selecione o estilo:",
+                ["OpenStreetMap", "Stamen Terrain", "Stamen Toner", 
+                 "CartoDB positron", "CartoDB dark_matter", "Esri Satellite"],
+                index=0,
+                key="map_style_selector",
+                label_visibility="collapsed"
+            )
+    
+        tile_urls = {
+            "OpenStreetMap": None,
+            "Stamen Terrain": "https://stamen-tiles.a.ssl.fastly.net/terrain/{z}/{x}/{y}.png",
+            "Stamen Toner": "https://stamen-tiles.a.ssl.fastly.net/toner/{z}/{x}/{y}.png",
+            "CartoDB positron": "https://cartodb-basemaps-a.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png",
+            "CartoDB dark_matter": "https://cartodb-basemaps-a.global.ssl.fastly.net/dark_all/{z}/{x}/{y}.png",
+            "Esri Satellite": "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+        }
 
     tile_attr = {
         "OpenStreetMap": '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
