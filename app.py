@@ -179,7 +179,7 @@ with tab1:
         <style>
         .filter-container {
             margin-top: 5px;
-            padding: 30px; 
+            padding: 5px; 
         }
         </style>
         <div class="filter-container">
