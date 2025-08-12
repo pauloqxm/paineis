@@ -49,7 +49,7 @@ box-shadow:0 4px 12px rgba(0,0,0,.1);z-index:9999}}
 .header-date{{background:rgba(255,255,255,.15);padding:4px 10px;border-radius:20px;font-size:clamp(10px,2.5vw,13px);font-weight:500;display:flex;align-items:center;gap:6px;backdrop-filter:blur(5px);white-space:nowrap}}
 .main .block-container{{padding-top:90px}}
 /* cartão dos filtros */
-.filter-card{{border:1px solid #e6e6e6;border-radius:14px;padding:5px 16px;background:#fff;box-shadow:0 4px 14px rgba(0,0,0,.06);margin-top:6px}}
+.filter-card{{border:1px solid #e6e6e6;border-radius:14px;padding:2px 2px;background:#fff;box-shadow:0 4px 14px rgba(0,0,0,.06);margin-top:6px}}
 .filter-title{{font-weight:600;margin-bottom:6px}}
 .quick-chips span{{display:inline-block;border:1px solid #dcdcdc;border-radius:999px;padding:4px 10px;margin-right:6px;margin-top:4px;cursor:pointer;font-size:12px}}
 .quick-chips span:hover{{background:#f5f5f5}}
