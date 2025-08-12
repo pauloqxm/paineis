@@ -712,19 +712,52 @@ with tab2:
     folium.LayerControl(collapsed=True, position='topright').add_to(m2)
     folium_static(m2, width=1200)
 
+# Exemplo de dados para a tabela
+data = [
+    {
+        "Data da reunião": "12 de Agosto de 2025",
+        "Local da Reunião": "Sede da COGERH, Fortaleza",
+        "Apresentação": "Reunião de Alocação 2025_2 PATU.pdf",
+        "Ata da Reunião": "Ata da Reunião de alocação.pdf"
+    }
+]
+
 with tab3:
     st.markdown("### 📜 Documentos para Download")
-    st.write("Aqui você pode encontrar documentos oficiais relacionados ao monitoramento e operação da Bacia do Banabuiu.")
+    st.write("Aqui você pode encontrar os documentos oficiais e atas de reuniões.")
     
-    try:
-        # Caminho atualizado para o arquivo no repositório
-        file_path = "Arquivos/Reunião de Alocação 2025_2 PATU.pdf"
-        with open(file_path, "rb") as file:
-            st.download_button(
-                label="📥 Baixar Reunião de Alocação 2025_2 PATU",
-                data=file,
-                file_name="Reuniao_Alocacao_2025_2_PATU.pdf",
-                mime="application/pdf"
-            )
-    except FileNotFoundError:
-        st.error(f"O arquivo '{file_path}' não foi encontrado. Verifique o caminho no seu repositório.")
+    st.markdown("---")
+    
+    for item in data:
+        st.markdown(f"**Data da reunião:** {item['Data da reunião']}")
+        st.markdown(f"**Local da Reunião:** {item['Local da Reunião']}")
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            try:
+                apresentacao_path = f"Arquivos/{item['Apresentação']}"
+                with open(apresentacao_path, "rb") as file:
+                    st.download_button(
+                        label=f"📥 Baixar Apresentação",
+                        data=file,
+                        file_name=item['Apresentação'],
+                        mime="application/pdf"
+                    )
+            except FileNotFoundError:
+                st.error(f"Arquivo '{item['Apresentação']}' não encontrado.")
+
+        with col2:
+            try:
+                ata_path = f"Arquivos/{item['Ata da Reunião']}"
+                with open(ata_path, "rb") as file:
+                    st.download_button(
+                        label=f"📥 Baixar Ata",
+                        data=file,
+                        file_name=item['Ata da Reunião'],
+                        mime="application/pdf"
+                    )
+            except FileNotFoundError:
+                st.error(f"Arquivo '{item['Ata da Reunião']}' não encontrado.")
+
+        st.markdown("---")
