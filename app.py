@@ -793,6 +793,7 @@ tr:hover {
 
 <div class="table-container">
 <table>
+<thead>
 <tr>
     <th>Operação</th>
     <th>Data</th>
@@ -800,6 +801,8 @@ tr:hover {
     <th>Apresentação</th>
     <th>Ata</th>
 </tr>
+</thead>
+<tbody>
 """
 
 if not df.empty:
@@ -834,6 +837,7 @@ else:
     html += "<tr><td colspan='5' style='text-align: center; padding: 20px; color: #666;'>Nenhum dado disponível</td></tr>"
 
 html += """
+</tbody>
 </table>
 </div>
 """
