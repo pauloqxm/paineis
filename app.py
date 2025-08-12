@@ -136,17 +136,7 @@ with tab1:
         with col4:
             unidade_sel = st.selectbox("🧪 Unidade", ["L/s", "m³/s"], index=0)
 
-        # chips de período rápido
-        st.markdown(
-            '<div class="quick-chips">'
-            '<span id="p30">Últimos 30 dias</span>'
-            '<span id="p90">Últimos 90 dias</span>'
-            '<span id="p365">Últimos 12 meses</span>'
-            '</div>',
-            unsafe_allow_html=True
-        )
-        st.caption("Dica: clique nos chips para ajustar rápido o período")
-        
+              
         st.markdown('</div>', unsafe_allow_html=True)
 
     # aplica chips (via query_params simples)
