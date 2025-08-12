@@ -116,26 +116,27 @@ with tab1:
 
     st.title("💧 Vazões - GRBANABUIU")
 
-    # --------- FILTROS ----------
-    st.markdown('<div class="filter-card">', unsafe_allow_html=True)
-    st.markdown('<div class="filter-title">Filtros</div>', unsafe_allow_html=True)
-    col1, col2, col3, col4 = st.columns(4)
+    # --------- FILTROS (AGORA EM MENU HAMBURGUER) ----------
+    with st.expander("☰ Filtros", expanded=False):
+        st.markdown('<div class="filter-card">', unsafe_allow_html=True)
+        st.markdown('<div class="filter-title">Opções de Filtro</div>', unsafe_allow_html=True)
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            estacoes = st.multiselect("🏞️ Reservatório", df['Reservatório Monitorado'].dropna().unique())
+        with col2:
+            meses = st.multiselect("📆 Mês", df['Mês'].dropna().unique())
+        
+        col3, col4 = st.columns(2)
+        with col3:
+            datas_disponiveis = df['Data'].dropna().sort_values()
+            data_min = datas_disponiveis.min()
+            data_max = datas_disponiveis.max()
+            intervalo_data = st.date_input("📅 Intervalo", (data_min, data_max), format="DD/MM/YYYY")
+        with col4:
+            unidade_sel = st.selectbox("🧪 Unidade", ["L/s", "m³/s"], index=0)
 
-    with col1:
-        estacoes = st.multiselect("🏞️ Reservatório", df['Reservatório Monitorado'].dropna().unique())
-    with col2:
-        meses = st.multiselect("📆 Mês", df['Mês'].dropna().unique())
-    with col3:
-        datas_disponiveis = df['Data'].dropna().sort_values()
-        data_min = datas_disponiveis.min()
-        data_max = datas_disponiveis.max()
-        intervalo_data = st.date_input("📅 Intervalo", (data_min, data_max), format="DD/MM/YYYY")
-    with col4:
-        unidade_sel = st.selectbox("🧪 Unidade", ["L/s", "m³/s"], index=0)
-
-    # chips de período rápido
-    cchip1, cchip2 = st.columns([3,1])
-    with cchip1:
+        # chips de período rápido
         st.markdown(
             '<div class="quick-chips">'
             '<span id="p30">Últimos 30 dias</span>'
@@ -144,10 +145,9 @@ with tab1:
             '</div>',
             unsafe_allow_html=True
         )
-    with cchip2:
-        st.caption("Dica: clique nos chips para ajustar rápido ⤴️")
-
-    st.markdown('</div>', unsafe_allow_html=True)
+        st.caption("Dica: clique nos chips para ajustar rápido o período")
+        
+        st.markdown('</div>', unsafe_allow_html=True)
 
     # aplica chips (via query_params simples)
     qs = st.query_params
