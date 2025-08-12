@@ -119,7 +119,7 @@ with tab1:
 <style>
 .custom-title {
     font-family: 'Segoe UI', Roboto, sans-serif;
-    font-size: 18px; /* Fonte fixa em 18px */
+    font-size: 14px; /* Fonte fixa em 14px */
     font-weight: 700;
     color: #006400;
     text-align: center;
