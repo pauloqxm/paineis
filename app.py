@@ -215,23 +215,81 @@ with tab1:
                                   (df_filtrado['Data'] <= pd.to_datetime(fim))]
 
     # KPIs
-    k1, k2, k3, k4 = st.columns(4)
-    with k1:
-        st.markdown('<div class="kpi-card">Reservatórios<br><div class="kpi-value">{}</div></div>'.format(
-            df_filtrado['Reservatório Monitorado'].nunique()), unsafe_allow_html=True)
-    with k2:
-        st.markdown('<div class="kpi-card">Registros<br><div class="kpi-value">{}</div></div>'.format(
-            len(df_filtrado)), unsafe_allow_html=True)
-    with k3:
-        if not df_filtrado.empty:
-            ult = df_filtrado['Data'].max()
-            ult_txt = ult.strftime("%d/%m/%Y")
-        else:
-            ult_txt = "—"
-        st.markdown(f'<div class="kpi-card">Última data<br><div class="kpi-value">{ult_txt}</div></div>', unsafe_allow_html=True)
-    with k4:
-        unidade_show = "m³/s" if unidade_sel == "m³/s" else "L/s"
-        st.markdown(f'<div class="kpi-card">Unidade<br><div class="kpi-value">{unidade_show}</div></div>', unsafe_allow_html=True)
+    # --- KPIs Modernos ---
+st.markdown("""
+<style>
+.kpi-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    justify-content: center;
+    margin: 20px 0;
+}
+.kpi-card {
+    background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
+    border-radius: 14px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    padding: 18px 24px;
+    min-width: 200px;
+    text-align: center;
+    flex: 1;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.kpi-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+}
+.kpi-label {
+    font-size: 14px;
+    color: #444;
+    font-weight: 600;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+.kpi-value {
+    font-size: 24px;
+    font-weight: bold;
+    color: #006400;
+}
+@media (max-width: 600px) {
+    .kpi-card {
+        min-width: 150px;
+        padding: 14px;
+    }
+    .kpi-value {
+        font-size: 20px;
+    }
+}
+</style>
+""", unsafe_allow_html=True)
+
+# KPIs em HTML
+reservatorios_count = df_filtrado['Reservatório Monitorado'].nunique()
+registros_count = len(df_filtrado)
+ultima_data = df_filtrado['Data'].max().strftime("%d/%m/%Y") if not df_filtrado.empty else "—"
+unidade_show = "m³/s" if unidade_sel == "m³/s" else "L/s"
+
+st.markdown(f"""
+<div class="kpi-container">
+    <div class="kpi-card">
+        <div class="kpi-label">Reservatórios</div>
+        <div class="kpi-value">{reservatorios_count}</div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-label">Registros</div>
+        <div class="kpi-value">{registros_count}</div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-label">Última Data</div>
+        <div class="kpi-value">{ultima_data}</div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-label">Unidade</div>
+        <div class="kpi-value">{unidade_show}</div>
+    </div>
+</div>
+""", unsafe_allow_html=True)
 
     # --------- GRÁFICOS ----------
     st.subheader("📈 Evolução da Vazão Operada por Reservatório")
