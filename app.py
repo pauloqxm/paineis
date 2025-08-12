@@ -712,51 +712,69 @@ with tab2:
     folium.LayerControl(collapsed=True, position='topright').add_to(m2)
     folium_static(m2, width=1200)
 
-# Exemplo de dados para a tabela
+# Link da planilha pública do Google Sheets
+SHEET_ID = "1-Tn_ZDHH-mNgJAY1WtjWd_Pyd2f5kv_ZU8dhL0caGDI"
+SHEET_NAME = "Página1"  # Substitua 'Página1' pelo nome da sua aba, se for diferente
+URL = f"https://docs.google.com/spreadsheets/d/{SHEET_ID}/gviz/tq?tqx=out:csv&sheet={SHEET_NAME}"
+
+# Tenta ler os dados da planilha
+try:
+    df = pd.read_csv(URL)
+    # Limpa linhas vazias
+    df = df.dropna(how='all')
+except Exception as e:
+    st.error(f"Não foi possível carregar os dados da planilha. Verifique as permissões de acesso. Erro: {e}")
+    df = pd.DataFrame() # Cria um DataFrame vazio para evitar erros
+
 with tab3:
     st.markdown("### 📜 Documentos para Download")
-    st.write("Aqui você pode encontrar os documentos oficiais e atas de reuniões.")
-    
-    # Exemplo de dados para a tabela
-    data = {
-        "Data da Reunião": ["12 de Agosto de 2025"],
-        "Local da Reunião": ["Sede da COGERH, Fortaleza"],
-        "Apresentação": ["Reunião de Alocação 2025_2 PATU.pdf"],
-        "Ata da Reunião": ["Ata da Reunião de alocação.pdf"]
-    }
-    df_documentos = pd.DataFrame(data)
-    
-    # Exibe a tabela no Streamlit
-    st.dataframe(df_documentos, use_container_width=True, hide_index=True)
-    
-    # Botões de download em uma seção separada, alinhados com as colunas da tabela
-    st.markdown("---")
-    st.markdown("##### Download dos arquivos")
+    st.write("Aqui você pode encontrar documentos e atas de reuniões da Bacia do Banabuiu, com dados da planilha do Google Sheets.")
 
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        try:
-            apresentacao_path = "Arquivos/Reunião de Alocação 2025_2 PATU.pdf"
-            with open(apresentacao_path, "rb") as file:
-                st.download_button(
-                    label="📥 Baixar Apresentação",
-                    data=file,
-                    file_name="Reuniao_Alocacao_2025_2_PATU.pdf",
-                    mime="application/pdf"
-                )
-        except FileNotFoundError:
-            st.error(f"Arquivo 'Reunião de Alocação 2025_2 PATU.pdf' não encontrado.")
+    if not df.empty:
+        # Loop através de cada linha do DataFrame para exibir a tabela e os botões
+        for index, row in df.iterrows():
+            st.markdown("---")
+            
+            st.markdown(f"**Operação:** {row['Operação']}")
+            st.markdown(f"**Data da Reunião:** {row['Data da Reunião']}")
+            st.markdown(f"**Local da Reunião:** {row['Local da Reunião']}")
+            
+            col1, col2 = st.columns(2)
+            
+            with col1:
+                apresentacao_file = row['Apresentação']
+                if pd.notna(apresentacao_file) and apresentacao_file != "":
+                    try:
+                        file_path = f"Arquivos/{apresentacao_file}"
+                        with open(file_path, "rb") as file:
+                            st.download_button(
+                                label=apresentacao_file,
+                                data=file,
+                                file_name=apresentacao_file,
+                                mime="application/pdf",
+                                key=f"apresentacao_{index}"
+                            )
+                    except FileNotFoundError:
+                        st.write(f"Arquivo '{apresentacao_file}' não encontrado.")
+                else:
+                    st.write("Nenhuma apresentação disponível.")
 
-    with col2:
-        try:
-            ata_path = "Arquivos/Ata da Reunião de alocação.pdf"
-            with open(ata_path, "rb") as file:
-                st.download_button(
-                    label="📥 Baixar Ata da Reunião",
-                    data=file,
-                    file_name="Ata_Reuniao_alocacao.pdf",
-                    mime="application/pdf"
-                )
-        except FileNotFoundError:
-            st.error(f"Arquivo 'Ata da Reunião de alocação.pdf' não encontrado.")
+            with col2:
+                ata_file = row['Ata da Reunião']
+                if pd.notna(ata_file) and ata_file != "":
+                    try:
+                        file_path = f"Arquivos/{ata_file}"
+                        with open(file_path, "rb") as file:
+                            st.download_button(
+                                label=ata_file,
+                                data=file,
+                                file_name=ata_file,
+                                mime="application/pdf",
+                                key=f"ata_{index}"
+                            )
+                    except FileNotFoundError:
+                        st.write(f"Arquivo '{ata_file}' não encontrado.")
+                else:
+                    st.write("Nenhuma ata disponível.")
+    else:
+        st.info("Não há dados para exibir. Por favor, verifique a planilha do Google Sheets.")
