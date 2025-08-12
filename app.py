@@ -718,6 +718,11 @@ with tab3:
     st.write("Aqui você pode encontrar os documentos oficiais e atas de reuniões.")
     
     # Exemplo de dados para a tabela
+    with tab3:
+    st.markdown("### 📜 Documentos para Download")
+    st.write("Aqui você pode encontrar os documentos oficiais e atas de reuniões.")
+    
+    # Exemplo de dados para a tabela
     data = {
         "Data da Reunião": ["12 de Agosto de 2025"],
         "Local da Reunião": ["Sede da COGERH, Fortaleza"],
@@ -725,38 +730,38 @@ with tab3:
         "Ata da Reunião": ["Ata da Reunião de alocação.pdf"]
     }
     df_documentos = pd.DataFrame(data)
-    
-    # Exibe a tabela no Streamlit
-    st.dataframe(df_documentos, use_container_width=True, hide_index=True)
-    
-    # Botões de download em uma seção separada, alinhados com as colunas da tabela
-    st.markdown("---")
-    st.markdown("##### Download dos arquivos")
 
-    col1, col2 = st.columns(2)
-    
-    with col1:
+    # Função para criar o link de download para um arquivo
+    def create_download_link(file_name, label):
+        file_path = f"Arquivos/{file_name}"
         try:
-            apresentacao_path = "Arquivos/Reunião de Alocação 2025_2 PATU.pdf"
-            with open(apresentacao_path, "rb") as file:
-                st.download_button(
-                    label="📥 Baixar Apresentação",
+            with open(file_path, "rb") as file:
+                # Cria o botão de download dentro do link para o Streamlit
+                # A classe 'download-link' é apenas para fins de estilo
+                download_button_html = st.download_button(
+                    label=label,
                     data=file,
-                    file_name="Reuniao_Alocacao_2025_2_PATU.pdf",
-                    mime="application/pdf"
+                    file_name=file_name,
+                    mime="application/pdf",
+                    key=file_name
                 )
+                return download_button_html
         except FileNotFoundError:
-            st.error(f"Arquivo 'Reunião de Alocação 2025_2 PATU.pdf' não encontrado.")
+            return f"Arquivo '{file_name}' não encontrado."
+
+    # Criando os links de download
+    col1, col2 = st.columns(2)
+
+    with col1:
+        st.markdown("##### Apresentação")
+        create_download_link("Reunião de Alocação 2025_2 PATU.pdf", "Reunião de Alocação 2025_2 PATU.pdf")
 
     with col2:
-        try:
-            ata_path = "Arquivos/Ata da Reunião de alocação.pdf"
-            with open(ata_path, "rb") as file:
-                st.download_button(
-                    label="📥 Baixar Ata da Reunião",
-                    data=file,
-                    file_name="Ata_Reuniao_alocacao.pdf",
-                    mime="application/pdf"
-                )
-        except FileNotFoundError:
-            st.error(f"Arquivo 'Ata da Reunião de alocação.pdf' não encontrado.")
+        st.markdown("##### Ata da Reunião")
+        create_download_link("Ata da Reunião de alocação.pdf", "Ata da Reunião de alocação.pdf")
+
+    st.markdown("---")
+
+    # Exibe a tabela, mas sem as colunas de arquivo, já que os links estão separados
+    df_resumo = df_documentos.drop(columns=["Apresentação", "Ata da Reunião"])
+    st.dataframe(df_resumo, use_container_width=True, hide_index=True)
