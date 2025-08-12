@@ -169,7 +169,7 @@ with tab1:
 </style>
 
 <h1 class="custom-title">
-    <span>💧</span> Vazões - GRBANABUIU <span>💧</span>
+    <span>💧</span> Painel de Vazões </span>
 </h1>
 """, unsafe_allow_html=True)
 
