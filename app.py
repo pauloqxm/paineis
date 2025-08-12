@@ -173,8 +173,17 @@ with tab1:
 </h1>
 """, unsafe_allow_html=True)
 
-    # --------- FILTROS (AGORA EM MENU HAMBURGUER) ----------
+ # --------- FILTROS (AGORA EM MENU HAMBURGUER) ----------   
     with st.expander("☰ Filtros", expanded=False):
+        st.markdown("""
+        <style>
+        .filter-container {
+            margin-top: 30px;
+        }
+        </style>
+        <div class="filter-container">
+        """, unsafe_allow_html=True)
+        
         st.markdown('<div class="filter-card">', unsafe_allow_html=True)
         st.markdown('<div class="filter-title">Opções de Filtro</div>', unsafe_allow_html=True)
         
@@ -192,11 +201,10 @@ with tab1:
             intervalo_data = st.date_input("📅 Intervalo", (data_min, data_max), format="DD/MM/YYYY")
         with col4:
             unidade_sel = st.selectbox("🧪 Unidade", ["L/s", "m³/s"], index=0)
-
-              
-        st.markdown('</div>', unsafe_allow_html=True)
-
-    # aplica chips (via query_params simples)
+        
+        st.markdown('</div>', unsafe_allow_html=True)  # Fecha filter-card
+        st.markdown('</div>', unsafe_allow_html=True)  # Fecha filter-container
+# aplica chips (via query_params simples)
     qs = st.query_params
     if "chip" in qs:
         chip = qs["chip"]
