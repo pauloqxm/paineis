@@ -714,7 +714,7 @@ with tab2:
 
 # Configurações da planilha
 SHEET_ID = "1-Tn_ZDHH-mNgJAY1WtjWd_Pyd2f5kv_ZU8dhL0caGDI"
-GID = "0"  # gid da aba que quer ler
+GID = "0"  # gid da aba
 URL = f"https://docs.google.com/spreadsheets/d/{SHEET_ID}/export?format=csv&gid={GID}"
 
 # Ler planilha
@@ -768,21 +768,18 @@ if not df.empty:
         data_reuniao = row.get('Data da Reunião', '')
         local_reuniao = row.get('Local da Reunião', '')
 
-        # Apresentação
-        ap_link = "—"
+        # Links vindos direto da planilha
         apresentacao_file = row.get('Apresentação', '')
         if pd.notna(apresentacao_file) and apresentacao_file.strip():
-            file_path = f"Arquivos/{apresentacao_file}"
-            if os.path.exists(file_path):
-                ap_link = f"<a class='download-btn' href='Arquivos/{apresentacao_file}' download>Baixar</a>"
+            ap_link = f"<a class='download-btn' href='{apresentacao_file}' target='_blank'>Baixar</a>"
+        else:
+            ap_link = "—"
 
-        # Ata
-        ata_link = "—"
         ata_file = row.get('Ata da Reunião', '')
         if pd.notna(ata_file) and ata_file.strip():
-            file_path = f"Arquivos/{ata_file}"
-            if os.path.exists(file_path):
-                ata_link = f"<a class='download-btn' href='Arquivos/{ata_file}' download>Baixar</a>"
+            ata_link = f"<a class='download-btn' href='{ata_file}' target='_blank'>Baixar</a>"
+        else:
+            ata_link = "—"
 
         html += f"<tr><td>{operacao}</td><td>{data_reuniao}</td><td>{local_reuniao}</td><td>{ap_link}</td><td>{ata_link}</td></tr>"
 else:
