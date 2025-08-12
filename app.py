@@ -221,7 +221,7 @@ with tab1:
     .kpi-container {
         display: flex;
         gap: 16px;
-        margin: 20px 0;
+        margin: -20px 0;
         flex-wrap: wrap;
         justify-content: space-between;
     }
