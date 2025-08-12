@@ -190,6 +190,7 @@ with tab1:
         col1, col2 = st.columns(2)
         with col1:
             estacoes = st.multiselect("🏞️ Reservatório", df['Reservatório Monitorado'].dropna().unique())
+            operacao = st.multiselect("🔧 Operação", df['Operação'].dropna().unique())  # Novo filtro adicionado
         with col2:
             meses = st.multiselect("📆 Mês", df['Mês'].dropna().unique())
         
@@ -204,19 +205,13 @@ with tab1:
         
         st.markdown('</div>', unsafe_allow_html=True)  # Fecha filter-card
         st.markdown('</div>', unsafe_allow_html=True)  # Fecha filter-container
-# aplica chips (via query_params simples)
-    qs = st.query_params
-    if "chip" in qs:
-        chip = qs["chip"]
-        fim = data_max if pd.notna(data_max) else pd.Timestamp.today()
-        if chip == "30": intervalo_data = (fim - pd.Timedelta(days=30), fim)
-        if chip == "90": intervalo_data = (fim - pd.Timedelta(days=90), fim)
-        if chip == "365": intervalo_data = (fim - pd.Timedelta(days=365), fim)
-
-    # filtro no df
+    
+    # Aplicar filtros no dataframe
     df_filtrado = df.copy()
     if estacoes:
         df_filtrado = df_filtrado[df_filtrado['Reservatório Monitorado'].isin(estacoes)]
+    if operacao:  # Novo filtro aplicado
+        df_filtrado = df_filtrado[df_filtrado['Operação'].isin(operacao)]
     if meses:
         df_filtrado = df_filtrado[df_filtrado['Mês'].isin(meses)]
     if isinstance(intervalo_data, tuple) and len(intervalo_data) == 2:
