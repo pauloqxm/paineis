@@ -119,30 +119,28 @@ with tab1:
 <style>
 .custom-title {
     font-family: 'Segoe UI', Roboto, sans-serif;
-    font-size: 18px; /* Tamanho fixo 18px */
+    font-size: 18px; /* Fonte fixa em 18px */
     font-weight: 700;
     color: #006400;
     text-align: center;
-    margin: 10px auto; /* Margem reduzida */
-    padding: 8px 15px; /* Padding mais estreito */
+    margin: 15px 0 10px 0;
+    padding: 8px 16px; /* Retângulo mais estreito */
     position: relative;
-    display: inline-flex; /* Alterado para inline-flex */
+    display: flex;
     align-items: center;
     justify-content: center;
     gap: 8px;
     background: rgba(144, 238, 144, 0.15);
     border-radius: 8px;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.05);
-    max-width: 80%; /* Largura máxima reduzida */
-    width: fit-content; /* Ajusta ao conteúdo */
+    box-shadow: 0 1px 6px rgba(0,0,0,0.06);
 }
 
 .custom-title::before, .custom-title::after {
     content: "";
-    width: 20px; /* Comprimento fixo menor */
-    height: 1.5px; /* Linha mais fina */
+    flex: 1;
+    height: 2px;
     background: linear-gradient(90deg, transparent, #228B22);
-    border-radius: 1px;
+    border-radius: 2px;
 }
 
 .custom-title::after {
@@ -151,32 +149,29 @@ with tab1:
 
 .custom-title span {
     display: inline-flex;
-    font-size: 18px; /* Tamanho fixo para ícones */
-    margin: 0 2px; /* Espaçamento reduzido */
+    align-items: center;
+    justify-content: center;
+    font-size: 18px; /* Ícones do mesmo tamanho da fonte */
 }
 
 @media (max-width: 600px) {
     .custom-title {
-        font-size: 16px;
+        flex-direction: column;
+        gap: 4px;
         padding: 6px 12px;
-        gap: 6px;
     }
-    .custom-title span {
-        font-size: 16px;
-    }
-    .custom-title::before, 
-    .custom-title::after {
-        width: 15px;
+    .custom-title::before, .custom-title::after {
+        width: 70%;
+        height: 1.5px;
     }
 }
 </style>
 
-<div style="display: flex; justify-content: center;">
-    <h1 class="custom-title">
-        <span>💧</span>Vazões - GRBANABUIU<span>💧</span>
-    </h1>
-</div>
+<h1 class="custom-title">
+    <span>💧</span> Vazões - GRBANABUIU <span>💧</span>
+</h1>
 """, unsafe_allow_html=True)
+
 
  # --------- FILTROS (AGORA EM MENU HAMBURGUER) ----------   
     with st.expander("☰ Filtros", expanded=False):
