@@ -304,7 +304,32 @@ with tab1:
 # --------- GRÁFICOS ----------  
 
 
-    st.subheader("📈 Evolução da Vazão Operada por Reservatório")
+    #📈 Evolução da Vazão Operada por Reservatório
+        st.markdown("""
+    <style>
+    .custom-subtitle {
+        font-family: 'Segoe UI', Roboto, sans-serif !important;
+        font-size: 16px !important; /* Tamanho fixo menor que o título */
+        font-weight: 600 !important;
+        color: #004d40 !important;
+        text-align: left !important;
+        margin: 20px 0 12px 0 !important;
+        padding: 6px 10px !important;
+        background: rgba(178, 223, 219, 0.3) !important;
+        border-left: 4px solid #00695c !important;
+        border-radius: 4px !important;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.04) !important;
+        display: flex !important;
+        align-items: center !important;
+        gap: 8px !important;
+    }
+    </style>
+    
+    <div class="custom-subtitle">
+    📈 Evolução da Vazão Operada por Reservatório
+    </div>
+    """, unsafe_allow_html=True)
+
     fig = go.Figure()
     cores = ['#1f77b4','#ff7f0e','#2ca02c','#d62728','#9467bd','#8c564b','#17becf','#e377c2']
     reservatorios = df_filtrado['Reservatório Monitorado'].dropna().unique()
