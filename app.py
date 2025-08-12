@@ -725,34 +725,73 @@ except Exception as e:
     st.error(f"Não foi possível carregar os dados da planilha. Erro: {e}")
     df = pd.DataFrame()
 
-# Criar HTML da tabela
+# Criar HTML da tabela estilizada
 html = """
 <style>
+.table-container {
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    margin: 20px 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
 table {
     border-collapse: collapse;
     width: 100%;
-}
-th, td {
-    border: 1px solid #ddd;
-    padding: 6px;
-    text-align: center;
+    background: white;
 }
 th {
-    background-color: #f2f2f2;
+    background-color: #4f46e5;
+    color: white;
+    font-weight: 500;
+    text-align: center;
+    padding: 12px 8px;
+    position: sticky;
+    top: 0;
+}
+td {
+    padding: 10px 8px;
+    text-align: center;
+    border-bottom: 1px solid #f0f0f0;
+}
+tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+tr:hover {
+    background-color: #f0f4ff;
 }
 .download-btn {
-    display: inline-block;
-    padding: 4px 8px;
-    background-color: #4CAF50;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 12px;
+    background-color: #4f46e5;
     color: white !important;
-    border-radius: 4px;
+    border-radius: 6px;
     text-decoration: none;
     font-size: 13px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(79, 70, 229, 0.2);
+    border: none;
+    cursor: pointer;
+    min-width: 80px;
 }
 .download-btn:hover {
-    background-color: #45a049;
+    background-color: #4338ca;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(79, 70, 229, 0.3);
+}
+.download-btn i {
+    margin-right: 5px;
+}
+.empty-cell {
+    color: #999;
+    font-style: italic;
 }
 </style>
+
+<div class="table-container">
 <table>
 <tr>
     <th>Operação</th>
@@ -772,23 +811,39 @@ if not df.empty:
         # Links vindos direto da planilha
         apresentacao_file = row.get('Apresentação', '')
         if pd.notna(apresentacao_file) and apresentacao_file.strip():
-            ap_link = f"<a class='download-btn' href='{apresentacao_file}' target='_blank'>Baixar</a>"
+            ap_link = f"<a class='download-btn' href='{apresentacao_file}' target='_blank'><i>↓</i> Baixar</a>"
         else:
-            ap_link = "—"
+            ap_link = "<span class='empty-cell'>—</span>"
 
         ata_file = row.get('Ata da Reunião', '')
         if pd.notna(ata_file) and ata_file.strip():
-            ata_link = f"<a class='download-btn' href='{ata_file}' target='_blank'>Baixar</a>"
+            ata_link = f"<a class='download-btn' href='{ata_file}' target='_blank'><i>↓</i> Baixar</a>"
         else:
-            ata_link = "—"
+            ata_link = "<span class='empty-cell'>—</span>"
 
-        html += f"<tr><td>{operacao}</td><td>{data_reuniao}</td><td>{local_reuniao}</td><td>{ap_link}</td><td>{ata_link}</td></tr>"
+        html += f"""
+        <tr>
+            <td>{operacao}</td>
+            <td>{data_reuniao}</td>
+            <td>{local_reuniao}</td>
+            <td>{ap_link}</td>
+            <td>{ata_link}</td>
+        </tr>
+        """
 else:
-    html += "<tr><td colspan='5'>Nenhum dado disponível</td></tr>"
+    html += "<tr><td colspan='5' style='text-align: center; padding: 20px; color: #666;'>Nenhum dado disponível</td></tr>"
 
-html += "</table>"
+html += """
+</table>
+</div>
+"""
 
 # Exibir no Streamlit
-st.markdown("### 📜 Documentos para Download")
+st.markdown("""
+    <div style='margin-bottom: 20px;'>
+        <h2 style='color: #4f46e5; margin-bottom: 8px;'>📜 Documentos para Download</h2>
+        <p style='color: #666; font-size: 14px;'>Selecione os arquivos que deseja baixar</p>
+    </div>
+""", unsafe_allow_html=True)
 st.markdown(html, unsafe_allow_html=True)
 
