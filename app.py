@@ -118,51 +118,51 @@ with tab1:
     st.markdown("""
 <style>
 .custom-title {
-    font-family: 'Segoe UI', Roboto, sans-serif;
-    font-size: 14px; /* Fonte fixa em 14px */
-    font-weight: 700;
-    color: #006400;
-    text-align: center;
-    margin: 15px 0 10px 0;
-    padding: 4px 12px; /* Retângulo mais estreito */
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    background: rgba(144, 238, 144, 0.15);
-    border-radius: 8px;
-    box-shadow: 0 1px 6px rgba(0,0,0,0.06);
+    font-family: 'Segoe UI', Roboto, sans-serif !important;
+    font-size: 14px !important; /* Fonte fixa */
+    font-weight: 700 !important;
+    color: #006400 !important;
+    text-align: center !important;
+    margin: 15px 0 10px 0 !important;
+    padding: 4px 12px !important; /* Retângulo mais estreito */
+    position: relative !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 8px !important;
+    background: rgba(144, 238, 144, 0.15) !important;
+    border-radius: 8px !important;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.06) !important;
 }
 
 .custom-title::before, .custom-title::after {
-    content: "";
-    flex: 1;
-    height: 2px;
-    background: linear-gradient(90deg, transparent, #228B22);
-    border-radius: 2px;
+    content: "" !important;
+    flex: 1 !important;
+    height: 2px !important;
+    background: linear-gradient(90deg, transparent, #228B22) !important;
+    border-radius: 2px !important;
 }
 
 .custom-title::after {
-    background: linear-gradient(90deg, #228B22, transparent);
+    background: linear-gradient(90deg, #228B22, transparent) !important;
 }
 
 .custom-title span {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 18px; /* Ícones do mesmo tamanho da fonte */
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 18px !important; /* Ícones do mesmo tamanho da fonte */
 }
 
 @media (max-width: 600px) {
     .custom-title {
-        flex-direction: column;
-        gap: 4px;
-        padding: 6px 12px;
+        flex-direction: column !important;
+        gap: 4px !important;
+        padding: 6px 12px !important;
     }
     .custom-title::before, .custom-title::after {
-        width: 70%;
-        height: 1.5px;
+        width: 70% !important;
+        height: 1.5px !important;
     }
 }
 </style>
@@ -171,7 +171,6 @@ with tab1:
     <span>💧</span> Vazões - GRBANABUIU <span>💧</span>
 </h1>
 """, unsafe_allow_html=True)
-
 
  # --------- FILTROS (AGORA EM MENU HAMBURGUER) ----------   
     with st.expander("☰ Filtros", expanded=False):
