@@ -714,17 +714,18 @@ with tab2:
 
 # Link da planilha pública do Google Sheets
 SHEET_ID = "1-Tn_ZDHH-mNgJAY1WtjWd_Pyd2f5kv_ZU8dhL0caGDI"
-SHEET_NAME = "Página1"  # Substitua 'Página1' pelo nome da sua aba, se for diferente
+SHEET_NAME = "Página1"
 URL = f"https://docs.google.com/spreadsheets/d/{SHEET_ID}/gviz/tq?tqx=out:csv&sheet={SHEET_NAME}"
 
 # Tenta ler os dados da planilha
 try:
-    df = pd.read_csv(URL)
+    # A correção está nesta linha, adicionando o encoding='utf-8'
+    df = pd.read_csv(URL, encoding='utf-8')
     # Limpa linhas vazias
     df = df.dropna(how='all')
 except Exception as e:
     st.error(f"Não foi possível carregar os dados da planilha. Verifique as permissões de acesso. Erro: {e}")
-    df = pd.DataFrame() # Cria um DataFrame vazio para evitar erros
+    df = pd.DataFrame()
 
 with tab3:
     st.markdown("### 📜 Documentos para Download")
