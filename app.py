@@ -43,7 +43,7 @@ st.markdown(f"""
 background:linear-gradient(135deg,#228B22 0%,#006400 50%,#004d00 100%);
 color:white;padding:12px 5%;font-family:'Segoe UI',Roboto,sans-serif;
 box-shadow:0 4px 12px rgba(0,0,0,.1);z-index:9999}}
-.header-container{{max-width:1200px;margin:-15px; auto;display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:10px}}
+.header-container{{max-width:1200px;margin: 15px; auto;display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:10px}}
 .header-brand{{display:flex;align-items:center;gap:10px;flex:1;min-width:200px}}
 .header-logo{{height:36px;filter:drop-shadow(0 2px 2px rgba(0,0,0,.2))}}
 .header-title{{font-size:clamp(14px,3vw,18px);font-weight:600;letter-spacing:.5px;text-shadow:0 1px 3px rgba(0,0,0,.3)}}
