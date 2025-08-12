@@ -12,33 +12,33 @@ from folium.plugins import Fullscreen, MiniMap, MousePosition, MeasureControl, M
 st.set_page_config(page_title="Dashboard Vazões", layout="wide")
 
 # ---------------- UTILS - FUNÇÕES REUTILIZÁVEIS ----------------
-
-@st.cache_data(ttl=3600)
 def load_geojson(file_path):
-    """Carrega arquivos GeoJSON com cache."""
+    """Carrega arquivos GeoJSON."""
     with open(file_path, "r", encoding="utf-8") as f:
         return json.load(f)
 
-@st.cache_data(ttl=300)
+# ---------------- ARQUIVOS GEOJSON ----------------
+geojson_trechos = load_geojson("trechos_perene.geojson")
+geojson_acudes = load_geojson("Açudes_Monitorados.geojson")
+geojson_sedes = load_geojson("Sedes_Municipais.geojson")
+geojson_c_gestoras = load_geojson("c_gestoras.geojson")
+geojson_poligno = load_geojson("poligno_municipios.geojson")
+geojson_bacia = load_geojson("bacia_banabuiu.geojson")
+geojson_pontos = load_geojson("pontos_controle.geojson")
+
 def carregar_dados():
     """
     Carrega e pré-processa os dados da planilha.
-    Usa caching para evitar múltiplas chamadas.
     """
     url = "https://docs.google.com/spreadsheets/d/1pbNcZ9hS8DhotdkYuPc8kIOy5dgyoYQb384-jgqLDfA/export?format=csv"
     df = pd.read_csv(url)
     df['Data'] = pd.to_datetime(df['Data'], format='%d/%m/%Y', errors='coerce')
     df['Mês'] = df['Data'].dt.to_period('M').astype(str)
-    # Extrai coordenadas no carregamento para evitar reprocessamento
+    
     if 'Coordendas' in df.columns:
         df[['lat', 'lon']] = df['Coordendas'].str.split(',', expand=True).astype(float)
+        
     return df
-
-def convert_vazao(series, unidade):
-    """Converte valores de vazão de L/s para m³/s ou vice-versa."""
-    if unidade == "m³/s":
-        return series / 1000.0, "m³/s"
-    return series, "L/s"
 
 def get_current_date():
     """Retorna a data e hora formatadas para o cabeçalho."""
@@ -48,42 +48,11 @@ def get_current_date():
     meses = {'January': 'janeiro', 'February': 'fevereiro', 'March': 'março', 'April': 'abril', 'May': 'maio', 'June': 'junho', 'July': 'julho', 'August': 'agosto', 'September': 'setembro', 'October': 'outubro', 'November': 'novembro', 'December': 'dezembro'}
     return f"{dias_semana[agora.strftime('%A')]}, {agora.day:02d} de {meses[agora.strftime('%B')]} de {agora.year}"
 
-# Refatora a criação do mapa Folium em uma função
-def create_folium_map(center, zoom, tile_option, tile_urls, tile_attr, layers):
-    """Gera um mapa Folium com camadas pré-definidas e plugins."""
-    m = folium.Map(location=center, zoom_start=zoom, tiles=None)
-
-    # Adiciona a camada base
-    if tile_option == "OpenStreetMap":
-        folium.TileLayer(tiles='OpenStreetMap').add_to(m)
-    else:
-        folium.TileLayer(
-            tiles=tile_urls[tile_option],
-            attr=tile_attr[tile_option],
-            name=tile_option
-        ).add_to(m)
-
-    # Adiciona plugins
-    Fullscreen(position='topleft').add_to(m)
-    MiniMap(toggle_display=True, minimized=True).add_to(m)
-    MousePosition(position='bottomleft', separator=' | ', prefix='Coords').add_to(m)
-    MeasureControl(primary_length_unit='meters').add_to(m)
-
-    # Adiciona camadas GeoJSON
-    for layer in layers:
-        folium.GeoJson(layer['data'], name=layer['name'], tooltip=layer.get('tooltip'), style_function=layer.get('style')).add_to(m)
-    
-    folium.LayerControl(collapsed=True, position='topright').add_to(m)
-    return m
-
-# ---------------- ARQUIVOS GEOJSON (com caching) ----------------
-geojson_trechos = load_geojson("trechos_perene.geojson")
-geojson_acudes = load_geojson("Açudes_Monitorados.geojson")
-geojson_sedes = load_geojson("Sedes_Municipais.geojson")
-geojson_c_gestoras = load_geojson("c_gestoras.geojson")
-geojson_poligno = load_geojson("poligno_municipios.geojson")
-geojson_bacia = load_geojson("bacia_banabuiu.geojson")
-geojson_pontos = load_geojson("pontos_controle.geojson")
+def convert_vazao(series, unidade):
+    """Converte valores de vazão de L/s para m³/s ou vice-versa."""
+    if unidade == "m³/s":
+        return series / 1000.0, "m³/s"
+    return series, "L/s"
 
 # ---------------- TOPO CUSTOM ----------------
 st.markdown(f"""
@@ -110,7 +79,6 @@ box-shadow:0 4px 12px rgba(0,0,0,.1);z-index:9999}}
 .kpi-label{{font-size: 14px;font-weight: 600;color: #004d40;margin-bottom: 6px;text-transform: uppercase;letter-spacing: 0.5px;}}
 .kpi-value{{font-size: 24px;font-weight: 700;color: #00695c;}}
 @media (max-width: 768px){{.kpi-container{{flex-direction: column;}}}}
-.map-style-selector {{margin-top: -10px;}}
 </style>
 <div class="custom-header">
   <div class="header-container">
@@ -126,18 +94,13 @@ box-shadow:0 4px 12px rgba(0,0,0,.1);z-index:9999}}
 </div>
 """, unsafe_allow_html=True)
 
-
 # ---------------- TABS ----------------
-# Adicione a nova aba aqui
 tab1, tab2, tab3 = st.tabs(["Vazões - GRBANABUIU", "🗺️ Açudes Monitorados", "📜 Documentos Oficiais"])
 
 with tab1:
-    # dados
     df = carregar_dados()
-
-    # Botão de atualização na área principal
+    
     if st.button("🔄 Atualizar agora"):
-        carregar_dados.clear()
         df = carregar_dados()
         st.success("Dados atualizados com sucesso!")
 
@@ -147,7 +110,6 @@ with tab1:
     </h1>
     """, unsafe_allow_html=True)
 
-    # --------- FILTROS (AGORA EM MENU HAMBURGUER) ----------   
     with st.expander("☰ Filtros", expanded=False):
         col1, col2, col3, col4 = st.columns(4)
         with col1:
@@ -161,7 +123,7 @@ with tab1:
             data_min = datas_disponiveis.min()
             data_max = datas_disponiveis.max()
             intervalo_data = st.date_input("📅 Intervalo", (data_min, data_max), format="DD/MM/YYYY")
-    
+
     unidade_sel = st.selectbox("🧪 Unidade de Medida", ["L/s", "m³/s"], index=0, help="Selecione a unidade de vazão para os gráficos.")
 
     # Aplicar filtros no dataframe
@@ -176,7 +138,6 @@ with tab1:
         inicio, fim = intervalo_data
         df_filtrado = df_filtrado[(df_filtrado['Data'] >= pd.to_datetime(inicio)) & (df_filtrado['Data'] <= pd.to_datetime(fim))]
 
-    # --- KPIs Modernos ---
     reservatorios_count = df_filtrado['Reservatório Monitorado'].nunique()
     registros_count = len(df_filtrado)
     ultima_data = df_filtrado['Data'].max().strftime("%d/%m/%Y") if not df_filtrado.empty and pd.notna(df_filtrado['Data'].max()) else "—"
@@ -202,8 +163,7 @@ with tab1:
         </div>
     </div>
     """, unsafe_allow_html=True)
-
-    # --------- GRÁFICOS ----------
+    
     st.subheader("📈 Evolução da Vazão Operada por Reservatório")
     if not df_filtrado.empty:
         fig = go.Figure()
@@ -238,7 +198,6 @@ with tab1:
     else:
         st.info("Sem dados para a evolução da vazão. Ajuste os filtros.")
 
-    # Abas extras de análise
     gtab1, gtab2, gtab3 = st.tabs(["📊 Média mensal", "📦 Distribuição (boxplot)", "📈 Volume Acumulado"])
     
     with gtab1:
@@ -316,7 +275,6 @@ with tab1:
             st.info("Sem dados suficientes para calcular o volume acumulado.")
 
 
-    # -------------------- MAPA --------------------
     st.subheader("🗺️ Mapa dos Reservatórios com Camadas")
     df_mapa = df_filtrado.dropna(subset=['lat', 'lon']).drop_duplicates(subset=['Reservatório Monitorado'])
 
@@ -326,7 +284,7 @@ with tab1:
             ["OpenStreetMap", "Stamen Terrain", "Stamen Toner", "CartoDB positron", "CartoDB dark_matter", "Esri Satellite"],
             index=0, key="map_style_selector", label_visibility="collapsed"
         )
-
+    
     tile_urls = {
         "OpenStreetMap": None, "Stamen Terrain": "https://stamen-tiles.a.ssl.fastly.net/terrain/{z}/{x}/{y}.png",
         "Stamen Toner": "https://stamen-tiles.a.ssl.fastly.net/toner/{z}/{x}/{y}.png",
@@ -346,21 +304,30 @@ with tab1:
 
     if not df_mapa.empty:
         center = [df_mapa['lat'].mean(), df_mapa['lon'].mean()]
-        
-        # Define as camadas a serem passadas para a função do mapa
-        map_layers = [
-            {'data': geojson_bacia, 'name': "Bacia do Banabuiu", 'tooltip': folium.GeoJsonTooltip(fields=["DESCRICA1"], aliases=["Bacia:"]), 'style': lambda x: {"color": "darkblue", "weight": 2}},
-            {'data': geojson_trechos, 'name': "Trechos Perenizados", 'tooltip': folium.GeoJsonTooltip(fields=["Name"], aliases=["Name:"]), 'style': lambda x: {"color": "darkblue", "weight": 1}},
-            {'data': geojson_pontos, 'name': "Pontos de Controle", 'tooltip': folium.GeoJsonTooltip(fields=["Name"], aliases=["Name:"]), 'style': None},
-            {'data': geojson_acudes, 'name': "Açudes Monitorados", 'tooltip': folium.GeoJsonTooltip(fields=["Name"], aliases=["Açude:"]), 'style': lambda x: {"color": "darkgreen", "weight": 2}},
-            {'data': geojson_sedes, 'name': "Sedes Municipais", 'tooltip': folium.GeoJsonTooltip(fields=["NOME_MUNIC"], aliases=["Município:"]), 'style': None},
-            {'data': geojson_c_gestoras, 'name': "Comissões Gestoras", 'tooltip': folium.GeoJsonTooltip(fields=["SISTEMAH3"], aliases=["Sistema:"]), 'style': None},
-            {'data': geojson_poligno, 'name': "Polígonos Municipais", 'tooltip': folium.GeoJsonTooltip(fields=["DESCRICA1"], aliases=["Município:"]), 'style': lambda x: {"fillOpacity": 0, "color": "blue", "weight": 1}}
-        ]
-        
-        m = create_folium_map(center, 8, mapa_tipo, tile_urls, tile_attr, map_layers)
+        m = folium.Map(location=center, zoom_start=8, tiles=None)
 
-        # Adiciona os pinos de reservatórios com cluster
+        if mapa_tipo == "OpenStreetMap":
+            folium.TileLayer(tiles='OpenStreetMap').add_to(m)
+        else:
+            folium.TileLayer(
+                tiles=tile_urls[mapa_tipo],
+                attr=tile_attr[mapa_tipo],
+                name=mapa_tipo
+            ).add_to(m)
+
+        Fullscreen(position='topleft').add_to(m)
+        MiniMap(toggle_display=True, minimized=True).add_to(m)
+        MousePosition(position='bottomleft', separator=' | ', prefix='Coords').add_to(m)
+        MeasureControl(primary_length_unit='meters').add_to(m)
+
+        folium.GeoJson(geojson_bacia, name="Bacia do Banabuiu", tooltip=folium.GeoJsonTooltip(fields=["DESCRICA1"], aliases=["Bacia:"]), style_function=lambda x: {"color": "darkblue", "weight": 2}).add_to(m)
+        folium.GeoJson(geojson_trechos, name="Trechos Perenizados", tooltip=folium.GeoJsonTooltip(fields=["Name"], aliases=["Name:"]), style_function=lambda x: {"color": "darkblue", "weight": 1}).add_to(m)
+        folium.GeoJson(geojson_pontos, name="Pontos de Controle", tooltip=folium.GeoJsonTooltip(fields=["Name"], aliases=["Name:"])).add_to(m)
+        folium.GeoJson(geojson_acudes, name="Açudes Monitorados", tooltip=folium.GeoJsonTooltip(fields=["Name"], aliases=["Açude:"]), style_function=lambda x: {"color": "darkgreen", "weight": 2}).add_to(m)
+        folium.GeoJson(geojson_sedes, name="Sedes Municipais", tooltip=folium.GeoJsonTooltip(fields=["NOME_MUNIC"], aliases=["Município:"])).add_to(m)
+        folium.GeoJson(geojson_c_gestoras, name="Comissões Gestoras", tooltip=folium.GeoJsonTooltip(fields=["SISTEMAH3"], aliases=["Sistema:"])).add_to(m)
+        folium.GeoJson(geojson_poligno, name="Polígonos Municipais", tooltip=folium.GeoJsonTooltip(fields=["DESCRICA1"], aliases=["Município:"]), style_function=lambda x: {"fillOpacity": 0, "color": "blue", "weight": 1}).add_to(m)
+        
         cluster = MarkerCluster(name="Reservatórios (pinos)").add_to(m)
         for _, row in df_mapa.iterrows():
             try:
@@ -390,7 +357,6 @@ with tab1:
     else:
         st.info("Nenhum ponto com coordenadas disponíveis para plotar no mapa.")
 
-    # --------- MÉDIA POR RESERVATÓRIO + TABELA ----------
     st.subheader("🏞️ Média da Vazão Operada por Reservatório")
     if not df_filtrado.empty:
         media_vazao = df_filtrado.groupby("Reservatório Monitorado")["Vazão Operada"].mean().reset_index()
@@ -409,7 +375,7 @@ with tab1:
 
 with tab2:
     st.title("🗺️ Açudes Monitorados")
-    
+
     with st.expander("☰ Estilo do Mapa", expanded=False):
         tile_option = st.selectbox(
             "Selecione o estilo:",
@@ -433,20 +399,32 @@ with tab2:
         "CartoDB dark_matter": '&copy; <a href="https://carto.com/attributions">CARTO</a>',
         "Esri Satellite": "Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community"
     }
-    
+
     center_acudes = [-5.2, -39.2]
-    
-    # Camadas para a segunda aba (apenas açudes)
-    acudes_layer_tab2 = [{'data': geojson_acudes, 'name': "Açudes", 'tooltip': folium.GeoJsonTooltip(fields=["Name"], aliases=["Açude:"])}]
-    
-    m2 = create_folium_map(center_acudes, 7, tile_option, tile_urls, tile_attr, acudes_layer_tab2)
+    m2 = folium.Map(location=center_acudes, zoom_start=7, tiles=None)
+
+    if tile_option == "OpenStreetMap":
+        folium.TileLayer(tiles='OpenStreetMap').add_to(m2)
+    else:
+        folium.TileLayer(
+            tiles=tile_urls[tile_option],
+            attr=tile_attr[tile_option],
+            name=tile_option
+        ).add_to(m2)
+
+    Fullscreen(position='topleft').add_to(m2)
+    MiniMap(toggle_display=True, minimized=True).add_to(m2)
+    MousePosition(position='bottomleft', separator=' | ', prefix='Coords').add_to(m2)
+    MeasureControl(primary_length_unit='meters').add_to(m2)
+
+    folium.GeoJson(geojson_acudes, name="Açudes", tooltip=folium.GeoJsonTooltip(fields=["Name"], aliases=["Açude:"])).add_to(m2)
+    folium.LayerControl(collapsed=True, position='topright').add_to(m2)
     folium_static(m2, width=1200)
 
 with tab3:
     st.markdown("### 📜 Documentos para Download")
     st.write("Aqui você pode encontrar documentos oficiais relacionados ao monitoramento e operação da Bacia do Banabuiu.")
     
-    # Adicione a lógica para o botão de download
     try:
         with open("Reunião de Alocação 2025_2 PATU.pdf", "rb") as file:
             st.download_button(
