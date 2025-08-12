@@ -718,11 +718,6 @@ with tab3:
     st.write("Aqui você pode encontrar os documentos oficiais e atas de reuniões.")
     
     # Exemplo de dados para a tabela
-    with tab3:
-    st.markdown("### 📜 Documentos para Download")
-    st.write("Aqui você pode encontrar os documentos oficiais e atas de reuniões.")
-    
-    # Exemplo de dados para a tabela
     data = {
         "Data da Reunião": ["12 de Agosto de 2025"],
         "Local da Reunião": ["Sede da COGERH, Fortaleza"],
@@ -736,8 +731,6 @@ with tab3:
         file_path = f"Arquivos/{file_name}"
         try:
             with open(file_path, "rb") as file:
-                # Cria o botão de download dentro do link para o Streamlit
-                # A classe 'download-link' é apenas para fins de estilo
                 download_button_html = st.download_button(
                     label=label,
                     data=file,
