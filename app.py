@@ -122,20 +122,24 @@ with tab1:
     font-weight: 700;
     color: #006400;
     text-align: center;
-    margin: 20px 0;
-    padding: 12px 0;
+    margin: 20px 0 30px 0;
+    padding: 14px 0;
     position: relative;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 12px;
+    gap: 14px;
+    background: rgba(144, 238, 144, 0.15);
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
 }
 
 .custom-title::before, .custom-title::after {
     content: "";
     flex: 1;
-    height: 2px;
+    height: 3px;
     background: linear-gradient(90deg, transparent, #228B22);
+    border-radius: 2px;
 }
 
 .custom-title::after {
@@ -147,23 +151,24 @@ with tab1:
     align-items: center;
     justify-content: center;
     font-size: clamp(28px, 5vw, 42px);
-    animation: pulse 2s infinite;
+    animation: pulse 2.5s infinite ease-in-out;
 }
 
 @keyframes pulse {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.1); }
-    100% { transform: scale(1); }
+    0% { transform: scale(1); filter: drop-shadow(0 0 0px #32CD32); }
+    50% { transform: scale(1.15); filter: drop-shadow(0 0 8px #32CD32); }
+    100% { transform: scale(1); filter: drop-shadow(0 0 0px #32CD32); }
 }
 
 @media (max-width: 600px) {
     .custom-title {
         flex-direction: column;
         gap: 8px;
+        padding: 12px;
     }
     .custom-title::before, .custom-title::after {
-        width: 80%;
-        height: 1px;
+        width: 70%;
+        height: 2px;
     }
 }
 </style>
@@ -172,6 +177,7 @@ with tab1:
     <span>💧</span> Vazões - GRBANABUIU <span>💧</span>
 </h1>
 """, unsafe_allow_html=True)
+
 
     # --------- FILTROS (AGORA EM MENU HAMBURGUER) ----------
     with st.expander("☰ Filtros", expanded=False):
