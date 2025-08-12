@@ -712,17 +712,85 @@ with tab2:
     folium.LayerControl(collapsed=True, position='topright').add_to(m2)
     folium_static(m2, width=1200)
 
-# Link da planilha pública do Google Sheets
-# Montar tabela HTML
-html = "<table><tr><th>Operação</th><th>Data</th><th>Local</th><th>Apresentação</th><th>Ata</th></tr>"
-for _, row in df_tabela.iterrows():
-    html += f"<tr><td>{row['Operação']}</td>"
-    html += f"<td>{row['Data']}</td>"
-    html += f"<td>{row['Local']}</td>"
-    html += f"<td>{row['Apresentação']}</td>"
-    html += f"<td>{row['Ata']}</td></tr>"
+# Configurações da planilha
+SHEET_ID = "1-Tn_ZDHH-mNgJAY1WtjWd_Pyd2f5kv_ZU8dhL0caGDI"
+GID = "0"  # gid da aba que quer ler
+URL = f"https://docs.google.com/spreadsheets/d/{SHEET_ID}/export?format=csv&gid={GID}"
+
+# Ler planilha
+try:
+    df = pd.read_csv(URL, encoding='utf-8-sig').dropna(how='all')
+except Exception as e:
+    st.error(f"Não foi possível carregar os dados da planilha. Erro: {e}")
+    df = pd.DataFrame()
+
+# Criar HTML da tabela
+html = """
+<style>
+table {
+    border-collapse: collapse;
+    width: 100%;
+}
+th, td {
+    border: 1px solid #ddd;
+    padding: 6px;
+    text-align: center;
+}
+th {
+    background-color: #f2f2f2;
+}
+.download-btn {
+    display: inline-block;
+    padding: 4px 8px;
+    background-color: #4CAF50;
+    color: white !important;
+    border-radius: 4px;
+    text-decoration: none;
+    font-size: 13px;
+}
+.download-btn:hover {
+    background-color: #45a049;
+}
+</style>
+<table>
+<tr>
+    <th>Operação</th>
+    <th>Data</th>
+    <th>Local</th>
+    <th>Apresentação</th>
+    <th>Ata</th>
+</tr>
+"""
+
+if not df.empty:
+    for _, row in df.iterrows():
+        operacao = row.get('Operação', '')
+        data_reuniao = row.get('Data da Reunião', '')
+        local_reuniao = row.get('Local da Reunião', '')
+
+        # Apresentação
+        ap_link = "—"
+        apresentacao_file = row.get('Apresentação', '')
+        if pd.notna(apresentacao_file) and apresentacao_file.strip():
+            file_path = f"Arquivos/{apresentacao_file}"
+            if os.path.exists(file_path):
+                ap_link = f"<a class='download-btn' href='Arquivos/{apresentacao_file}' download>Baixar</a>"
+
+        # Ata
+        ata_link = "—"
+        ata_file = row.get('Ata da Reunião', '')
+        if pd.notna(ata_file) and ata_file.strip():
+            file_path = f"Arquivos/{ata_file}"
+            if os.path.exists(file_path):
+                ata_link = f"<a class='download-btn' href='Arquivos/{ata_file}' download>Baixar</a>"
+
+        html += f"<tr><td>{operacao}</td><td>{data_reuniao}</td><td>{local_reuniao}</td><td>{ap_link}</td><td>{ata_link}</td></tr>"
+else:
+    html += "<tr><td colspan='5'>Nenhum dado disponível</td></tr>"
+
 html += "</table>"
 
+# Exibir no Streamlit
+st.markdown("### 📜 Documentos para Download")
 st.markdown(html, unsafe_allow_html=True)
-
 
