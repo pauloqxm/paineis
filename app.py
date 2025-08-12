@@ -793,5 +793,6 @@ html += "</table>"
 
 # Exibir no Streamlit
 st.markdown("### 📜 Documentos para Download")
+st.write("Nesta página você encontra atas e apresentações das reuniões da Bacia do Banabuiú, organizadas por operação, reservatório e data.")
 st.markdown(html, unsafe_allow_html=True)
 
