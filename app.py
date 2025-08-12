@@ -119,28 +119,30 @@ with tab1:
 <style>
 .custom-title {
     font-family: 'Segoe UI', Roboto, sans-serif;
-    font-size: clamp(18px, 2.5vw, 24px); /* Fonte principal menor */
+    font-size: 18px; /* Tamanho fixo 18px */
     font-weight: 700;
     color: #006400;
     text-align: center;
-    margin: 15px 0 10px 0;
-    padding: 10px 10px;
+    margin: 10px auto; /* Margem reduzida */
+    padding: 8px 15px; /* Padding mais estreito */
     position: relative;
-    display: flex;
+    display: inline-flex; /* Alterado para inline-flex */
     align-items: center;
     justify-content: center;
-    gap: 10px;
+    gap: 8px;
     background: rgba(144, 238, 144, 0.15);
-    border-radius: 10px;
-    box-shadow: 0 1px 6px rgba(0,0,0,0.06);
+    border-radius: 8px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+    max-width: 80%; /* Largura máxima reduzida */
+    width: fit-content; /* Ajusta ao conteúdo */
 }
 
 .custom-title::before, .custom-title::after {
     content: "";
-    flex: 1;
-    height: 2px;
+    width: 20px; /* Comprimento fixo menor */
+    height: 1.5px; /* Linha mais fina */
     background: linear-gradient(90deg, transparent, #228B22);
-    border-radius: 2px;
+    border-radius: 1px;
 }
 
 .custom-title::after {
@@ -149,27 +151,31 @@ with tab1:
 
 .custom-title span {
     display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    font-size: clamp(18px, 3vw, 24px); /* Ícones menores */
+    font-size: 18px; /* Tamanho fixo para ícones */
+    margin: 0 2px; /* Espaçamento reduzido */
 }
 
 @media (max-width: 600px) {
     .custom-title {
-        flex-direction: column;
+        font-size: 16px;
+        padding: 6px 12px;
         gap: 6px;
-        padding: 8px;
     }
-    .custom-title::before, .custom-title::after {
-        width: 70%;
-        height: 1.5px;
+    .custom-title span {
+        font-size: 16px;
+    }
+    .custom-title::before, 
+    .custom-title::after {
+        width: 15px;
     }
 }
 </style>
 
-<h1 class="custom-title">
-    <span>💧</span> Vazões - GRBANABUIU <span>💧</span>
-</h1>
+<div style="display: flex; justify-content: center;">
+    <h1 class="custom-title">
+        <span>💧</span>Vazões - GRBANABUIU<span>💧</span>
+    </h1>
+</div>
 """, unsafe_allow_html=True)
 
  # --------- FILTROS (AGORA EM MENU HAMBURGUER) ----------   
