@@ -1,5 +1,3 @@
-
-
 import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
@@ -96,7 +94,7 @@ with tab1:
     df = carregar_dados()
 
     # barra de ações
-    cA1, cA2, cA3 = st.columns([1,1,2])
+    cA1, cA2, cA3, cA4 = st.columns([1,1,1,1])
     with cA1:
         if st.button("🔄 Atualizar agora"):
             carregar_dados.clear()
@@ -104,6 +102,14 @@ with tab1:
             st.success("Atualizado.")
     with cA2:
         st.download_button("⬇️ Baixar CSV filtrado", df.to_csv(index=False).encode("utf-8"), file_name="vazoes.csv", mime="text/csv")
+    with cA4:
+        mapa_tipo = st.selectbox(
+            "🗺️ Estilo do Mapa",
+            ["OpenStreetMap", "Stamen Terrain", "Stamen Toner", 
+             "CartoDB positron", "CartoDB dark_matter", "Esri Satellite"],
+            index=0,
+            key="map_style_selector"
+        )
 
     st.title("💧 Vazões - GRBANABUIU")
 
@@ -123,9 +129,7 @@ with tab1:
         intervalo_data = st.date_input("📅 Intervalo", (data_min, data_max), format="DD/MM/YYYY")
     with col4:
         unidade_sel = st.selectbox("🧪 Unidade", ["L/s", "m³/s"], index=0)
-        mapa_tipo = st.selectbox("🗺️ Estilo do mapa",
-                                 ["OpenStreetMap","Stamen Terrain","Stamen Toner","CartoDB positron","CartoDB dark_matter","Esri Satellite"],
-                                 index=0)
+
     # chips de período rápido
     cchip1, cchip2 = st.columns([3,1])
     with cchip1:
@@ -181,7 +185,7 @@ with tab1:
         unidade_show = "m³/s" if unidade_sel == "m³/s" else "L/s"
         st.markdown(f'<div class="kpi-card">Unidade<br><div class="kpi-value">{unidade_show}</div></div>', unsafe_allow_html=True)
 
-# --------- GRÁFICOS ----------
+    # --------- GRÁFICOS ----------
     st.subheader("📈 Evolução da Vazão Operada por Reservatório")
     fig = go.Figure()
     cores = ['#1f77b4','#ff7f0e','#2ca02c','#d62728','#9467bd','#8c564b','#17becf','#e377c2']
@@ -198,7 +202,6 @@ with tab1:
             hovertemplate=f"<b>{r}</b><br>Data: %{{x|%d/%m/%Y}}<br>Vazão: %{{y:.3f}} {unit_suffix}<extra></extra>"
         ))
         
-        # Adiciona linha da média ponderada apenas se houver apenas um reservatório selecionado
         if len(reservatorios) == 1 and len(dfr) > 1:
             dfr['dias_ativos'] = dfr['Data'].diff().dt.days.fillna(0)
             dfr.loc[dfr.index[-1], 'dias_ativos'] = (df_filtrado['Data'].max() - dfr['Data'].iloc[-1]).days + 1
@@ -220,12 +223,10 @@ with tab1:
                 thickness=0.1,
                 bgcolor='#f5f5f5'
             ),
-            # Remove os botões de período
             rangeselector=None
         )
     )
     
-    # Configurações adicionais para a barra deslizante
     fig.update_xaxes(
         rangeslider=dict(
             bordercolor="#cccccc",
@@ -235,7 +236,7 @@ with tab1:
     
     st.plotly_chart(fig, use_container_width=True, config={"displaylogo": False})
 
-# abas extras de análise
+    # abas extras de análise
     gtab1, gtab2 = st.tabs(["📊 Média mensal", "📦 Distribuição (boxplot)"])
     with gtab1:
         if not df_filtrado.empty:
@@ -250,93 +251,84 @@ with tab1:
         else:
             st.info("Sem dados para média mensal.")
             
-#Volume acumulado por reservatório
-
-with gtab2:
-    if not df_filtrado.empty and df_filtrado['Reservatório Monitorado'].nunique() > 0:
-        yconv, sufx = convert_vazao(df_filtrado['Vazão Operada'], unidade_sel)
-        df_box = df_filtrado.copy()
-        df_box['Vazão (conv)'] = yconv
-        
-        # Cálculo do volume acumulado
-        volumes = []
-        for reservatorio in df_box['Reservatório Monitorado'].unique():
-            df_res = df_box[df_box['Reservatório Monitorado'] == reservatorio].sort_values('Data')
+    with gtab2:
+        if not df_filtrado.empty and df_filtrado['Reservatório Monitorado'].nunique() > 0:
+            yconv, sufx = convert_vazao(df_filtrado['Vazão Operada'], unidade_sel)
+            df_box = df_filtrado.copy()
+            df_box['Vazão (conv)'] = yconv
             
-            df_res['dias_entre_medicoes'] = df_res['Data'].diff().dt.days.fillna(0)
-            ultima_data = df_res['Data'].iloc[-1]
-            fim_periodo = df_box['Data'].max() if pd.notna(df_box['Data'].max()) else ultima_data
-            df_res.loc[df_res.index[-1], 'dias_entre_medicoes'] = (fim_periodo - ultima_data).days + 1
+            volumes = []
+            for reservatorio in df_box['Reservatório Monitorado'].unique():
+                df_res = df_box[df_box['Reservatório Monitorado'] == reservatorio].sort_values('Data')
+                
+                df_res['dias_entre_medicoes'] = df_res['Data'].diff().dt.days.fillna(0)
+                ultima_data = df_res['Data'].iloc[-1]
+                fim_periodo = df_box['Data'].max() if pd.notna(df_box['Data'].max()) else ultima_data
+                df_res.loc[df_res.index[-1], 'dias_entre_medicoes'] = (fim_periodo - ultima_data).days + 1
+                
+                segundos_por_dia = 86400
+                df_res['volume_periodo'] = df_res['Vazão (conv)'] * segundos_por_dia * df_res['dias_entre_medicoes']
+                volume_total = df_res['volume_periodo'].sum()
+                
+                volume_formatado = f"{volume_total/1e6:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".") + " milhões m³"
+                
+                volumes.append({
+                    'Reservatório Monitorado': reservatorio,
+                    'Volume Acumulado': volume_total,
+                    'Volume Formatado': volume_formatado
+                })
             
-            segundos_por_dia = 86400
-            df_res['volume_periodo'] = df_res['Vazão (conv)'] * segundos_por_dia * df_res['dias_entre_medicoes']
-            volume_total = df_res['volume_periodo'].sum()
+            df_volumes = pd.DataFrame(volumes)
             
-            volume_formatado = f"{volume_total/1e6:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".") + " milhões m³"
+            figb = go.Figure()
             
-            volumes.append({
-                'Reservatório Monitorado': reservatorio,
-                'Volume Acumulado': volume_total,
-                'Volume Formatado': volume_formatado
-            })
-        
-        df_volumes = pd.DataFrame(volumes)
-        
-        # Criar figura do boxplot
-        figb = go.Figure()
-        
-        # Adicionar boxplot para cada reservatório
-        for r in df_box['Reservatório Monitorado'].unique():
-            figb.add_trace(go.Box(
-                y=df_box[df_box['Reservatório Monitorado'] == r]['Vazão (conv)'],
-                name=r,
-                boxpoints='all',
-                jitter=0.5,
-                pointpos=0,
-                marker_color='#1f77b4',
-                line_color='#1f77b4',
-                # Personalizar o hover para mostrar apenas o volume
-                hoverinfo='none'  # Desativa o hover padrão
-            ))
-        
-        # Adicionar dados de volume como scatter invisível apenas para o hover
-        for i, row in df_volumes.iterrows():
-            figb.add_trace(go.Scatter(
-                x=[row['Reservatório Monitorado']],
-                y=[df_box[df_box['Reservatório Monitorado'] == row['Reservatório Monitorado']]['Vazão (conv)'].max()],
-                mode='markers',
-                marker=dict(opacity=0),  # Marcador invisível
-                hoverinfo='text',
-                hovertext=f"Volume Acumulado: {row['Volume Formatado']}",
-                showlegend=False
-            ))
-        
-        # Configurar layout
-        figb.update_layout(
-            title='Distribuição de Vazões',
-            xaxis_title='Reservatório',
-            yaxis_title=f'Vazão Operada ({sufx})',
-            showlegend=False,
-            hovermode='closest'
-        )
-        
-        # Adicionar anotações com os volumes (opcional)
-        for i, row in df_volumes.iterrows():
-            figb.add_annotation(
-                x=row['Reservatório Monitorado'],
-                y=df_box[df_box['Reservatório Monitorado'] == row['Reservatório Monitorado']]['Vazão (conv)'].max(),
-                text=f"<b style='color:red;font-size:14px'>VOLUME: {row['Volume Formatado']}</b>",
-                showarrow=False,
-                yshift=20,
-                font=dict(size=12),
-                bordercolor="red",
-                borderwidth=1,
-                borderpad=4
+            for r in df_box['Reservatório Monitorado'].unique():
+                figb.add_trace(go.Box(
+                    y=df_box[df_box['Reservatório Monitorado'] == r]['Vazão (conv)'],
+                    name=r,
+                    boxpoints='all',
+                    jitter=0.5,
+                    pointpos=0,
+                    marker_color='#1f77b4',
+                    line_color='#1f77b4',
+                    hoverinfo='none'
+                ))
+            
+            for i, row in df_volumes.iterrows():
+                figb.add_trace(go.Scatter(
+                    x=[row['Reservatório Monitorado']],
+                    y=[df_box[df_box['Reservatório Monitorado'] == row['Reservatório Monitorado']]['Vazão (conv)'].max()],
+                    mode='markers',
+                    marker=dict(opacity=0),
+                    hoverinfo='text',
+                    hovertext=f"Volume Acumulado: {row['Volume Formatado']}",
+                    showlegend=False
+                ))
+            
+            figb.update_layout(
+                title='Distribuição de Vazões',
+                xaxis_title='Reservatório',
+                yaxis_title=f'Vazão Operada ({sufx})',
+                showlegend=False,
+                hovermode='closest'
             )
-        
-        st.plotly_chart(figb, use_container_width=True, config={"displaylogo": False})
-    else:
-        st.info("Sem dados suficientes para boxplot.")
+            
+            for i, row in df_volumes.iterrows():
+                figb.add_annotation(
+                    x=row['Reservatório Monitorado'],
+                    y=df_box[df_box['Reservatório Monitorado'] == row['Reservatório Monitorado']]['Vazão (conv)'].max(),
+                    text=f"<b style='color:red;font-size:14px'>VOLUME: {row['Volume Formatado']}</b>",
+                    showarrow=False,
+                    yshift=20,
+                    font=dict(size=12),
+                    bordercolor="red",
+                    borderwidth=1,
+                    borderpad=4
+                )
+            
+            st.plotly_chart(figb, use_container_width=True, config={"displaylogo": False})
+        else:
+            st.info("Sem dados suficientes para boxplot.")
 
     # -------------------- MAPA --------------------
     st.subheader("🗺️ Mapa dos Reservatórios com Camadas")
@@ -345,16 +337,36 @@ with gtab2:
         df_mapa[['lat','lon']] = df_mapa['Coordendas'].str.split(',', expand=True).astype(float)
     df_mapa = df_mapa.dropna(subset=['lat','lon']).drop_duplicates(subset=['Reservatório Monitorado'])
 
-    tile_urls = {"Esri Satellite":"https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"}
-    tile_attr = {"Esri Satellite":"Tiles © Esri"}
+    tile_urls = {
+        "OpenStreetMap": None,
+        "Stamen Terrain": "https://stamen-tiles.a.ssl.fastly.net/terrain/{z}/{x}/{y}.png",
+        "Stamen Toner": "https://stamen-tiles.a.ssl.fastly.net/toner/{z}/{x}/{y}.png",
+        "CartoDB positron": "https://cartodb-basemaps-a.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png",
+        "CartoDB dark_matter": "https://cartodb-basemaps-a.global.ssl.fastly.net/dark_all/{z}/{x}/{y}.png",
+        "Esri Satellite": "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+    }
+
+    tile_attr = {
+        "OpenStreetMap": '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+        "Stamen Terrain": 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, under <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>. Data by <a href="http://openstreetmap.org">OpenStreetMap</a>, under <a href="http://www.openstreetmap.org/copyright">ODbL</a>.',
+        "Stamen Toner": 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, under <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>. Data by <a href="http://openstreetmap.org">OpenStreetMap</a>, under <a href="http://www.openstreetmap.org/copyright">ODbL</a>.',
+        "CartoDB positron": '&copy; <a href="https://carto.com/attributions">CARTO</a>',
+        "CartoDB dark_matter": '&copy; <a href="https://carto.com/attributions">CARTO</a>',
+        "Esri Satellite": "Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community"
+    }
 
     if not df_mapa.empty:
         center = [df_mapa['lat'].mean(), df_mapa['lon'].mean()]
-        if mapa_tipo in tile_urls:
-            m = folium.Map(location=center, zoom_start=8, tiles=None)
-            folium.TileLayer(tiles=tile_urls[mapa_tipo], attr=tile_attr[mapa_tipo], name=mapa_tipo).add_to(m)
+        m = folium.Map(location=center, zoom_start=8, tiles=None)
+        
+        if mapa_tipo == "OpenStreetMap":
+            folium.TileLayer(tiles='OpenStreetMap').add_to(m)
         else:
-            m = folium.Map(location=center, zoom_start=8, tiles=mapa_tipo)
+            folium.TileLayer(
+                tiles=tile_urls[mapa_tipo],
+                attr=tile_attr[mapa_tipo],
+                name=mapa_tipo
+            ).add_to(m)
 
         # plugins
         Fullscreen(position='topleft').add_to(m)
