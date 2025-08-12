@@ -118,26 +118,26 @@ with tab1:
 <style>
 .custom-title {
     font-family: 'Segoe UI', Roboto, sans-serif;
-    font-size: clamp(24px, 4vw, 36px);
+    font-size: clamp(20px, 3vw, 28px);
     font-weight: 700;
     color: #006400;
     text-align: center;
-    margin: 20px 0 30px 0;
-    padding: 14px 0;
+    margin: 15px 0 25px 0;
+    padding: 10px 0;
     position: relative;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 14px;
+    gap: 12px;
     background: rgba(144, 238, 144, 0.15);
-    border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    border-radius: 10px;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.06);
 }
 
 .custom-title::before, .custom-title::after {
     content: "";
     flex: 1;
-    height: 3px;
+    height: 2px;
     background: linear-gradient(90deg, transparent, #228B22);
     border-radius: 2px;
 }
@@ -150,25 +150,18 @@ with tab1:
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    font-size: clamp(28px, 5vw, 42px);
-    animation: pulse 2.5s infinite ease-in-out;
-}
-
-@keyframes pulse {
-    0% { transform: scale(1); filter: drop-shadow(0 0 0px #32CD32); }
-    50% { transform: scale(1.15); filter: drop-shadow(0 0 8px #32CD32); }
-    100% { transform: scale(1); filter: drop-shadow(0 0 0px #32CD32); }
+    font-size: clamp(22px, 4vw, 32px);
 }
 
 @media (max-width: 600px) {
     .custom-title {
         flex-direction: column;
-        gap: 8px;
-        padding: 12px;
+        gap: 6px;
+        padding: 8px;
     }
     .custom-title::before, .custom-title::after {
         width: 70%;
-        height: 2px;
+        height: 1.5px;
     }
 }
 </style>
@@ -177,7 +170,6 @@ with tab1:
     <span>💧</span> Vazões - GRBANABUIU <span>💧</span>
 </h1>
 """, unsafe_allow_html=True)
-
 
     # --------- FILTROS (AGORA EM MENU HAMBURGUER) ----------
     with st.expander("☰ Filtros", expanded=False):
