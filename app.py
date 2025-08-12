@@ -118,7 +118,7 @@ with tab1:
 <style>
 .custom-title {
     font-family: 'Segoe UI', Roboto, sans-serif;
-    font-size: clamp(10px, 1vw, 18px);
+    font-size: clamp(18px, 2.5vw, 24px); /* Fonte principal menor */
     font-weight: 700;
     color: #006400;
     text-align: center;
@@ -128,7 +128,7 @@ with tab1:
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 12px;
+    gap: 10px;
     background: rgba(144, 238, 144, 0.15);
     border-radius: 10px;
     box-shadow: 0 1px 6px rgba(0,0,0,0.06);
@@ -150,7 +150,7 @@ with tab1:
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    font-size: clamp(22px, 4vw, 32px);
+    font-size: clamp(18px, 3vw, 24px); /* Ícones menores */
 }
 
 @media (max-width: 600px) {
