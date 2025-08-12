@@ -713,43 +713,16 @@ with tab2:
     folium_static(m2, width=1200)
 
 # Link da planilha pública do Google Sheets
-import pandas as pd
-import streamlit as st
-import os
+# Montar tabela HTML
+html = "<table><tr><th>Operação</th><th>Data</th><th>Local</th><th>Apresentação</th><th>Ata</th></tr>"
+for _, row in df_tabela.iterrows():
+    html += f"<tr><td>{row['Operação']}</td>"
+    html += f"<td>{row['Data']}</td>"
+    html += f"<td>{row['Local']}</td>"
+    html += f"<td>{row['Apresentação']}</td>"
+    html += f"<td>{row['Ata']}</td></tr>"
+html += "</table>"
 
-# Exemplo: df carregado da planilha
-# Aqui já está o df lido via Google Sheets
+st.markdown(html, unsafe_allow_html=True)
 
-# Criar lista para exibir na tabela
-tabela = []
-
-for index, row in df.iterrows():
-    operacao = row.get('Operação', '')
-    data_reuniao = row.get('Data da Reunião', '')
-    local_reuniao = row.get('Local da Reunião', '')
-
-    apresentacao_file = row.get('Apresentação', '')
-    ata_file = row.get('Ata da Reunião', '')
-
-    # Verifica se o arquivo existe localmente
-    ap_btn = "Não disponível"
-    if pd.notna(apresentacao_file) and apresentacao_file.strip():
-        file_path = f"Arquivos/{apresentacao_file}"
-        if os.path.exists(file_path):
-            ap_btn = f"[Baixar]({file_path})"
-    
-    ata_btn = "Não disponível"
-    if pd.notna(ata_file) and ata_file.strip():
-        file_path = f"Arquivos/{ata_file}"
-        if os.path.exists(file_path):
-            ata_btn = f"[Baixar]({file_path})"
-
-    tabela.append([operacao, data_reuniao, local_reuniao, ap_btn, ata_btn])
-
-# Criar DataFrame formatado
-df_tabela = pd.DataFrame(tabela, columns=["Operação", "Data", "Local", "Apresentação", "Ata"])
-
-# Exibir tabela no Streamlit
-st.markdown("### 📜 Documentos para Download")
-st.write(df_tabela.to_markdown(index=False), unsafe_allow_html=True)
 
