@@ -1,6 +1,3 @@
-
-
-
 import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
@@ -101,7 +98,8 @@ def carregar_dados():
     return df
 
 # ---------------- TABS ----------------
-tab1, tab2 = st.tabs(["Vazões - GRBANABUIU", "🗺️ Açudes Monitorados"])
+# Adicionando a nova aba aqui
+tab1, tab2, tab3 = st.tabs(["Vazões - GRBANABUIU", "🗺️ Açudes Monitorados", "📜 Documentos Oficiais"])
 
 with tab1:
     # dados
@@ -115,8 +113,6 @@ with tab1:
             df = carregar_dados()
             st.success("Atualizado.")
 
-# Menu💧 Vazões - GRBANABUIU")
-    
     st.markdown("""
 <style>
 .custom-title {
@@ -174,7 +170,6 @@ with tab1:
 </h1>
 """, unsafe_allow_html=True)
 
- # --------- FILTROS (AGORA EM MENU HAMBURGUER) ----------   
     with st.expander("☰ Filtros", expanded=False):
         st.markdown("""
         <style>
@@ -192,7 +187,7 @@ with tab1:
         col1, col2 = st.columns(2)
         with col1:
             estacoes = st.multiselect("🏞️ Reservatório", df['Reservatório Monitorado'].dropna().unique())
-            operacao = st.multiselect("🔧 Operação", df['Operação'].dropna().unique())  # Novo filtro adicionado
+            operacao = st.multiselect("🔧 Operação", df['Operação'].dropna().unique())
         with col2:
             meses = st.multiselect("📆 Mês", df['Mês'].dropna().unique())
         
@@ -205,14 +200,13 @@ with tab1:
         with col4:
             unidade_sel = st.selectbox("🧪 Unidade", ["L/s", "m³/s"], index=0)
         
-        st.markdown('</div>', unsafe_allow_html=True)  # Fecha filter-card
-        st.markdown('</div>', unsafe_allow_html=True)  # Fecha filter-container
-    
-    # Aplicar filtros no dataframe
+        st.markdown('</div>', unsafe_allow_html=True)
+        st.markdown('</div>', unsafe_allow_html=True)
+
     df_filtrado = df.copy()
     if estacoes:
         df_filtrado = df_filtrado[df_filtrado['Reservatório Monitorado'].isin(estacoes)]
-    if operacao:  # Novo filtro aplicado
+    if operacao:
         df_filtrado = df_filtrado[df_filtrado['Operação'].isin(operacao)]
     if meses:
         df_filtrado = df_filtrado[df_filtrado['Mês'].isin(meses)]
@@ -221,7 +215,6 @@ with tab1:
         df_filtrado = df_filtrado[(df_filtrado['Data'] >= pd.to_datetime(inicio)) &
                                   (df_filtrado['Data'] <= pd.to_datetime(fim))]
 
-# --- KPIs Modernos ---
     st.markdown("""
     <style>
     .kpi-container {
@@ -272,7 +265,6 @@ with tab1:
     </style>
     """, unsafe_allow_html=True)
     
-    # KPIs em HTML
     reservatorios_count = df_filtrado['Reservatório Monitorado'].nunique()
     registros_count = len(df_filtrado)
     ultima_data = df_filtrado['Data'].max().strftime("%d/%m/%Y") if not df_filtrado.empty else "—"
@@ -298,9 +290,7 @@ with tab1:
         </div>
     </div>
     """, unsafe_allow_html=True)
-# --------- GRÁFICOS ----------  
-
-
+    
     st.subheader("📈 Evolução da Vazão Operada por Reservatório")
     fig = go.Figure()
     cores = ['#1f77b4','#ff7f0e','#2ca02c','#d62728','#9467bd','#8c564b','#17becf','#e377c2']
@@ -351,7 +341,6 @@ with tab1:
     
     st.plotly_chart(fig, use_container_width=True, config={"displaylogo": False})
 
-    # abas extras de análise
     gtab1, gtab2 = st.tabs(["📊 Média mensal", "📦 Distribuição (boxplot)"])
     with gtab1:
         if not df_filtrado.empty:
@@ -445,18 +434,16 @@ with tab1:
         else:
             st.info("Sem dados suficientes para boxplot.")
 
-    # -------------------- MAPA --------------------
     st.subheader("🗺️ Mapa dos Reservatórios com Camadas")
     df_mapa = df_filtrado.copy()
     if 'Coordendas' in df_mapa.columns:
         df_mapa[['lat','lon']] = df_mapa['Coordendas'].str.split(',', expand=True).astype(float)
     df_mapa = df_mapa.dropna(subset=['lat','lon']).drop_duplicates(subset=['Reservatório Monitorado'])
 
-    # Menu hamburguer para seleção do estilo do mapa
     with st.expander("☰ Estilo do Mapa", expanded=False):
         mapa_tipo = st.selectbox(
             "Selecione o estilo:",
-            ["OpenStreetMap", "Stamen Terrain", "Stamen Toner", 
+            ["OpenStreetMap", "Stamen Terrain", "Stamen Toner",
              "CartoDB positron", "CartoDB dark_matter", "Esri Satellite"],
             index=0,
             key="map_style_selector",
@@ -494,13 +481,11 @@ with tab1:
                 name=mapa_tipo
             ).add_to(m)
 
-        # plugins
         Fullscreen(position='topleft').add_to(m)
         MiniMap(toggle_display=True, minimized=True).add_to(m)
         MousePosition(position='bottomleft', separator=' | ', prefix='Coords').add_to(m)
         MeasureControl(primary_length_unit='meters').add_to(m)
 
-        # camadas
         folium.GeoJson(geojson_bacia, name="Bacia do Banabuiu",
                        tooltip=folium.GeoJsonTooltip(fields=["DESCRICA1"], aliases=["Bacia:"]),
                        style_function=lambda x: {"color":"darkblue","weight":2}).add_to(m)
@@ -587,7 +572,6 @@ with tab1:
                        style_function=lambda x: {"fillOpacity":0,"color":"blue","weight":1}).add_to(municipios_layer)
         municipios_layer.add_to(m)
 
-        # pinos reservatórios com cluster
         cluster = MarkerCluster(name="Reservatórios (pinos)").add_to(m)
         for _, row in df_mapa.iterrows():
             try:
@@ -661,7 +645,6 @@ with tab1:
     else:
         st.info("Nenhum ponto com coordenadas disponíveis para plotar no mapa.")
 
-    # --------- MÉDIA POR RESERVATÓRIO + TABELA ----------
     st.subheader("🏞️ Média da Vazão Operada por Reservatório")
     if not df_filtrado.empty:
         media_vazao = df_filtrado.groupby("Reservatório Monitorado")["Vazão Operada"].mean().reset_index()
@@ -681,7 +664,6 @@ with tab1:
 with tab2:
     st.title("🗺️ Açudes Monitorados")
     
-    # Menu hamburguer para seleção do estilo do mapa
     with st.expander("☰ Estilo do Mapa", expanded=False):
         tile_option = st.selectbox(
             "Selecione o estilo:",
@@ -702,38 +684,45 @@ with tab2:
 
     tile_attr = {
         "OpenStreetMap": '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-        "Stamen Terrain": 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, under <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>. Data by <a href="http://openstreetmap.org">OpenStreetMap</a>, under <a href="http://www.openstreetmap.org/copyright">ODbL</a>.',
-        "Stamen Toner": 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, under <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>. Data by <a href="http://openstreetmap.org">OpenStreetMap</a>, under <a href="http://www.openstreetmap.org/copyright">ODbL</a>.',
+        "Stamen Terrain": 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, under <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>. Data by <a href="http://openstreetmap.org">OpenStreetMap</a>, under a href="http://www.openstreetmap.org/copyright">ODbL</a>.',
+        "Stamen Toner": 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, under <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>. Data by <a href="http://openstreetmap.org">OpenStreetMap</a>, under a href="http://www.openstreetmap.org/copyright">ODbL</a>.',
         "CartoDB positron": '&copy; <a href="https://carto.com/attributions">CARTO</a>',
         "CartoDB dark_matter": '&copy; <a href="https://carto.com/attributions">CARTO</a>',
         "Esri Satellite": "Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community"
     }
 
-    with open("Açudes_Monitorados.geojson", "r", encoding="utf-8") as f:
-        geojson_data = json.load(f)
+    center_acudes = [-5.2, -39.2]
+    m2 = folium.Map(location=center_acudes, zoom_start=7, tiles=None)
 
-    center = [-5.2, -39.2]
-    if tile_option in tile_urls:
-        m2 = folium.Map(location=center, zoom_start=7, tiles=None)
-        folium.TileLayer(tiles=tile_urls[tile_option], attr=tile_attr[tile_option], name=tile_option).add_to(m2)
+    if tile_option == "OpenStreetMap":
+        folium.TileLayer(tiles='OpenStreetMap').add_to(m2)
     else:
-        m2 = folium.Map(location=center, zoom_start=7, tiles=tile_option)
+        folium.TileLayer(
+            tiles=tile_urls[tile_option],
+            attr=tile_attr[tile_option],
+            name=tile_option
+        ).add_to(m2)
 
-    folium.GeoJson(geojson_data, name="Açudes",
-                   tooltip=folium.GeoJsonTooltip(fields=["Name"], aliases=["Açude:"])).add_to(m2)
-    folium.LayerControl(collapsed=True).add_to(m2)
-    folium_static(m2, width=None)
+    Fullscreen(position='topleft').add_to(m2)
+    MiniMap(toggle_display=True, minimized=True).add_to(m2)
+    MousePosition(position='bottomleft', separator=' | ', prefix='Coords').add_to(m2)
+    MeasureControl(primary_length_unit='meters').add_to(m2)
 
-# --------- JS simples para acionar chips ajustando query param ---------
-st.markdown("""
-<script>
-const setChip = (val) => {
-  const url = new URL(window.location);
-  url.searchParams.set('chip', val);
-  window.location.href = url.toString();
-}
-document.getElementById('p30')?.addEventListener('click', ()=>setChip('30'));
-document.getElementById('p90')?.addEventListener('click', ()=>setChip('90'));
-document.getElementById('p365')?.addEventListener('click', ()=>setChip('365'));
-</script>
-""", unsafe_allow_html=True)
+    folium.GeoJson(geojson_acudes, name="Açudes", tooltip=folium.GeoJsonTooltip(fields=["Name"], aliases=["Açude:"])).add_to(m2)
+    folium.LayerControl(collapsed=True, position='topright').add_to(m2)
+    folium_static(m2, width=1200)
+
+with tab3:
+    st.markdown("### 📜 Documentos para Download")
+    st.write("Aqui você pode encontrar documentos oficiais relacionados ao monitoramento e operação da Bacia do Banabuiu.")
+    
+    try:
+        with open("Reunião de Alocação 2025_2 PATU.pdf", "rb") as file:
+            st.download_button(
+                label="📥 Baixar Reunião de Alocação 2025_2 PATU",
+                data=file,
+                file_name="Reuniao_Alocacao_2025_2_PATU.pdf",
+                mime="application/pdf"
+            )
+    except FileNotFoundError:
+        st.error("O arquivo 'Reunião de Alocação 2025_2 PATU.pdf' não foi encontrado. Verifique se ele está no mesmo diretório do seu script.")
