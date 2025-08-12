@@ -717,47 +717,46 @@ with tab3:
     st.markdown("### 📜 Documentos para Download")
     st.write("Aqui você pode encontrar os documentos oficiais e atas de reuniões.")
     
-    # Exemplo de dados para a tabela de resumo
-    data_resumo = {
+    # Exemplo de dados para a tabela
+    data = {
         "Data da Reunião": ["12 de Agosto de 2025"],
         "Local da Reunião": ["Sede da COGERH, Fortaleza"],
+        "Apresentação": ["Reunião de Alocação 2025_2 PATU.pdf"],
+        "Ata da Reunião": ["Ata da Reunião de alocação.pdf"]
     }
-    df_resumo = pd.DataFrame(data_resumo)
-
-    # --- Seção de Links de Download ---
-    col_links_1, col_links_2 = st.columns(2)
+    df_documentos = pd.DataFrame(data)
     
-    with col_links_1:
-        st.markdown("##### Apresentação")
+    # Exibe a tabela no Streamlit
+    st.dataframe(df_documentos, use_container_width=True, hide_index=True)
+    
+    # Botões de download em uma seção separada, alinhados com as colunas da tabela
+    st.markdown("---")
+    st.markdown("##### Download dos arquivos")
+
+    col1, col2 = st.columns(2)
+    
+    with col1:
         try:
             apresentacao_path = "Arquivos/Reunião de Alocação 2025_2 PATU.pdf"
             with open(apresentacao_path, "rb") as file:
                 st.download_button(
-                    label="Reunião de Alocação 2025_2 PATU.pdf",
+                    label="📥 Baixar Apresentação",
                     data=file,
                     file_name="Reuniao_Alocacao_2025_2_PATU.pdf",
-                    mime="application/pdf",
-                    key="download_apresentacao"
+                    mime="application/pdf"
                 )
         except FileNotFoundError:
-            st.error("Arquivo de apresentação não encontrado.")
+            st.error(f"Arquivo 'Reunião de Alocação 2025_2 PATU.pdf' não encontrado.")
 
-    with col_links_2:
-        st.markdown("##### Ata da Reunião")
+    with col2:
         try:
             ata_path = "Arquivos/Ata da Reunião de alocação.pdf"
             with open(ata_path, "rb") as file:
                 st.download_button(
-                    label="Ata da Reunião de alocação.pdf",
+                    label="📥 Baixar Ata da Reunião",
                     data=file,
                     file_name="Ata_Reuniao_alocacao.pdf",
-                    mime="application/pdf",
-                    key="download_ata"
+                    mime="application/pdf"
                 )
         except FileNotFoundError:
-            st.error("Arquivo de ata não encontrado.")
-            
-    st.markdown("---")
-
-    # --- Tabela de Informações da Reunião ---
-    st.dataframe(df_resumo, use_container_width=True, hide_index=True)
+            st.error(f"Arquivo 'Ata da Reunião de alocação.pdf' não encontrado.")
