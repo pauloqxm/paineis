@@ -718,7 +718,7 @@ with tab3:
     
     try:
         # Caminho atualizado para o arquivo no repositório
-        file_path = "paineis/Arquivos/Reunião de Alocação 2025_2 PATU.pdf"
+        file_path = "Arquivos/Reunião de Alocação 2025_2 PATU.pdf"
         with open(file_path, "rb") as file:
             st.download_button(
                 label="📥 Baixar Reunião de Alocação 2025_2 PATU",
