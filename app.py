@@ -76,8 +76,8 @@ box-shadow:0 4px 12px rgba(0,0,0,.1);z-index:9999}}
     <div class="header-brand">
       <img src="https://cdn-icons-png.flaticon.com/512/1006/1006363.png" class="header-logo">
       <div>
-        <div class="header-title">Você Fiscaliza | Quixeramobim - CE</div>
-        <div style="opacity:.9;font-size:13px">📌 Monitoramento de Recursos Públicos</div>
+        <div class="header-title">Acompanhamento da Operação</div>
+        <div style="opacity:.9;font-size:13px">📌 Bacia do Banabuiu</div>
       </div>
     </div>
     <div class="header-date">📅 {data_hoje}</div>
