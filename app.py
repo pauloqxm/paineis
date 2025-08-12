@@ -123,7 +123,7 @@ with tab1:
     color: #006400;
     text-align: center;
     margin: 15px 0 25px 0;
-    padding: 10px 0;
+    padding: 10px 10px;
     position: relative;
     display: flex;
     align-items: center;
