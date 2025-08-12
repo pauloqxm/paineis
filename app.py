@@ -332,31 +332,43 @@ with tab1:
 
     # -------------------- MAPA --------------------
     st.subheader("🗺️ Mapa dos Reservatórios com Camadas")
-    df_mapa = df_filtrado.copy()
-    if 'Coordendas' in df_mapa.columns:
-        df_mapa[['lat','lon']] = df_mapa['Coordendas'].str.split(',', expand=True).astype(float)
-    df_mapa = df_mapa.dropna(subset=['lat','lon']).drop_duplicates(subset=['Reservatório Monitorado'])
+df_mapa = df_filtrado.copy()
+if 'Coordendas' in df_mapa.columns:
+    df_mapa[['lat','lon']] = df_mapa['Coordendas'].str.split(',', expand=True).astype(float)
+df_mapa = df_mapa.dropna(subset=['lat','lon']).drop_duplicates(subset=['Reservatório Monitorado'])
 
-    tile_urls = {
-        "OpenStreetMap": None,
-        "Stamen Terrain": "https://stamen-tiles.a.ssl.fastly.net/terrain/{z}/{x}/{y}.png",
-        "Stamen Toner": "https://stamen-tiles.a.ssl.fastly.net/toner/{z}/{x}/{y}.png",
-        "CartoDB positron": "https://cartodb-basemaps-a.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png",
-        "CartoDB dark_matter": "https://cartodb-basemaps-a.global.ssl.fastly.net/dark_all/{z}/{x}/{y}.png",
-        "Esri Satellite": "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
-    }
+# Adicione o seletor de estilo do mapa aqui
+mapa_col1, mapa_col2 = st.columns([3, 1])
+with mapa_col2:
+    mapa_tipo = st.selectbox(
+        "Estilo do Mapa",
+        ["OpenStreetMap", "Stamen Terrain", "Stamen Toner", 
+         "CartoDB positron", "CartoDB dark_matter", "Esri Satellite"],
+        index=0,
+        key="map_style_selector"
+    )
 
-    tile_attr = {
-        "OpenStreetMap": '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-        "Stamen Terrain": 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, under <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>. Data by <a href="http://openstreetmap.org">OpenStreetMap</a>, under <a href="http://www.openstreetmap.org/copyright">ODbL</a>.',
-        "Stamen Toner": 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, under <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>. Data by <a href="http://openstreetmap.org">OpenStreetMap</a>, under <a href="http://www.openstreetmap.org/copyright">ODbL</a>.',
-        "CartoDB positron": '&copy; <a href="https://carto.com/attributions">CARTO</a>',
-        "CartoDB dark_matter": '&copy; <a href="https://carto.com/attributions">CARTO</a>',
-        "Esri Satellite": "Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community"
-    }
+tile_urls = {
+    "OpenStreetMap": None,
+    "Stamen Terrain": "https://stamen-tiles.a.ssl.fastly.net/terrain/{z}/{x}/{y}.png",
+    "Stamen Toner": "https://stamen-tiles.a.ssl.fastly.net/toner/{z}/{x}/{y}.png",
+    "CartoDB positron": "https://cartodb-basemaps-a.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png",
+    "CartoDB dark_matter": "https://cartodb-basemaps-a.global.ssl.fastly.net/dark_all/{z}/{x}/{y}.png",
+    "Esri Satellite": "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+}
 
-    if not df_mapa.empty:
-        center = [df_mapa['lat'].mean(), df_mapa['lon'].mean()]
+tile_attr = {
+    "OpenStreetMap": '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+    "Stamen Terrain": 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, under <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>. Data by <a href="http://openstreetmap.org">OpenStreetMap</a>, under <a href="http://www.openstreetmap.org/copyright">ODbL</a>.',
+    "Stamen Toner": 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, under <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>. Data by <a href="http://openstreetmap.org">OpenStreetMap</a>, under <a href="http://www.openstreetmap.org/copyright">ODbL</a>.',
+    "CartoDB positron": '&copy; <a href="https://carto.com/attributions">CARTO</a>',
+    "CartoDB dark_matter": '&copy; <a href="https://carto.com/attributions">CARTO</a>',
+    "Esri Satellite": "Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community"
+}
+
+if not df_mapa.empty:
+    center = [df_mapa['lat'].mean(), df_mapa['lon'].mean()]
+    with mapa_col1:
         m = folium.Map(location=center, zoom_start=8, tiles=None)
         
         if mapa_tipo == "OpenStreetMap":
