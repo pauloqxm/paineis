@@ -1,5 +1,4 @@
 
-
 import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
@@ -116,16 +115,16 @@ with tab1:
 
 # Menu💧 Vazões - GRBANABUIU")
     
-   st.markdown("""
+    st.markdown("""
 <style>
 .custom-title {
     font-family: 'Segoe UI', Roboto, sans-serif !important;
-    font-size: clamp(16px, 2.5vw, 20px) !important; /* Fonte responsiva */
+    font-size: 20px !important; /* Fonte fixa */
     font-weight: 700 !important;
     color: #006400 !important;
     text-align: center !important;
     margin: 8px 0 10px 0 !important;
-    padding: 10px 18px !important; /* Retângulo mais estreito */
+    padding: 12px 22px !important; /* Retângulo mais estreito */
     position: relative !important;
     display: flex !important;
     align-items: center !important;
@@ -152,7 +151,7 @@ with tab1:
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
-    font-size: clamp(16px, 2vw, 18px) !important; /* Ícones responsivos */
+    font-size: 18px !important; /* Ícones do mesmo tamanho da fonte */
 }
 
 @media (max-width: 600px) {
@@ -169,10 +168,9 @@ with tab1:
 </style>
 
 <h1 class="custom-title">
-    <span>💧</span> Painel de Vazões <span>💧</span>
+    <span>💧</span> Painel de Vazões </span>
 </h1>
 """, unsafe_allow_html=True)
-
 
  # --------- FILTROS (AGORA EM MENU HAMBURGUER) ----------   
     with st.expander("☰ Filtros", expanded=False):
