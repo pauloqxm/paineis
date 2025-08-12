@@ -111,9 +111,7 @@ with tab1:
             carregar_dados.clear()
             df = carregar_dados()
             st.success("Atualizado.")
-    with cA2:
-        st.download_button("⬇️ Baixar CSV filtrado", df.to_csv(index=False).encode("utf-8"), file_name="vazoes.csv", mime="text/csv")
-
+    
     st.title("💧 Vazões - GRBANABUIU")
 
     # --------- FILTROS (AGORA EM MENU HAMBURGUER) ----------
