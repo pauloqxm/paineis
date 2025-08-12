@@ -713,68 +713,18 @@ with tab2:
     folium_static(m2, width=1200)
 
 # Link da planilha pública do Google Sheets
-SSHEET_ID = "1-Tn_ZDHH-mNgJAY1WtjWd_Pyd2f5kv_ZU8dhL0caGDI"
-SHEET_NAME = "Página1"  # nome exato da aba
-URL = f"https://docs.google.com/spreadsheets/d/{SHEET_ID}/gviz/tq?tqx=out:csv&sheet={SHEET_NAME}"
+# ID da planilha e GID da aba
+SHEET_ID = "1-Tn_ZDHH-mNgJAY1WtjWd_Pyd2f5kv_ZU8dhL0caGDI"
+GID = "0"  # troque pelo gid da aba desejada
 
-# Tenta ler os dados da planilha
+# URL para exportar como CSV
+URL = f"https://docs.google.com/spreadsheets/d/{SHEET_ID}/export?format=csv&gid={GID}"
+
+# Leitura da planilha
 try:
-    # Força leitura em UTF-8 com BOM, que evita erros de acentuação
     df = pd.read_csv(URL, encoding='utf-8-sig')
     df = df.dropna(how='all')  # remove linhas totalmente vazias
 except Exception as e:
-    st.error(f"Não foi possível carregar os dados da planilha. Verifique as permissões de acesso. Erro: {e}")
+    st.error(f"Não foi possível carregar os dados da planilha. Verifique as permissões. Erro: {e}")
     df = pd.DataFrame()
 
-with tab3:
-    st.markdown("### 📜 Documentos para Download")
-    st.write("Aqui você pode encontrar documentos e atas de reuniões da Bacia do Banabuiú, com dados da planilha do Google Sheets.")
-
-    if not df.empty:
-        for index, row in df.iterrows():
-            st.markdown("---")
-            st.markdown(f"**Operação:** {row.get('Operação', '')}")
-            st.markdown(f"**Data da Reunião:** {row.get('Data da Reunião', '')}")
-            st.markdown(f"**Local da Reunião:** {row.get('Local da Reunião', '')}")
-            
-            col1, col2 = st.columns(2)
-
-            # Botão para apresentação
-            with col1:
-                apresentacao_file = row.get('Apresentação', '')
-                if pd.notna(apresentacao_file) and apresentacao_file.strip():
-                    try:
-                        file_path = f"Arquivos/{apresentacao_file}"
-                        with open(file_path, "rb") as file:
-                            st.download_button(
-                                label=apresentacao_file,
-                                data=file,
-                                file_name=apresentacao_file,
-                                mime="application/pdf",
-                                key=f"apresentacao_{index}"
-                            )
-                    except FileNotFoundError:
-                        st.warning(f"Arquivo '{apresentacao_file}' não encontrado.")
-                else:
-                    st.write("Nenhuma apresentação disponível.")
-
-            # Botão para ata
-            with col2:
-                ata_file = row.get('Ata da Reunião', '')
-                if pd.notna(ata_file) and ata_file.strip():
-                    try:
-                        file_path = f"Arquivos/{ata_file}"
-                        with open(file_path, "rb") as file:
-                            st.download_button(
-                                label=ata_file,
-                                data=file,
-                                file_name=ata_file,
-                                mime="application/pdf",
-                                key=f"ata_{index}"
-                            )
-                    except FileNotFoundError:
-                        st.warning(f"Arquivo '{ata_file}' não encontrado.")
-                else:
-                    st.write("Nenhuma ata disponível.")
-    else:
-        st.info("Não há dados para exibir. Por favor, verifique a planilha do Google Sheets.")
