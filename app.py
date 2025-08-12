@@ -715,88 +715,80 @@ with tab2:
 
 # Configurações da planilha
 SHEET_ID = "1-Tn_ZDHH-mNgJAY1WtjWd_Pyd2f5kv_ZU8dhL0caGDI"
-GID = "0"
+GID = "0"  # gid da aba
 URL = f"https://docs.google.com/spreadsheets/d/{SHEET_ID}/export?format=csv&gid={GID}"
 
-# Dicionário para armazenar os arquivos em cache
-download_cache = {}
+# Ler planilha
+try:
+    df = pd.read_csv(URL, encoding='utf-8-sig').dropna(how='all')
+except Exception as e:
+    st.error(f"Não foi possível carregar os dados da planilha. Erro: {e}")
+    df = pd.DataFrame()
 
-# Função para carregar e codificar o arquivo para download
-def get_file_bytes(file_path):
-    if file_path not in download_cache:
-        try:
-            with open(f"Arquivos/{file_path}", "rb") as file:
-                download_cache[file_path] = base64.b64encode(file.read()).decode('utf-8')
-        except FileNotFoundError:
-            download_cache[file_path] = None
-    return download_cache[file_path]
+# Criar HTML da tabela
+html = """
+<style>
+table {
+    border-collapse: collapse;
+    width: 100%;
+}
+th, td {
+    border: 1px solid #ddd;
+    padding: 6px;
+    text-align: center;
+}
+th {
+    background-color: #f2f2f2;
+}
+.download-btn {
+    display: inline-block;
+    padding: 4px 8px;
+    background-color: #4CAF50;
+    color: white !important;
+    border-radius: 4px;
+    text-decoration: none;
+    font-size: 13px;
+}
+.download-btn:hover {
+    background-color: #45a049;
+}
+</style>
+<table>
+<tr>
+    <th>Operação</th>
+    <th>Data</th>
+    <th>Local</th>
+    <th>Apresentação</th>
+    <th>Ata</th>
+</tr>
+"""
 
-with tab3:
-    st.markdown("### 📜 Documentos para Download")
-    st.write("Aqui você pode encontrar documentos e atas de reuniões da Bacia do Banabuiu.")
-    
-    # Ler a planilha
-    try:
-        df = pd.read_csv(URL, encoding='utf-8-sig').dropna(how='all')
-    except Exception as e:
-        st.error(f"Não foi possível carregar os dados da planilha. Verifique as permissões de acesso. Erro: {e}")
-        df = pd.DataFrame()
+if not df.empty:
+    for _, row in df.iterrows():
+        operacao = row.get('Operação', '')
+        data_reuniao = row.get('Data da Reunião', '')
+        local_reuniao = row.get('Local da Reunião', '')
 
-    if not df.empty:
-        # Loop para exibir cada linha como um card estilizado
-        for index, row in df.iterrows():
-            st.markdown(
-                f"""
-                <div style="
-                    border: 1px solid #ddd;
-                    border-radius: 8px;
-                    padding: 16px;
-                    margin-bottom: 12px;
-                    background-color: #f9f9f9;
-                    box-shadow: 2px 2px 8px rgba(0,0,0,0.1);
-                    ">
-                    <h5 style="margin:0; padding:0; color:#0055A4;">{row['Operação']}</h5>
-                    <p style="margin: 8px 0 0 0; font-size: 14px;">
-                        <strong>Data:</strong> {row['Data da Reunião']} | 
-                        <strong>Local:</strong> {row['Local da Reunião']}
-                    </p>
-                    <hr style="border: 0; height: 1px; background: #ddd; margin: 10px 0;">
-                    <div style="display: flex; gap: 10px;">
-                """, 
-                unsafe_allow_html=True
-            )
+        # Links vindos direto da planilha
+        apresentacao_file = row.get('Apresentação', '')
+        if pd.notna(apresentacao_file) and apresentacao_file.strip():
+            ap_link = f"<a class='download-btn' href='{apresentacao_file}' target='_blank'>Baixar</a>"
+        else:
+            ap_link = "—"
 
-            # Botão de download para Apresentação
-            apresentacao_file = row.get('Apresentação', '')
-            if pd.notna(apresentacao_file) and apresentacao_file.strip():
-                try:
-                    with open(f"Arquivos/{apresentacao_file}", "rb") as file:
-                        st.download_button(
-                            label="📥 Apresentação",
-                            data=file,
-                            file_name=apresentacao_file,
-                            mime="application/pdf",
-                            key=f"ap_btn_{index}"
-                        )
-                except FileNotFoundError:
-                    st.write(f"Arquivo de apresentação não encontrado.")
-            
-            # Botão de download para Ata
-            ata_file = row.get('Ata da Reunião', '')
-            if pd.notna(ata_file) and ata_file.strip():
-                try:
-                    with open(f"Arquivos/{ata_file}", "rb") as file:
-                        st.download_button(
-                            label="📜 Ata da Reunião",
-                            data=file,
-                            file_name=ata_file,
-                            mime="application/pdf",
-                            key=f"ata_btn_{index}"
-                        )
-                except FileNotFoundError:
-                    st.write(f"Arquivo de ata não encontrado.")
-            
-            st.markdown("</div></div>", unsafe_allow_html=True)
-    else:
-        st.info("Nenhum dado disponível. Verifique a planilha e as permissões de acesso.")
+        ata_file = row.get('Ata da Reunião', '')
+        if pd.notna(ata_file) and ata_file.strip():
+            ata_link = f"<a class='download-btn' href='{ata_file}' target='_blank'>Baixar</a>"
+        else:
+            ata_link = "—"
+
+        html += f"<tr><td>{operacao}</td><td>{data_reuniao}</td><td>{local_reuniao}</td><td>{ap_link}</td><td>{ata_link}</td></tr>"
+else:
+    html += "<tr><td colspan='5'>Nenhum dado disponível</td></tr>"
+
+html += "</table>"
+
+# Exibir no Streamlit
+st.markdown("### 📜 Documentos para Download")
+st.markdown(html, unsafe_allow_html=True)
 
