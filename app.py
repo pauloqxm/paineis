@@ -111,8 +111,67 @@ with tab1:
             carregar_dados.clear()
             df = carregar_dados()
             st.success("Atualizado.")
+
+# Menu💧 Vazões - GRBANABUIU")
     
-    st.title("💧 Vazões - GRBANABUIU")
+    st.markdown("""
+<style>
+.custom-title {
+    font-family: 'Segoe UI', Roboto, sans-serif;
+    font-size: clamp(24px, 4vw, 36px);
+    font-weight: 700;
+    color: #006400;
+    text-align: center;
+    margin: 20px 0;
+    padding: 12px 0;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+}
+
+.custom-title::before, .custom-title::after {
+    content: "";
+    flex: 1;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #228B22);
+}
+
+.custom-title::after {
+    background: linear-gradient(90deg, #228B22, transparent);
+}
+
+.custom-title span {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: clamp(28px, 5vw, 42px);
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+
+@media (max-width: 600px) {
+    .custom-title {
+        flex-direction: column;
+        gap: 8px;
+    }
+    .custom-title::before, .custom-title::after {
+        width: 80%;
+        height: 1px;
+    }
+}
+</style>
+
+<h1 class="custom-title">
+    <span>💧</span> Vazões - GRBANABUIU <span>💧</span>
+</h1>
+""", unsafe_allow_html=True)
 
     # --------- FILTROS (AGORA EM MENU HAMBURGUER) ----------
     with st.expander("☰ Filtros", expanded=False):
