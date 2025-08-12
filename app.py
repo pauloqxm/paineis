@@ -124,7 +124,7 @@ with tab1:
     color: #006400 !important;
     text-align: center !important;
     margin: 8px 0 10px 0 !important;
-    padding: 8px 22px !important; /* Retângulo mais estreito */
+    padding: 0px 22px !important; /* Retângulo mais estreito */
     position: relative !important;
     display: flex !important;
     align-items: center !important;
