@@ -713,51 +713,50 @@ with tab2:
     folium_static(m2, width=1200)
 
 # Exemplo de dados para a tabela
-data = [
-    {
-        "Data da reunião": "12 de Agosto de 2025",
-        "Local da Reunião": "Sede da COGERH, Fortaleza",
-        "Apresentação": "Reunião de Alocação 2025_2 PATU.pdf",
-        "Ata da Reunião": "Ata da Reunião de alocação.pdf"
-    }
-]
-
 with tab3:
     st.markdown("### 📜 Documentos para Download")
     st.write("Aqui você pode encontrar os documentos oficiais e atas de reuniões.")
     
-    st.markdown("---")
+    # Exemplo de dados para a tabela
+    data = {
+        "Data da Reunião": ["12 de Agosto de 2025"],
+        "Local da Reunião": ["Sede da COGERH, Fortaleza"],
+        "Apresentação": ["Reunião de Alocação 2025_2 PATU.pdf"],
+        "Ata da Reunião": ["Ata da Reunião de alocação.pdf"]
+    }
+    df_documentos = pd.DataFrame(data)
     
-    for item in data:
-        st.markdown(f"**Data da reunião:** {item['Data da reunião']}")
-        st.markdown(f"**Local da Reunião:** {item['Local da Reunião']}")
-        
-        col1, col2 = st.columns(2)
-        
-        with col1:
-            try:
-                apresentacao_path = f"Arquivos/{item['Apresentação']}"
-                with open(apresentacao_path, "rb") as file:
-                    st.download_button(
-                        label=f"📥 Baixar Apresentação",
-                        data=file,
-                        file_name=item['Apresentação'],
-                        mime="application/pdf"
-                    )
-            except FileNotFoundError:
-                st.error(f"Arquivo '{item['Apresentação']}' não encontrado.")
+    # Exibe a tabela no Streamlit
+    st.dataframe(df_documentos, use_container_width=True, hide_index=True)
+    
+    # Botões de download em uma seção separada, alinhados com as colunas da tabela
+    st.markdown("---")
+    st.markdown("##### Download dos arquivos")
 
-        with col2:
-            try:
-                ata_path = f"Arquivos/{item['Ata da Reunião']}"
-                with open(ata_path, "rb") as file:
-                    st.download_button(
-                        label=f"📥 Baixar Ata",
-                        data=file,
-                        file_name=item['Ata da Reunião'],
-                        mime="application/pdf"
-                    )
-            except FileNotFoundError:
-                st.error(f"Arquivo '{item['Ata da Reunião']}' não encontrado.")
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        try:
+            apresentacao_path = "Arquivos/Reunião de Alocação 2025_2 PATU.pdf"
+            with open(apresentacao_path, "rb") as file:
+                st.download_button(
+                    label="📥 Baixar Apresentação",
+                    data=file,
+                    file_name="Reuniao_Alocacao_2025_2_PATU.pdf",
+                    mime="application/pdf"
+                )
+        except FileNotFoundError:
+            st.error(f"Arquivo 'Reunião de Alocação 2025_2 PATU.pdf' não encontrado.")
 
-        st.markdown("---")
+    with col2:
+        try:
+            ata_path = "Arquivos/Ata da Reunião de alocação.pdf"
+            with open(ata_path, "rb") as file:
+                st.download_button(
+                    label="📥 Baixar Ata da Reunião",
+                    data=file,
+                    file_name="Ata_Reuniao_alocacao.pdf",
+                    mime="application/pdf"
+                )
+        except FileNotFoundError:
+            st.error(f"Arquivo 'Ata da Reunião de alocação.pdf' não encontrado.")
