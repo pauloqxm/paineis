@@ -6,4 +6,3 @@ streamlit-folium
 streamlit-option-menu
 openpyxl
 tabulate
-base64
