@@ -178,7 +178,7 @@ with tab1:
         st.markdown("""
         <style>
         .filter-container {
-            margin-top: 5px;
+            margin-top: -15px;
         }
         </style>
         <div class="filter-container">
