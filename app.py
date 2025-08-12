@@ -180,12 +180,12 @@ with tab1:
         unidade_show = "m³/s" if unidade_sel == "m³/s" else "L/s"
         st.markdown(f'<div class="kpi-card">Unidade<br><div class="kpi-value">{unidade_show}</div></div>', unsafe_allow_html=True)
 
-    # --------- GRÁFICOS ----------
+# --------- GRÁFICOS ----------
     st.subheader("📈 Evolução da Vazão Operada por Reservatório")
     fig = go.Figure()
     cores = ['#1f77b4','#ff7f0e','#2ca02c','#d62728','#9467bd','#8c564b','#17becf','#e377c2']
     reservatorios = df_filtrado['Reservatório Monitorado'].dropna().unique()
-
+    
     for i, r in enumerate(reservatorios):
         dfr = (df_filtrado[df_filtrado['Reservatório Monitorado'] == r]
                .sort_values('Data').groupby('Data', as_index=False).last())
@@ -206,7 +206,7 @@ with tab1:
             fig.add_hline(y=media_pond_conv.iloc[0], line_dash="dash", line_width=2, line_color="red",
                           annotation_text=f"Média Ponderada: {media_pond_conv.iloc[0]:.2f} {unit_suffix}",
                           annotation_position="top right")
-
+    
     fig.update_layout(
         xaxis_title="Data",
         yaxis_title=f"Vazão Operada ({'m³/s' if unidade_sel=='m³/s' else 'L/s'})",
@@ -214,21 +214,27 @@ with tab1:
         template="plotly_white",
         margin=dict(l=40,r=20,t=10,b=40),
         xaxis=dict(
-            rangeslider=dict(visible=True),
-            rangeselector=dict(
-                buttons=list([
-                    dict(count=1, label="1m", step="month", stepmode="backward"),
-                    dict(count=3, label="3m", step="month", stepmode="backward"),
-                    dict(count=6, label="6m", step="month", stepmode="backward"),
-                    dict(count=1, label="1a", step="year", stepmode="backward"),
-                    dict(step="all", label="Tudo")
-                ])
-            )
+            rangeslider=dict(
+                visible=True,
+                thickness=0.1,
+                bgcolor='#f5f5f5'
+            ),
+            # Remove os botões de período
+            rangeselector=None
         )
     )
+    
+    # Configurações adicionais para a barra deslizante
+    fig.update_xaxes(
+        rangeslider=dict(
+            bordercolor="#cccccc",
+            borderwidth=1
+        )
+    )
+    
     st.plotly_chart(fig, use_container_width=True, config={"displaylogo": False})
 
-    # abas extras de análise
+# abas extras de análise
     gtab1, gtab2 = st.tabs(["📊 Média mensal", "📦 Distribuição (boxplot)"])
     with gtab1:
         if not df_filtrado.empty:
