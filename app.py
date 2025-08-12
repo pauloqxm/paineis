@@ -717,7 +717,9 @@ with tab3:
     st.write("Aqui você pode encontrar documentos oficiais relacionados ao monitoramento e operação da Bacia do Banabuiu.")
     
     try:
-        with open("Reunião de Alocação 2025_2 PATU.pdf", "rb") as file:
+        # Caminho atualizado para o arquivo no repositório
+        file_path = "paineis/Arquivos/Reunião de Alocação 2025_2 PATU.pdf"
+        with open(file_path, "rb") as file:
             st.download_button(
                 label="📥 Baixar Reunião de Alocação 2025_2 PATU",
                 data=file,
@@ -725,4 +727,4 @@ with tab3:
                 mime="application/pdf"
             )
     except FileNotFoundError:
-        st.error("O arquivo 'Reunião de Alocação 2025_2 PATU.pdf' não foi encontrado. Verifique se ele está no mesmo diretório do seu script.")
+        st.error(f"O arquivo '{file_path}' não foi encontrado. Verifique o caminho no seu repositório.")
