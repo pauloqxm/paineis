@@ -85,7 +85,7 @@ box-shadow:0 4px 12px rgba(0,0,0,.1);z-index:9999}}
     </div>
     <div class="header-links">
       <div class="dropdown">
-        <button class="dropdown-btn">📌 Institucional <span>▼</span></button>
+        <button class="dropdown-btn">Sistema<span>▼</span></button>
         <div class="dropdown-content">
           <a href="https://www.cogerh.com.br/" target="_blank" rel="noopener">🏢 COGERH</a>
           <a href="https://www.sohidra.ce.gov.br/" target="_blank" rel="noopener">💧 SOHIDRA</a>
@@ -93,7 +93,7 @@ box-shadow:0 4px 12px rgba(0,0,0,.1);z-index:9999}}
         </div>
       </div>
       <div class="dropdown">
-        <button class="dropdown-btn">🏛️ Institucional <span>▼</span></button>
+        <button class="dropdown-btn">Comitê<span>▼</span></button>
         <div class="dropdown-content">
           <a href="https://www.cogerh.com.br/" target="_blank" rel="noopener">🏢 COGERH</a>
           <a href="https://www.sohidra.ce.gov.br/" target="_blank" rel="noopener">💧 SOHIDRA</a>
