@@ -1096,28 +1096,31 @@ with tab3:
 st.markdown(f"""
 <style>
 .footer-mobile-full {{
-    position: absolute;
-    width: 100vw;
-    left: 50%;
-    right: 50%;
-    margin-left: -50vw;
-    margin-right: -50vw;
+    position: fixed;  /* Alterado de absolute para fixed */
+    bottom: 0;
+    left: 0;
+    width: 100%;
     background: linear-gradient(135deg, #228B22 0%, #006400 100%);
     color: white;
-    padding: 5px 0;
+    padding: 8px 0;  /* Reduzido de 5px para melhor legibilidade */
     font-family: 'Segoe UI', Roboto, sans-serif;
     border-top: 3px solid #fad905;
-    margin-bottom: -100px !important;
     text-align: center;
     z-index: 999;
-    box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+    box-shadow: 0 -4px 12px rgba(0,0,0,0.15);
+    /* Removido margin-bottom que causava conflito */
+}}
+
+/* Container de segurança para o conteúdo */
+.stApp > div {{
+    padding-bottom: 100px !important;
 }}
 
 .footer-content {{
     display: flex;
     flex-direction: column;
-    gap: 8px;
-    width: 90%;
+    gap: 6px;  /* Reduzido de 8px */
+    width: 95%;  /* Aumentado de 90% */
     margin: 0 auto;
 }}
 
@@ -1137,30 +1140,39 @@ st.markdown(f"""
 }}
 
 .footer-divider {{
-    color: rgba(255,255,255,0.4);
+    color: rgba(255,255,255,0.5);  /* Aumentado contraste */
     font-size: 14px;
 }}
 
 .footer-address {{
     font-size: 13px;
     opacity: 0.9;
-    margin-top: 4px;
+    margin-top: 2px;  /* Reduzido de 4px */
 }}
 
-/* Mobile First */
-@media (min-width: 481px) {{
+/* Otimização Mobile First */
+@media (min-width: 768px) {{  /* Aumentado breakpoint para 768px */
+    .footer-content {{
+        width: 90%;
+    }}
     .footer-row {{
         gap: 16px;
     }}
     .footer-item {{
         font-size: 15px;
     }}
+    .stApp > div {{
+        padding-bottom: 80px !important;
+    }}
 }}
 
 @media (max-width: 480px) {{
+    .footer-mobile-full {{
+        padding: 6px 0;  /* Mais compacto */
+    }}
     .footer-row {{
         flex-direction: column;
-        gap: 8px;
+        gap: 6px;  /* Reduzido de 8px */
     }}
     .footer-divider {{
         display: none;
@@ -1170,6 +1182,9 @@ st.markdown(f"""
     }}
     .footer-address {{
         font-size: 12px;
+    }}
+    .stApp > div {{
+        padding-bottom: 120px !important;
     }}
 }}
 </style>
