@@ -95,9 +95,9 @@ box-shadow:0 4px 12px rgba(0,0,0,.1);z-index:9999}}
       <div class="dropdown">
         <button class="dropdown-btn">Comitê<span>▼</span></button>
         <div class="dropdown-content">
-          <a href="https://www.cogerh.com.br/" target="_blank" rel="noopener">🏢 COGERH</a>
-          <a href="https://www.sohidra.ce.gov.br/" target="_blank" rel="noopener">💧 SOHIDRA</a>
-          <a href="https://www.funceme.br/" target="_blank" rel="noopener">🌦️ FUNCEME</a>
+          <a href="https://www.cbhbanabuiu.com.br/institucional/" target="_blank" rel="noopener">🏢 Institucional/a>
+          <a href="https://www.cbhbanabuiu.com.br/institucional/Regimento/" target="_blank" rel="noopener">💧 Regimento</a>
+          <a href="https://www.cbhbanabuiu.com.br/institucional/conheca-nossa-bacia-hidrografica/" target="_blank" rel="noopener">🌦️ A Bacia</a>
         </div>
       </div>
       <div class="header-date">📅 {data_hoje}</div>
