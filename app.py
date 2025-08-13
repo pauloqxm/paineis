@@ -698,7 +698,7 @@ with tab2:
     }
 
     # Inicializa o mapa com uma localização temporária
-    m2 = folium.Map(location=[-5.2, -39.2], zoom_start=7, tiles=None)
+    m2 = folium.Map(location=[-5.2, -39.2], zoom_start=10, tiles=None)
 
     # Adiciona a camada da bacia e obtém suas bordas
     bacia_layer = folium.GeoJson(geojson_bacia, name="Bacia do Banabuiu",
