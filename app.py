@@ -726,12 +726,16 @@ except Exception as e:
     st.error(f"Não foi possível carregar os dados da planilha. Erro: {e}")
     df = pd.DataFrame()
 
-# Criar HTML da tabela
+# Criar HTML da tabela responsiva
 html = """
 <style>
+.table-container {
+    overflow-x: auto;
+}
 table {
     border-collapse: collapse;
     width: 100%;
+    min-width: 1050px; /* força rolagem no mobile */
 }
 th, td {
     border: 1px solid #ddd;
@@ -754,14 +758,17 @@ th {
     background-color: #45a049;
 }
 </style>
+<div class="table-container">
 <table>
 <tr>
     <th>Operação</th>
     <th>Reservatório/Sistema</th>
-    <th>Data</th>
-    <th>Local</th>
+    <th>Data da Reunião</th>
+    <th>Local da Reunião</th>
+    <th>Parâmetros aprovados</th>
+    <th>Vazão média</th>
     <th>Apresentação</th>
-    <th>Ata</th>
+    <th>Ata da Reunião</th>
 </tr>
 """
 
@@ -771,8 +778,10 @@ if not df.empty:
         reservatorio = row.get('Reservatório/Sistema', '')
         data_reuniao = row.get('Data da Reunião', '')
         local_reuniao = row.get('Local da Reunião', '')
+        parametros = row.get('Parâmetros aprovados', '')
+        vazao = row.get('Vazão média', '')
 
-        # Links vindos direto da planilha
+        # Links diretos
         apresentacao_file = row.get('Apresentação', '')
         if pd.notna(apresentacao_file) and apresentacao_file.strip():
             ap_link = f"<a class='download-btn' href='{apresentacao_file}' target='_blank'>Baixar</a>"
@@ -785,14 +794,26 @@ if not df.empty:
         else:
             ata_link = "—"
 
-        html += f"<tr><td>{operacao}</td><td>{reservatorio}</td><td>{data_reuniao}</td><td>{local_reuniao}</td><td>{ap_link}</td><td>{ata_link}</td></tr>"
+        html += f"""
+        <tr>
+            <td>{operacao}</td>
+            <td>{reservatorio}</td>
+            <td>{data_reuniao}</td>
+            <td>{local_reuniao}</td>
+            <td>{parametros}</td>
+            <td>{vazao}</td>
+            <td>{ap_link}</td>
+            <td>{ata_link}</td>
+        </tr>
+        """
 else:
-    html += "<tr><td colspan='6'>Nenhum dado disponível</td></tr>"
+    html += "<tr><td colspan='8'>Nenhum dado disponível</td></tr>"
 
-html += "</table>"
+html += "</table></div>"
 
 # Exibir no Streamlit
 st.markdown("### 📜 Documentos para Download")
-st.write("Nesta página você encontra atas e apresentações das reuniões da Bacia do Banabuiú, organizadas por operação, reservatório e data.")
+st.write("Nesta página você encontra atas e apresentações das reuniões da Bacia do Banabuiú, com detalhes sobre operação, reservatório, parâmetros aprovados e vazões médias.")
 st.markdown(html, unsafe_allow_html=True)
+
 
