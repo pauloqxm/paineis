@@ -714,7 +714,8 @@ with tab2:
     folium.LayerControl(collapsed=True, position='topright').add_to(m2)
     folium_static(m2, width=1200)
 
-# Configurações da planilha
+# Página Documentos Oficiais
+
 SHEET_ID = "1-Tn_ZDHH-mNgJAY1WtjWd_Pyd2f5kv_ZU8dhL0caGDI"
 GID = "0"  # gid da aba
 URL = f"https://docs.google.com/spreadsheets/d/{SHEET_ID}/export?format=csv&gid={GID}"
@@ -726,12 +727,44 @@ except Exception as e:
     st.error(f"Não foi possível carregar os dados da planilha. Erro: {e}")
     df = pd.DataFrame()
 
-# Criar HTML da tabela
+# ====== CSS para responsividade dos filtros (colunas empilham no mobile) ======
+st.markdown("""
+<style>
+/* Torna qualquer par de colunas mais "flexível" em telas pequenas */
+@media (max-width: 680px) {
+  div[data-testid="stHorizontalBlock"] > div[data-testid="column"] {
+    width: 100% !important;
+    flex: 1 0 100% !important;
+    padding-right: 0 !important;
+  }
+}
+</style>
+""", unsafe_allow_html=True)
+
+# ====== FILTROS (lado a lado no desktop, empilhados no mobile) ======
+c1, c2 = st.columns(2)
+with c1:
+    ops = ["Todos"] + sorted(df["Operação"].dropna().astype(str).unique()) if not df.empty else ["Todos"]
+    filtro_operacao = st.selectbox("Filtrar por Operação", ops, index=0)
+with c2:
+    datas = ["Todos"] + sorted(df["Data da Reunião"].dropna().astype(str).unique()) if not df.empty else ["Todos"]
+    filtro_data = st.selectbox("Filtrar por Data da Reunião", datas, index=0)
+
+# Aplica filtros
+df_filtrado = df.copy()
+if filtro_operacao != "Todos":
+    df_filtrado = df_filtrado[df_filtrado["Operação"].astype(str) == filtro_operacao]
+if filtro_data != "Todos":
+    df_filtrado = df_filtrado[df_filtrado["Data da Reunião"].astype(str) == filtro_data]
+
+# Criar HTML da tabela (ordem atualizada)
 html = """
 <style>
+.table-wrap { overflow-x: auto; }
 table {
     border-collapse: collapse;
     width: 100%;
+    min-width: 1080px; /* rolagem horizontal no mobile */
 }
 th, td {
     border: 1px solid #ddd;
@@ -754,6 +787,7 @@ th {
     background-color: #45a049;
 }
 </style>
+<div class="table-wrap">
 <table>
 <tr>
     <th>Operação</th>
@@ -767,8 +801,8 @@ th {
 </tr>
 """
 
-if not df.empty:
-    for _, row in df.iterrows():
+if not df_filtrado.empty:
+    for _, row in df_filtrado.iterrows():
         operacao = row.get('Operação', '')
         reservatorio = row.get('Reservatório/Sistema', '')
         data_reuniao = row.get('Data da Reunião', '')
@@ -776,27 +810,22 @@ if not df.empty:
         parametros = row.get('Parâmetros aprovados', '')
         vazao = row.get('Vazão média', '')
 
-        # Links vindos direto da planilha
-        apresentacao_file = row.get('Apresentação', '')
-        if pd.notna(apresentacao_file) and apresentacao_file.strip():
-            ap_link = f"<a class='download-btn' href='{apresentacao_file}' target='_blank'>Baixar</a>"
-        else:
-            ap_link = "—"
+        # Links diretos vindos da planilha
+        apresentacao_file = (row.get('Apresentação', '') or '').strip()
+        ap_link = f"<a class='download-btn' href='{apresentacao_file}' target='_blank' rel='noopener'>Baixar</a>" if apresentacao_file else "—"
 
-        ata_file = row.get('Ata da Reunião', '')
-        if pd.notna(ata_file) and ata_file.strip():
-            ata_link = f"<a class='download-btn' href='{ata_file}' target='_blank'>Baixar</a>"
-        else:
-            ata_link = "—"
+        ata_file = (row.get('Ata da Reunião', '') or '').strip()
+        ata_link = f"<a class='download-btn' href='{ata_file}' target='_blank' rel='noopener'>Baixar</a>" if ata_file else "—"
 
         html += f"<tr><td>{operacao}</td><td>{reservatorio}</td><td>{data_reuniao}</td><td>{local_reuniao}</td><td>{parametros}</td><td>{vazao}</td><td>{ap_link}</td><td>{ata_link}</td></tr>"
 else:
     html += "<tr><td colspan='8'>Nenhum dado disponível</td></tr>"
 
-html += "</table>"
+html += "</table></div>"
 
 # Exibir no Streamlit
 st.markdown("### 📜 Documentos para Download")
 st.write("Nesta página você encontra atas e apresentações das reuniões da Bacia do Banabuiú, organizadas por operação, reservatório, parâmetros aprovados e vazão média.")
 st.markdown(html, unsafe_allow_html=True)
+
 
