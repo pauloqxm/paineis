@@ -700,6 +700,86 @@ with tab2:
     center_acudes = [-5.2, -39.2]
     m2 = folium.Map(location=center_acudes, zoom_start=7, tiles=None)
 
+    # Carregar dados da nova planilha Google
+    @st.cache_data(ttl=3600)
+    def load_reservatorios_data():
+        try:
+            url = "https://docs.google.com/spreadsheets/d/1zZ0RCyYj-AzA_dhWzxRziDWjgforbaH7WIoSEd2EKdk/export?format=csv"
+            df = pd.read_csv(url)
+            # Converter colunas numéricas e tratar valores ausentes
+            numeric_cols = ['Latitude', 'Longitude', 'Cota Sangria', 'Volume', 'Percentual']
+            for col in numeric_cols:
+                if col in df.columns:
+                    df[col] = pd.to_numeric(df[col], errors='coerce')
+            return df.dropna(subset=['Latitude', 'Longitude'])
+        except Exception as e:
+            st.error(f"Erro ao carregar dados dos reservatórios: {str(e)}")
+            return pd.DataFrame()
+
+    df_reservatorios = load_reservatorios_data()
+
+    # Adicionar camada de reservatórios
+    reservatorios_layer = folium.FeatureGroup(name="Reservatórios (Dados Atualizados)", show=True)
+    
+    if not df_reservatorios.empty:
+        for _, row in df_reservatorios.iterrows():
+            popup_info = f"""
+<div style='
+    font-family: "Segoe UI", Arial, sans-serif;
+    padding: 14px;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.15);
+    border-left: 5px solid #228B22;
+    min-width: 250px;
+'>
+    <div style='
+        font-size: 17px; 
+        font-weight: 700; 
+        color: #006400;
+        margin-bottom: 10px;
+        border-bottom: 1px solid #eee;
+        padding-bottom: 8px;
+    '>
+        {row.get('Reservatório', 'N/A')}
+    </div>
+    
+    <div style='margin: 8px 0;'>
+        <div style='font-weight: 600; color: #555;'>Região Hidrográfica:</div>
+        <div style='color: #333;'>{row.get('Região Hidrográfica', 'N/A')}</div>
+    </div>
+    
+    <div style='margin: 8px 0;'>
+        <div style='font-weight: 600; color: #555;'>Município:</div>
+        <div style='color: #333;'>{row.get('Município', 'N/A')}</div>
+    </div>
+    
+    <div style='margin: 8px 0;'>
+        <div style='font-weight: 600; color: #555;'>Cota Sangria:</div>
+        <div style='color: #333;'>{row.get('Cota Sangria', 'N/A')}</div>
+    </div>
+    
+    <div style='margin: 8px 0;'>
+        <div style='font-weight: 600; color: #555;'>Volume (hm³):</div>
+        <div style='color: #333;'>{row.get('Volume', 'N/A')}</div>
+    </div>
+    
+    <div style='margin: 8px 0;'>
+        <div style='font-weight: 600; color: #555;'>Percentual:</div>
+        <div style='color: #228B22; font-weight: 700;'>{row.get('Percentual', 'N/A')}%</div>
+    </div>
+</div>
+"""
+            folium.Marker(
+                [row['Latitude'], row['Longitude']],
+                icon=folium.CustomIcon("https://cdn-icons-png.flaticon.com/512/3059/3059518.png", icon_size=(28, 28)),
+                tooltip=row.get('Reservatório', 'Reservatório'),
+                popup=folium.Popup(popup_info, max_width=300)
+            ).add_to(reservatorios_layer)
+    
+    reservatorios_layer.add_to(m2)
+
+    # Camada de Comissões Gestoras (existente)
     gestoras_layer = folium.FeatureGroup(name="Comissões Gestoras", show=False)
     for feature in geojson_c_gestoras["features"]:
         props = feature["properties"]; coords = feature["geometry"]["coordinates"]
@@ -746,6 +826,7 @@ with tab2:
                       popup=folium.Popup(popup_info, max_width=300)).add_to(gestoras_layer)
     gestoras_layer.add_to(m2)
 
+    # Configurações base do mapa
     if tile_option == "OpenStreetMap":
         folium.TileLayer(tiles='OpenStreetMap').add_to(m2)
     else:
@@ -755,13 +836,19 @@ with tab2:
             name=tile_option
         ).add_to(m2)
 
+    # Controles do mapa
     Fullscreen(position='topleft').add_to(m2)
     MiniMap(toggle_display=True, minimized=True).add_to(m2)
     MousePosition(position='bottomleft', separator=' | ', prefix='Coords').add_to(m2)
     MeasureControl(primary_length_unit='meters').add_to(m2)
 
+    # Camadas adicionais
     folium.GeoJson(geojson_acudes, name="Açudes", tooltip=folium.GeoJsonTooltip(fields=["Name"], aliases=["Açude:"])).add_to(m2)
+    
+    # Controle de camadas
     folium.LayerControl(collapsed=True, position='topright').add_to(m2)
+    
+    # Exibir mapa
     folium_static(m2, width=1200)
 
 #================PÁGINA > DOCUMENTOS OFICIAS==================
