@@ -664,64 +664,15 @@ with tab1:
     st.subheader("📋 Tabela Detalhada")
     st.dataframe(df_filtrado.sort_values(by="Data", ascending=False), use_container_width=True)
 
-with tab2:
-    st.title("🗺️ Açudes Monitorados")
-    
-    with st.expander("☰ Estilo do Mapa", expanded=False):
-        tile_option = st.selectbox(
-            "Selecione o estilo:",
-            ["OpenStreetMap", "Stamen Terrain", "Stamen Toner",
-             "CartoDB positron", "CartoDB dark_matter", "Esri Satellite"],
-            key="acudes_map_tile",
-            label_visibility="collapsed"
-        )
-    
-    tile_urls = {
-        "OpenStreetMap": None,
-        "Stamen Terrain": "https://stamen-tiles.a.ssl.fastly.net/terrain/{z}/{x}/{y}.png",
-        "Stamen Toner": "https://stamen-tiles.a.ssl.fastly.net/toner/{z}/{x}/{y}.png",
-        "CartoDB positron": "https://cartodb-basemaps-a.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png",
-        "CartoDB dark_matter": "https://cartodb-basemaps-a.global.ssl.fastly.net/dark_all/{z}/{x}/{y}.png",
-        "Esri Satellite": "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
-    }
+#================PÁGINA > DOCUMENTOS OFICIAS==================
 
-    tile_attr = {
-        "OpenStreetMap": '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-        "Stamen Terrain": 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, under <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>. Data by <a href="http://openstreetmap.org">OpenStreetMap</a>, under a href="http://www.openstreetmap.org/copyright">ODbL</a>.',
-        "Stamen Toner": 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, under <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>. Data by <a href="http://openstreetmap.org">OpenStreetMap</a>, under a href="http://www.openstreetmap.org/copyright">ODbL</a>.',
-        "CartoDB positron": '&copy; <a href="https://carto.com/attributions">CARTO</a>',
-        "CartoDB dark_matter": '&copy; <a href="https://carto.com/attributions">CARTO</a>',
-        "Esri Satellite": "Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community"
-    }
-
-    center_acudes = [-5.2, -39.2]
-    m2 = folium.Map(location=center_acudes, zoom_start=7, tiles=None)
-
-    if tile_option == "OpenStreetMap":
-        folium.TileLayer(tiles='OpenStreetMap').add_to(m2)
-    else:
-        folium.TileLayer(
-            tiles=tile_urls[tile_option],
-            attr=tile_attr[tile_option],
-            name=tile_option
-        ).add_to(m2)
-
-    Fullscreen(position='topleft').add_to(m2)
-    MiniMap(toggle_display=True, minimized=True).add_to(m2)
-    MousePosition(position='bottomleft', separator=' | ', prefix='Coords').add_to(m2)
-    MeasureControl(primary_length_unit='meters').add_to(m2)
-
-    folium.GeoJson(geojson_acudes, name="Açudes", tooltip=folium.GeoJsonTooltip(fields=["Name"], aliases=["Açude:"])).add_to(m2)
-    folium.LayerControl(collapsed=True, position='topright').add_to(m2)
-    folium_static(m2, width=1200)
-
-# Página Documentos Oficiais
+with tab3:
+    st.title("📜 Documentos para Download")
 
 SHEET_ID = "1-Tn_ZDHH-mNgJAY1WtjWd_Pyd2f5kv_ZU8dhL0caGDI"
 GID = "0"
 URL = f"https://docs.google.com/spreadsheets/d/{SHEET_ID}/export?format=csv&gid={GID}"
 
-# Configuração inicial
 st.markdown("### 📜 Documentos para Download")
 st.write("""
 Nesta página você encontra atas e apresentações das reuniões da Bacia do Banabuiú, 
@@ -878,3 +829,58 @@ table_html += """
 
 # Exibir tabela
 st.markdown(table_html, unsafe_allow_html=True)
+
+#================PÁGINA > AÇUDES MONITORADOS==================
+
+with tab2:
+    st.title("🗺️ Açudes Monitorados")
+    
+    with st.expander("☰ Estilo do Mapa", expanded=False):
+        tile_option = st.selectbox(
+            "Selecione o estilo:",
+            ["OpenStreetMap", "Stamen Terrain", "Stamen Toner",
+             "CartoDB positron", "CartoDB dark_matter", "Esri Satellite"],
+            key="acudes_map_tile",
+            label_visibility="collapsed"
+        )
+    
+    tile_urls = {
+        "OpenStreetMap": None,
+        "Stamen Terrain": "https://stamen-tiles.a.ssl.fastly.net/terrain/{z}/{x}/{y}.png",
+        "Stamen Toner": "https://stamen-tiles.a.ssl.fastly.net/toner/{z}/{x}/{y}.png",
+        "CartoDB positron": "https://cartodb-basemaps-a.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png",
+        "CartoDB dark_matter": "https://cartodb-basemaps-a.global.ssl.fastly.net/dark_all/{z}/{x}/{y}.png",
+        "Esri Satellite": "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+    }
+
+    tile_attr = {
+        "OpenStreetMap": '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+        "Stamen Terrain": 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, under <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>. Data by <a href="http://openstreetmap.org">OpenStreetMap</a>, under a href="http://www.openstreetmap.org/copyright">ODbL</a>.',
+        "Stamen Toner": 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, under <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>. Data by <a href="http://openstreetmap.org">OpenStreetMap</a>, under a href="http://www.openstreetmap.org/copyright">ODbL</a>.',
+        "CartoDB positron": '&copy; <a href="https://carto.com/attributions">CARTO</a>',
+        "CartoDB dark_matter": '&copy; <a href="https://carto.com/attributions">CARTO</a>',
+        "Esri Satellite": "Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community"
+    }
+
+    center_acudes = [-5.2, -39.2]
+    m2 = folium.Map(location=center_acudes, zoom_start=7, tiles=None)
+
+    if tile_option == "OpenStreetMap":
+        folium.TileLayer(tiles='OpenStreetMap').add_to(m2)
+    else:
+        folium.TileLayer(
+            tiles=tile_urls[tile_option],
+            attr=tile_attr[tile_option],
+            name=tile_option
+        ).add_to(m2)
+
+    Fullscreen(position='topleft').add_to(m2)
+    MiniMap(toggle_display=True, minimized=True).add_to(m2)
+    MousePosition(position='bottomleft', separator=' | ', prefix='Coords').add_to(m2)
+    MeasureControl(primary_length_unit='meters').add_to(m2)
+
+    folium.GeoJson(geojson_acudes, name="Açudes", tooltip=folium.GeoJsonTooltip(fields=["Name"], aliases=["Açude:"])).add_to(m2)
+    folium.LayerControl(collapsed=True, position='topright').add_to(m2)
+    folium_static(m2, width=1200)
+
+
