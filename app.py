@@ -40,65 +40,72 @@ data_hoje = f"{dias_semana[agora.strftime('%A')]}, {agora.day:02d} de {meses[ago
 st.markdown(f"""
 <style>
 /* Oculta o cabeçalho padrão do Streamlit */
-[data-testid="stHeader"]{{visibility:hidden;}}
+[data-testid="stHeader"] {{
+    visibility: hidden;
+    height: 0;
+}}
 
 /* Estilo do cabeçalho fixo com duas seções */
-.custom-header{{
-    position:fixed;
-    top:0;
-    left:0;
-    width:100%;
-    font-family:'Segoe UI',Roboto,sans-serif;
-    box-shadow:0 4px 12px rgba(0,0,0,.1);
-    z-index:9999;
+.custom-header {{
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    font-family: 'Segoe UI', Roboto, sans-serif;
+    box-shadow: 0 4px 12px rgba(0,0,0,.1);
+    z-index: 9999;
 }}
 
 /* Seção superior do cabeçalho (verde) */
 .header-top-bar {{
-    background:linear-gradient(135deg,#228B22 0%,#006400 50%,#004d00 100%);
-    color:white;
-    padding:12px 5%;
-    display:flex;
-    flex-wrap:wrap;
-    justify-content:space-between;
-    align-items:center;
-    gap:10px;
+    background: linear-gradient(135deg, #228B22 0%, #006400 50%, #004d00 100%);
+    color: white;
+    padding: 12px 5%;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
 }}
-.header-brand{{
-    display:flex;
-    align-items:center;
-    gap:10px;
-    flex:1;
-    min-width:200px;
+
+.header-brand {{
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
+    min-width: 200px;
 }}
-.header-logo{{
-    height:36px;
-    filter:drop-shadow(0 2px 2px rgba(0,0,0,.2));
+
+.header-logo {{
+    height: 36px;
+    filter: drop-shadow(0 2px 2px rgba(0,0,0,.2));
 }}
-.header-title{{
-    font-size:clamp(14px,3vw,18px);
-    font-weight:600;
-    letter-spacing:.5px;
-    text-shadow:0 1px 3px rgba(0,0,0,.3);
+
+.header-title {{
+    font-size: clamp(14px, 3vw, 18px);
+    font-weight: 600;
+    letter-spacing: .5px;
+    text-shadow: 0 1px 3px rgba(0,0,0,.3);
 }}
-.header-date{{
-    background:rgba(255,255,255,.15);
-    padding:4px 10px;
-    border-radius:20px;
-    font-size:clamp(10px,2.5vw,13px);
-    font-weight:500;
-    display:flex;
-    align-items:center;
-    gap:6px;
-    backdrop-filter:blur(5px);
-    white-space:nowrap;
+
+.header-date {{
+    background: rgba(255,255,255,.15);
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: clamp(10px, 2.5vw, 13px);
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    backdrop-filter: blur(5px);
+    white-space: nowrap;
 }}
 
 /* Seção inferior do cabeçalho (azul) */
 .header-bottom-bar {{
     background-color: #04a5c9;
     color: white;
-    padding: 6px 32px;
+    padding: 8px 32px;
     font-size: 13px;
     display: flex;
     justify-content: center;
@@ -107,19 +114,31 @@ st.markdown(f"""
     flex-wrap: wrap;
     border-bottom: 3px solid #b6b8ba;
 }}
+
 .header-bottom-bar a {{
     color: white;
     text-decoration: none;
-    transition: color 0.3s ease, background-color 0.3s ease;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
 }}
+
 .header-bottom-bar a:hover {{
     color: #fad905;
+    transform: translateY(-1px);
 }}
+
 .btn-chip {{
     background-color: transparent;
     border: 1px solid rgba(255, 255, 255, 0.4);
     border-radius: 20px;
     padding: 6px 12px;
+    transition: all 0.2s ease;
+}}
+
+.btn-chip:hover {{
+    background-color: rgba(255, 255, 255, 0.1);
 }}
 
 /* Estilos para o Dropdown */
@@ -127,6 +146,7 @@ st.markdown(f"""
     position: relative;
     display: inline-block;
 }}
+
 .dropdown-toggle {{
     background-color: transparent;
     border: 1px solid rgba(255, 255, 255, 0.4);
@@ -135,63 +155,146 @@ st.markdown(f"""
     cursor: pointer;
     display: inline-flex;
     align-items: center;
+    gap: 5px;
 }}
+
 .dropdown-toggle .caret {{
-    margin-left: 6px;
+    width: 0;
+    height: 0;
     border-left: 4px solid transparent;
     border-right: 4px solid transparent;
     border-top: 4px solid white;
+    transition: transform 0.2s ease;
 }}
+
 .dropdown-content {{
     display: none;
     position: absolute;
     background-color: #04a5c9;
     min-width: 160px;
-    box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2);
+    box-shadow: 0 8px 16px rgba(0,0,0,0.2);
     z-index: 1000;
     border-radius: 8px;
     overflow: hidden;
     left: 50%;
     transform: translateX(-50%);
     top: 100%;
-    margin-top: 8px;
+    margin-top: 5px;
     border: 1px solid #b6b8ba;
 }}
+
 .dropdown-content a {{
     color: white;
-    padding: 12px 16px;
+    padding: 10px 16px;
     text-decoration: none;
     display: block;
-    transition: background-color 0.3s ease;
+    transition: all 0.2s ease;
+    font-size: 12px;
 }}
+
 .dropdown-content a:hover {{
     background-color: #038dae;
     color: #fad905;
+    padding-left: 20px;
 }}
+
 .dropdown:hover .dropdown-content {{
     display: block;
 }}
 
+.dropdown:hover .dropdown-toggle .caret {{
+    transform: rotate(180deg);
+}}
+
 /* Ajuste do padding do conteúdo para o novo cabeçalho */
-.main .block-container{{padding-top:105px}}
-@media(max-width:600px){{
-    .main .block-container{{padding-top:125px}}
+.main .block-container {{
+    padding-top: 120px;
+}}
+
+@media (max-width: 768px) {{
+    .header-bottom-bar {{
+        padding: 8px 15px;
+        gap: 10px;
+    }}
+    
+    .main .block-container {{
+        padding-top: 140px;
+    }}
+}}
+
+@media (max-width: 480px) {{
+    .header-top-bar {{
+        padding: 10px 5%;
+    }}
+    
+    .header-bottom-bar {{
+        font-size: 12px;
+        gap: 8px;
+    }}
+    
+    .btn-chip {{
+        padding: 4px 8px;
+    }}
+    
+    .main .block-container {{
+        padding-top: 150px;
+    }}
 }}
 
 /* Estilos para outros elementos */
-.filter-card{{border:1px solid #e6e6e6;border-radius:1px;padding:1px 1px;background:#fff;box-shadow:0 4px 14px rgba(0,0,0,.06);margin-top:6px}}
-.filter-title{{font-weight:600;margin-bottom:6px}}
-.quick-chips span{{display:inline-block;border:1px solid #dcdcdc;border-radius:999px;padding:4px 10px;margin-right:6px;margin-top:4px;cursor:pointer;font-size:12px}}
-.quick-chips span:hover{{background:#f5f5f5}}
-.kpi-card{{border:1px solid #eaeaea;border-radius:14px;padding:14px;background:linear-gradient(180deg,#ffffff 0%, #fafafa 100%);box-shadow:0 6px 16px rgba(0,0,0,.06);text-align:center}}
-.kpi-value{{font-size:22px;font-weight:700;margin-top:4px}}
+.filter-card {{
+    border: 1px solid #e6e6e6;
+    border-radius: 8px;
+    padding: 12px;
+    background: #fff;
+    box-shadow: 0 4px 14px rgba(0,0,0,.06);
+    margin-top: 6px;
+}}
+
+.filter-title {{
+    font-weight: 600;
+    margin-bottom: 6px;
+}}
+
+.quick-chips span {{
+    display: inline-block;
+    border: 1px solid #dcdcdc;
+    border-radius: 999px;
+    padding: 4px 10px;
+    margin-right: 6px;
+    margin-top: 4px;
+    cursor: pointer;
+    font-size: 12px;
+}}
+
+.quick-chips span:hover {{
+    background: #f5f5f5;
+}}
+
+.kpi-card {{
+    border: 1px solid #eaeaea;
+    border-radius: 14px;
+    padding: 14px;
+    background: linear-gradient(180deg, #ffffff 0%, #fafafa 100%);
+    box-shadow: 0 6px 16px rgba(0,0,0,.06);
+    text-align: center;
+}}
+
+.kpi-value {{
+    font-size: 22px;
+    font-weight: 700;
+    margin-top: 4px;
+}}
+
 .st-emotion-cache-1q7spjk {{
     color: #228B22 !important;
     font-weight: bold;
 }}
+
 .st-emotion-cache-1q7spjk:hover {{
     color: #006400 !important;
 }}
+
 .map-style-selector {{
     margin-top: -10px;
 }}
