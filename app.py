@@ -701,10 +701,10 @@ with tab2:
     m2 = folium.Map(location=center_acudes, zoom_start=7, tiles=None)
 
     gestoras_layer = folium.FeatureGroup(name="Comissões Gestoras", show=False)
-        for feature in geojson_c_gestoras["features"]:
-            props = feature["properties"]; coords = feature["geometry"]["coordinates"]
-            nome_g = props.get("SISTEMAH3","Sem nome")
-            popup_info = f"""
+    for feature in geojson_c_gestoras["features"]:
+        props = feature["properties"]; coords = feature["geometry"]["coordinates"]
+        nome_g = props.get("SISTEMAH3","Sem nome")
+        popup_info = f"""
 <div style='
     font-family: "Segoe UI", Arial, sans-serif;
     padding: 12px;
@@ -739,12 +739,12 @@ with tab2:
     </div>
 </div>
 """
-            
-            folium.Marker([coords[1], coords[0]],
-                          icon=folium.CustomIcon("https://cdn-icons-png.flaticon.com/512/4144/4144517.png", icon_size=(30,30)),
-                          tooltip=nome_g,
-                          popup=folium.Popup(popup_info, max_width=300)).add_to(gestoras_layer)
-        gestoras_layer.add_to(m)
+        
+        folium.Marker([coords[1], coords[0]],
+                      icon=folium.CustomIcon("https://cdn-icons-png.flaticon.com/512/4144/4144517.png", icon_size=(30,30)),
+                      tooltip=nome_g,
+                      popup=folium.Popup(popup_info, max_width=300)).add_to(gestoras_layer)
+    gestoras_layer.add_to(m2)
 
     if tile_option == "OpenStreetMap":
         folium.TileLayer(tiles='OpenStreetMap').add_to(m2)
