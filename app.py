@@ -706,24 +706,35 @@ with tab2:
         try:
             url = "https://docs.google.com/spreadsheets/d/1zZ0RCyYj-AzA_dhWzxRziDWjgforbaH7WIoSEd2EKdk/export?format=csv"
             df = pd.read_csv(url)
-            # Converter colunas numéricas e tratar valores ausentes
-            numeric_cols = ['Latitude', 'Longitude', 'Cota Sangria', 'Volume', 'Percentual']
-            for col in numeric_cols:
-                if col in df.columns:
-                    df[col] = pd.to_numeric(df[col], errors='coerce')
-            return df.dropna(subset=['Latitude', 'Longitude'])
+            
+            # Verificar e corrigir formato das coordenadas
+            df['Latitude'] = pd.to_numeric(df['Latitude'].str.replace(',', '.'), errors='coerce')
+            df['Longitude'] = pd.to_numeric(df['Longitude'].str.replace(',', '.'), errors='coerce')
+            
+            # Filtrar apenas linhas com coordenadas válidas
+            df = df.dropna(subset=['Latitude', 'Longitude'])
+            return df
         except Exception as e:
             st.error(f"Erro ao carregar dados dos reservatórios: {str(e)}")
             return pd.DataFrame()
 
     df_reservatorios = load_reservatorios_data()
 
+    # DEBUG: Mostrar dados carregados
+    st.sidebar.write("Dados carregados:", df_reservatorios[['Reservatório', 'Latitude', 'Longitude']].head())
+
     # Adicionar camada de reservatórios
     reservatorios_layer = folium.FeatureGroup(name="Reservatórios (Dados Atualizados)", show=True)
     
     if not df_reservatorios.empty:
         for _, row in df_reservatorios.iterrows():
-            popup_info = f"""
+            try:
+                # Verificar se as coordenadas são válidas
+                if not (-90 <= row['Latitude'] <= 90) or not (-180 <= row['Longitude'] <= 180):
+                    st.sidebar.warning(f"Coordenadas inválidas para {row.get('Reservatório', '')}: {row['Latitude']}, {row['Longitude']}")
+                    continue
+                    
+                popup_info = f"""
 <div style='
     font-family: "Segoe UI", Arial, sans-serif;
     padding: 14px;
@@ -770,12 +781,16 @@ with tab2:
     </div>
 </div>
 """
-            folium.Marker(
-                [row['Latitude'], row['Longitude']],
-                icon=folium.CustomIcon("https://cdn-icons-png.flaticon.com/512/3059/3059518.png", icon_size=(28, 28)),
-                tooltip=row.get('Reservatório', 'Reservatório'),
-                popup=folium.Popup(popup_info, max_width=300)
-            ).add_to(reservatorios_layer)
+                folium.Marker(
+                    [row['Latitude'], row['Longitude']],
+                    icon=folium.CustomIcon("https://cdn-icons-png.flaticon.com/512/3059/3059518.png", icon_size=(28, 28)),
+                    tooltip=row.get('Reservatório', 'Reservatório'),
+                    popup=folium.Popup(popup_info, max_width=300)
+                ).add_to(reservatorios_layer)
+                
+            except Exception as e:
+                st.sidebar.error(f"Erro ao plotar reservatório {row.get('Reservatório', '')}: {str(e)}")
+                continue
     
     reservatorios_layer.add_to(m2)
 
@@ -820,10 +835,12 @@ with tab2:
 </div>
 """
         
-        folium.Marker([coords[1], coords[0]],
-                      icon=folium.CustomIcon("https://cdn-icons-png.flaticon.com/512/4144/4144517.png", icon_size=(30,30)),
-                      tooltip=nome_g,
-                      popup=folium.Popup(popup_info, max_width=300)).add_to(gestoras_layer)
+        folium.Marker(
+            [coords[1], coords[0]],
+            icon=folium.CustomIcon("https://cdn-icons-png.flaticon.com/512/4144/4144517.png", icon_size=(30,30)),
+            tooltip=nome_g,
+            popup=folium.Popup(popup_info, max_width=300)
+        ).add_to(gestoras_layer)
     gestoras_layer.add_to(m2)
 
     # Configurações base do mapa
