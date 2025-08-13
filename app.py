@@ -697,12 +697,16 @@ with tab2:
         "Esri Satellite": "Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community"
     }
 
-    center_acudes = [-5.2, -39.2]
-    m2 = folium.Map(location=center_acudes, zoom_start=7, tiles=None)
+    # Inicializa o mapa com uma localização temporária
+    m2 = folium.Map(location=[-5.2, -39.2], zoom_start=7, tiles=None)
 
-    folium.GeoJson(geojson_bacia, name="Bacia do Banabuiu",
+    # Adiciona a camada da bacia e obtém suas bordas
+    bacia_layer = folium.GeoJson(geojson_bacia, name="Bacia do Banabuiu",
                     tooltip=folium.GeoJsonTooltip(fields=["DESCRICA1"], aliases=["Bacia:"]),
                     style_function=lambda x: {"color":"darkblue","weight":2}).add_to(m2)
+
+    # Centraliza o mapa na camada da bacia
+    m2.fit_bounds(bacia_layer.get_bounds())
 
     # Carregar dados da nova planilha Google
     @st.cache_data(ttl=3600)
