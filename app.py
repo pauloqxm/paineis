@@ -43,7 +43,7 @@ st.markdown(f"""
 [data-testid="stHeader"]{{visibility:hidden;}}
 .custom-header{{position:fixed;top:0;left:0;width:100%;
 background:linear-gradient(135deg,#228B22 0%,#006400 50%,#004d00 100%);
-color:white;padding:12px 5%;font-family:'Segoe UI',Roboto,sans-serif;
+color:white;padding:8px 5%;font-family:'Segoe UI',Roboto,sans-serif;
 box-shadow:0 4px 12px rgba(0,0,0,.1);z-index:9999}}
 .header-container{{max-width:1200px;margin: 8px auto;display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:10px}}
 .header-brand{{display:flex;align-items:center;gap:10px;flex:1;min-width:200px}}
