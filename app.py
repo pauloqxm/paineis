@@ -1,5 +1,4 @@
 
-
 import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
@@ -800,3 +799,4 @@ html += "</table>"
 st.markdown("### 📜 Documentos para Download")
 st.write("Nesta página você encontra atas e apresentações das reuniões da Bacia do Banabuiú, organizadas por operação, reservatório, parâmetros aprovados e vazão média.")
 st.markdown(html, unsafe_allow_html=True)
+
