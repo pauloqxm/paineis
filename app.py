@@ -1097,8 +1097,6 @@ with tab3:
 st.markdown(f"""
 <style>
 .footer-mobile-full {{
-    position: fixed;
-    bottom: 0;
     width: 100vw;
     left: 50%;
     right: 50%;
@@ -1109,7 +1107,7 @@ st.markdown(f"""
     padding: 5px 0;
     font-family: 'Segoe UI', Roboto, sans-serif;
     border-top: 3px solid #fad905;
-    margin-bottom: 0px !important;  /* Diminuído o espaço */
+    margin-bottom: 0px !important;
     text-align: center;
     z-index: 999;
     box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
