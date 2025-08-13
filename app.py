@@ -759,10 +759,12 @@ th {
 <tr>
     <th>Operação</th>
     <th>Reservatório/Sistema</th>
-    <th>Data</th>
-    <th>Local</th>
+    <th>Data da Reunião</th>
+    <th>Local da Reunião</th>
+    <th>Parâmetros aprovados</th>
+    <th>Vazão média</th>
     <th>Apresentação</th>
-    <th>Ata</th>
+    <th>Ata da Reunião</th>
 </tr>
 """
 
@@ -772,6 +774,8 @@ if not df.empty:
         reservatorio = row.get('Reservatório/Sistema', '')
         data_reuniao = row.get('Data da Reunião', '')
         local_reuniao = row.get('Local da Reunião', '')
+        parametros = row.get('Parâmetros aprovados', '')
+        vazao = row.get('Vazão média', '')
 
         # Links vindos direto da planilha
         apresentacao_file = row.get('Apresentação', '')
@@ -786,13 +790,13 @@ if not df.empty:
         else:
             ata_link = "—"
 
-        html += f"<tr><td>{operacao}</td><td>{reservatorio}</td><td>{data_reuniao}</td><td>{local_reuniao}</td><td>{ap_link}</td><td>{ata_link}</td></tr>"
+        html += f"<tr><td>{operacao}</td><td>{reservatorio}</td><td>{data_reuniao}</td><td>{local_reuniao}</td><td>{parametros}</td><td>{vazao}</td><td>{ap_link}</td><td>{ata_link}</td></tr>"
 else:
-    html += "<tr><td colspan='6'>Nenhum dado disponível</td></tr>"
+    html += "<tr><td colspan='8'>Nenhum dado disponível</td></tr>"
 
 html += "</table>"
 
 # Exibir no Streamlit
 st.markdown("### 📜 Documentos para Download")
-st.write("Nesta página você encontra atas e apresentações das reuniões da Bacia do Banabuiú, organizadas por operação, reservatório e data.")
+st.write("Nesta página você encontra atas e apresentações das reuniões da Bacia do Banabuiú, organizadas por operação, reservatório, parâmetros aprovados e vazão média.")
 st.markdown(html, unsafe_allow_html=True)
