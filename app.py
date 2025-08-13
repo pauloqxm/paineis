@@ -1095,14 +1095,16 @@ with tab3:
 
 st.markdown(f"""
 <style>
-.footer-full-width {{
-    position: ;
-    bottom: 0;
-    left: 0;
-    width: 100%;
+.footer-mobile-full {{
+    position: relative;
+    width: 100vw;
+    left: 50%;
+    right: 50%;
+    margin-left: -50vw;
+    margin-right: -50vw;
     background: linear-gradient(135deg, #228B22 0%, #006400 100%);
     color: white;
-    padding: 12px 0;
+    padding: 14px 0;
     font-family: 'Segoe UI', Roboto, sans-serif;
     border-top: 3px solid #fad905;
     text-align: center;
@@ -1110,61 +1112,70 @@ st.markdown(f"""
     box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
 }}
 
-.footer-container {{
-    max-width: 1200px;
+.footer-content {{
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 90%;
     margin: 0 auto;
-    padding: 0 20px;
 }}
 
-.footer-info {{
+.footer-row {{
     display: flex;
+    flex-wrap: wrap;
     justify-content: center;
     align-items: center;
-    flex-wrap: wrap;
-    gap: 16px;
+    gap: 12px;
+}}
+
+.footer-item {{
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 14px;
+}}
+
+.footer-divider {{
+    color: rgba(255,255,255,0.4);
     font-size: 14px;
 }}
 
 .footer-address {{
     font-size: 13px;
     opacity: 0.9;
-    margin-top: 6px;
+    margin-top: 4px;
 }}
 
-.footer-divider {{
-    color: rgba(255,255,255,0.4);
-}}
-
-.footer-item {{
-    display: flex;
-    align-items: center;
-    gap: 6px;
-}}
-
-@media (max-width: 768px) {{
-    .footer-info {{
-        gap: 12px;
-        font-size: 13px;
+/* Mobile First */
+@media (min-width: 481px) {{
+    .footer-row {{
+        gap: 16px;
+    }}
+    .footer-item {{
+        font-size: 15px;
     }}
 }}
 
 @media (max-width: 480px) {{
-    .footer-info {{
+    .footer-row {{
         flex-direction: column;
         gap: 8px;
     }}
     .footer-divider {{
         display: none;
     }}
-    .footer-full-width {{
-        padding: 10px 0;
+    .footer-item {{
+        font-size: 13px;
+    }}
+    .footer-address {{
+        font-size: 12px;
     }}
 }}
 </style>
 
-<div class="footer-full-width">
-    <div class="footer-container">
-        <div class="footer-info">
+<div class="footer-mobile-full">
+    <div class="footer-content">
+        <div class="footer-row">
             <div class="footer-item">
                 📞 (88) 99999-9999
             </div>
