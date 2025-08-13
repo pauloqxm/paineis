@@ -232,7 +232,7 @@ with tab1:
         flex: 1;
         min-width: 180px;
         background: linear-gradient(135deg, #e0f5ec, #b2dfdb);
-        border-radius: 12px;
+        border-radius: 22px;
         padding: 16px;
         box-shadow: 0 3px 8px rgba(0,0,0,0.08);
         text-align: center;
