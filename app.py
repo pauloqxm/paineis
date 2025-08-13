@@ -860,12 +860,8 @@ if filtro_data != "Todos":
     else: # Se a coluna não existir, filtra para não retornar nada para evitar erros
         df_filtrado = df_filtrado[0:0] # Retorna um DataFrame vazio
 
-
 if busca and busca.strip():
     q = _norm(busca.strip())
-    # Garante que todas as colunas sejam strings e normalizadas antes de aplicar a busca
-    # Garante que a aplicação de `_norm` seja feita apenas em colunas que existem.
-    
     # Cria uma cópia do DataFrame para a operação de mapeamento e preenchimento de NaN
     df_temp_search = df_filtrado.copy()
     
