@@ -1095,7 +1095,6 @@ with tab3:
 
 st.markdown(f"""
 <style>
-/* Rodapé Estilizado */
 .footer-full-width {{
     position: fixed;
     bottom: 0;
@@ -1107,16 +1106,14 @@ st.markdown(f"""
     font-family: 'Segoe UI', Roboto, sans-serif;
     border-top: 3px solid #fad905;
     text-align: center;
-    z-index: 9999;
-    box-shadow: 0 -4px 12px rgba(0,0,0,0.1);
+    z-index: 999;
+    box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
 }}
 
-.footer-content {{
+.footer-container {{
     max-width: 1200px;
     margin: 0 auto;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
+    padding: 0 20px;
 }}
 
 .footer-info {{
@@ -1131,35 +1128,23 @@ st.markdown(f"""
 .footer-address {{
     font-size: 13px;
     opacity: 0.9;
-    margin-top: 4px;
+    margin-top: 6px;
 }}
 
 .footer-divider {{
-    color: rgba(255,255,255,0.5);
+    color: rgba(255,255,255,0.4);
 }}
 
-.footer-link {{
-    color: white;
-    text-decoration: none;
-    display: inline-flex;
+.footer-item {{
+    display: flex;
     align-items: center;
     gap: 6px;
-    transition: all 0.2s ease;
-}}
-
-.footer-link:hover {{
-    color: #fad905;
-    transform: translateY(-1px);
 }}
 
 @media (max-width: 768px) {{
     .footer-info {{
-        gap: 10px;
+        gap: 12px;
         font-size: 13px;
-    }}
-    .footer-address {{
-        font-size: 12px;
-        padding: 0 16px;
     }}
 }}
 
@@ -1171,17 +1156,26 @@ st.markdown(f"""
     .footer-divider {{
         display: none;
     }}
+    .footer-full-width {{
+        padding: 10px 0;
+    }}
 }}
 </style>
 
 <div class="footer-full-width">
-    <div class="footer-content">
+    <div class="footer-container">
         <div class="footer-info">
-            <a href="tel:+5588999999999" class="footer-link">📞 (88) 99999-9999</a>
+            <div class="footer-item">
+                📞 (88) 99999-9999
+            </div>
             <span class="footer-divider">|</span>
-            <a href="mailto:vocedenuncia@qvocedenuncia" class="footer-link">📧 vocedenuncia@qvocedenuncia</a>
+            <div class="footer-item">
+                📧 vocedenuncia@qvocedenuncia
+            </div>
             <span class="footer-divider">|</span>
-            <span class="footer-link"><b>Plataforma Você Denuncia</b></span>
+            <div class="footer-item">
+                <b>Plataforma Você Denuncia</b>
+            </div>
         </div>
         <div class="footer-address">
             🏢 R. 14 de Agosto, 123 - Centro, Quixeramobim - CE, 63800-000
