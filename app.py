@@ -728,20 +728,20 @@ Nesta página você encontra atas e apresentações das reuniões da Bacia do Ba
 organizadas por operação, reservatório, parâmetros aprovados e vazão média.
 """)
 
-# Carregar dados
+# Carregar dados com tratamento robusto
 @st.cache_data(ttl=3600)
 def load_data():
     try:
         df = pd.read_csv(URL, encoding='utf-8-sig').dropna(how='all')
-        # Converter colunas para string
+        # Converter colunas para string com tratamento de valores nulos
         text_cols = ["Operação", "Data da Reunião", "Reservatório/Sistema", 
                     "Local da Reunião", "Parâmetros aprovados", "Vazão média"]
         for col in text_cols:
             if col in df.columns:
-                df[col] = df[col].astype(str)
+                df[col] = df[col].fillna('').astype(str)
         return df
     except Exception as e:
-        st.error(f"Erro ao carregar dados: {e}")
+        st.error(f"Erro ao carregar dados: {str(e)}")
         return pd.DataFrame()
 
 df = load_data()
@@ -771,10 +771,11 @@ if filtro_operacao != "Todos":
 if filtro_data != "Todos":
     df_filtrado = df_filtrado[df_filtrado["Data da Reunião"] == filtro_data]
 
+# Busca simplificada sem unicodedata
 if busca:
-    busca_norm = busca.lower()
+    busca_lower = busca.lower().strip()
     mask = df_filtrado.apply(
-        lambda row: any(busca_norm in str(val).lower() for val in row.values), 
+        lambda row: any(busca_lower in str(val).lower() for val in row.values), 
         axis=1
     )
     df_filtrado = df_filtrado[mask]
@@ -782,14 +783,14 @@ if busca:
 # Contador de resultados
 st.markdown(f"**{len(df_filtrado)} registros encontrados**")
 
-# CSS para a tabela
-table_css = """
+# CSS otimizado
+table_style = """
 <style>
 .table-container {
-    border-radius: 8px;
     overflow: auto;
-    margin-top: 16px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    margin: 1rem 0;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
 table {
     width: 100%;
@@ -797,52 +798,47 @@ table {
     font-size: 14px;
 }
 th, td {
-    border: 1px solid #e0e0e0;
+    border: 1px solid #ddd;
     padding: 8px 12px;
     text-align: center;
 }
 th {
-    background-color: #f5f5f5;
-    font-weight: 600;
+    background-color: #f8f9fa;
     position: sticky;
     top: 0;
 }
 .download-btn {
     display: inline-block;
-    padding: 4px 12px;
-    background-color: #4CAF50;
+    padding: 4px 10px;
+    background: #28a745;
     color: white !important;
     border-radius: 4px;
     text-decoration: none;
     font-size: 13px;
-    transition: background-color 0.3s;
-}
-.download-btn:hover {
-    background-color: #45a049;
 }
 .no-data {
-    color: #666;
+    color: #6c757d;
     font-style: italic;
-    text-align: center;
+    padding: 1rem;
 }
 </style>
 """
 
-# Construir tabela HTML
+# Construir tabela HTML de forma segura
 table_html = f"""
-{table_css}
+{table_style}
 <div class="table-container">
 <table>
     <thead>
         <tr>
             <th>Operação</th>
-            <th>Reservatório/Sistema</th>
-            <th>Data da Reunião</th>
-            <th>Local da Reunião</th>
-            <th>Parâmetros Aprovados</th>
-            <th>Vazão Média</th>
+            <th>Reservatório</th>
+            <th>Data</th>
+            <th>Local</th>
+            <th>Parâmetros</th>
+            <th>Vazão</th>
             <th>Apresentação</th>
-            <th>Ata da Reunião</th>
+            <th>Ata</th>
         </tr>
     </thead>
     <tbody>
@@ -850,45 +846,29 @@ table_html = f"""
 
 if not df_filtrado.empty:
     for _, row in df_filtrado.iterrows():
-        # Obter valores
-        vals = {
-            'op': row.get('Operação', ''),
-            'res': row.get('Reservatório/Sistema', ''),
-            'data': row.get('Data da Reunião', ''),
-            'local': row.get('Local da Reunião', ''),
-            'param': row.get('Parâmetros aprovados', ''),
-            'vazao': row.get('Vazão média', ''),
-            'apres': row.get('Apresentação', ''),
-            'ata': row.get('Ata da Reunião', '')
-        }
+        # Extrair valores com tratamento seguro
+        cells = [
+            row.get('Operação', ''),
+            row.get('Reservatório/Sistema', ''),
+            row.get('Data da Reunião', ''),
+            row.get('Local da Reunião', ''),
+            row.get('Parâmetros aprovados', ''),
+            row.get('Vazão média', ''),
+            row.get('Apresentação', ''),
+            row.get('Ata da Reunião', '')
+        ]
         
-        # Formatando links de download
-        ap_link = "—"
-        if vals['apres'] and str(vals['apres']).strip().lower() not in ['nan', 'none', '']:
-            ap_link = f'<a class="download-btn" href="{vals["apres"]}" target="_blank">Baixar</a>'
-            
-        ata_link = "—"
-        if vals['ata'] and str(vals['ata']).strip().lower() not in ['nan', 'none', '']:
-            ata_link = f'<a class="download-btn" href="{vals["ata"]}" target="_blank">Baixar</a>'
+        # Processar links de download
+        for i in [6, 7]:  # Índices dos campos de links
+            if not cells[i] or str(cells[i]).lower() in ['nan', 'none', '']:
+                cells[i] = "—"
+            else:
+                cells[i] = f'<a class="download-btn" href="{cells[i]}" target="_blank">Baixar</a>'
         
-        table_html += f"""
-        <tr>
-            <td>{vals['op']}</td>
-            <td>{vals['res']}</td>
-            <td>{vals['data']}</td>
-            <td>{vals['local']}</td>
-            <td>{vals['param']}</td>
-            <td>{vals['vazao']}</td>
-            <td>{ap_link}</td>
-            <td>{ata_link}</td>
-        </tr>
-        """
+        # Adicionar linha à tabela
+        table_html += "<tr>" + "".join(f"<td>{cell}</td>" for cell in cells) + "</tr>"
 else:
-    table_html += """
-    <tr>
-        <td colspan="8" class="no-data">Nenhum registro encontrado com os filtros aplicados</td>
-    </tr>
-    """
+    table_html += '<tr><td colspan="8" class="no-data">Nenhum registro encontrado</td></tr>'
 
 table_html += """
     </tbody>
