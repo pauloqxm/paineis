@@ -770,7 +770,6 @@ with tab2:
         {row.get('Reservatório', 'N/A')}
     </div>
     <div style='margin: 8px 0;'><div style='font-weight: 600; color: #555;'>Data de Coleta:</div><div style='color: #333;'>{data_coleta if data_coleta else 'N/A'}</div></div>
-    <div style='margin: 8px 0;'><div style='font-weight: 600; color: #555;'>Região Hidrográfica:</div><div style='color: #333;'>{row.get('Região Hidrográfica', 'N/A')}</div></div>
     <div style='margin: 8px 0;'><div style='font-weight: 600; color: #555;'>Município:</div><div style='color: #333;'>{row.get('Município', 'N/A')}</div></div>
     <div style='margin: 8px 0;'><div style='font-weight: 600; color: #555;'>Cota Sangria:</div><div style='color: #333;'>{row.get('Cota Sangria', 'N/A')}</div></div>
     <div style='margin: 8px 0;'><div style='font-weight: 600; color: #555;'>Volume (hm³):</div><div style='color: #333;'>{row.get('Volume', 'N/A')}</div></div>
