@@ -717,21 +717,32 @@ with tab2:
 
 # Página Documentos Oficiais
 
-# =========================
-# CONFIG DA PLANILHA
-# =========================
 SHEET_ID = "1-Tn_ZDHH-mNgJAY1WtjWd_Pyd2f5kv_ZU8dhL0caGDI"
 GID = "0"  # abra a aba no Sheets e pegue o número após #gid=
 URL = f"https://docs.google.com/spreadsheets/d/{SHEET_ID}/export?format=csv&gid={GID}"
 
 # =========================
-# CARREGAR PLANILHA
+# CARREGAR PLANILHA (COM CACHE)
 # =========================
-try:
-    df = pd.read_csv(URL, encoding='utf-8-sig').dropna(how='all')
-except Exception as e:
-    st.error(f"Não foi possível carregar os dados da planilha. Erro: {e}")
-    df = pd.DataFrame()
+# Usamos st.cache_data para armazenar o DataFrame em cache.
+# Isso evita que os dados sejam recarregados do Google Sheets em cada interação,
+# tornando a aplicação muito mais rápida.
+@st.cache_data(ttl=3600) # Cache por 1 hora (3600 segundos)
+def load_data(url):
+    try:
+        df = pd.read_csv(url, encoding='utf-8-sig').dropna(how='all')
+        # Garante que as colunas usadas para filtros e exibição sejam strings
+        # para evitar problemas de tipo de dado misturado.
+        if "Operação" in df.columns:
+            df["Operação"] = df["Operação"].astype(str)
+        if "Data da Reunião" in df.columns:
+            df["Data da Reunião"] = df["Data da Reunião"].astype(str)
+        return df
+    except Exception as e:
+        st.error(f"Não foi possível carregar os dados da planilha. Erro: {e}")
+        return pd.DataFrame()
+
+df = load_data(URL)
 
 # =========================
 # TÍTULO + CONTEXTO
@@ -749,21 +760,21 @@ st.markdown("""
 <style>
 /* Card dos filtros (aplicado ao próximo bloco vertical) */
 .filter-card-start + div[data-testid="stVerticalBlock"] {
-  border: 1px solid #e5e7eb;
-  background: #f9fafb;
-  border-radius: 10px;
-  padding: 14px 14px 8px 14px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
-  margin: 12px 0 10px 0;
+    border: 1px solid #e5e7eb;
+    background: #f9fafb;
+    border-radius: 10px;
+    padding: 14px 14px 8px 14px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    margin: 12px 0 10px 0;
 }
 
 /* Empilhar colunas no mobile */
 @media (max-width: 680px) {
-  div[data-testid="stHorizontalBlock"] > div[data-testid="column"] {
-    width: 100% !important;
-    flex: 1 0 100% !important;
-    padding-right: 0 !important;
-  }
+    div[data-testid="stHorizontalBlock"] > div[data-testid="column"] {
+        width: 100% !important;
+        flex: 1 0 100% !important;
+        padding-right: 0 !important;
+    }
 }
 
 /* Tabela responsiva */
@@ -791,6 +802,7 @@ st.markdown("""
     border-radius: 6px;
     text-decoration: none;
     font-size: 13px;
+    white-space: nowrap; /* Evita quebra de linha no botão */
 }
 .download-btn:hover { background-color: #45a049; }
 .counter {
@@ -806,6 +818,7 @@ st.markdown('<div class="filter-card-start"></div>', unsafe_allow_html=True)
 # BUSCA + FILTROS (dentro do card)
 # =========================
 def _norm(s: str) -> str:
+    # Garante que 's' seja uma string antes de normalizar
     s = "" if s is None else str(s)
     s = unicodedata.normalize("NFKD", s)
     s = "".join(c for c in s if not unicodedata.combining(c))
@@ -821,23 +834,24 @@ busca = st.text_input(
 # Linha de filtros
 c1, c2 = st.columns(2)
 with c1:
-    ops = ["Todos"] + (sorted(df["Operação"].dropna().astype(str).unique()) if not df.empty else [])
+    # Garante que as opções "Todos" e as do DataFrame sejam do mesmo tipo (string)
+    ops = ["Todos"] + (sorted(df["Operação"].dropna().astype(str).unique()) if not df.empty and "Operação" in df.columns else [])
     filtro_operacao = st.selectbox("Filtrar por Operação", ops, index=0, key="f_op")
 with c2:
-    datas = ["Todos"] + (sorted(df["Data da Reunião"].dropna().astype(str).unique()) if not df.empty else [])
+    # Garante que as opções "Todos" e as do DataFrame sejam do mesmo tipo (string)
+    datas = ["Todos"] + (sorted(df["Data da Reunião"].dropna().astype(str).unique()) if not df.empty and "Data da Reunião" in df.columns else [])
     filtro_data = st.selectbox("Filtrar por Data da Reunião", datas, index=0, key="f_dt")
 
 # Botões auxiliares (limpar filtros)
 col_b1, col_b2 = st.columns([1, 5])
 with col_b1:
     if st.button("Limpar filtros"):
+        # Limpa o estado da sessão para os filtros
         st.session_state["busca_docs"] = ""
         st.session_state["f_op"] = "Todos"
         st.session_state["f_dt"] = "Todos"
-        try:
-            st.rerun()
-        except Exception:
-            st.experimental_rerun()
+        # st.rerun() é o método mais recente para re-executar a aplicação
+        st.rerun() 
 
 # =========================
 # APLICAR FILTROS
@@ -845,13 +859,16 @@ with col_b1:
 df_filtrado = df.copy()
 
 if filtro_operacao != "Todos":
+    # Assegura que a coluna "Operação" seja tratada como string antes da comparação
     df_filtrado = df_filtrado[df_filtrado["Operação"].astype(str) == filtro_operacao]
 
 if filtro_data != "Todos":
+    # Assegura que a coluna "Data da Reunião" seja tratada como string antes da comparação
     df_filtrado = df_filtrado[df_filtrado["Data da Reunião"].astype(str) == filtro_data]
 
 if busca and busca.strip():
     q = _norm(busca.strip())
+    # Garante que todas as colunas sejam strings e normalizadas antes de aplicar a busca
     tmp = df_filtrado.fillna("").astype(str).applymap(_norm)
     mask = tmp.apply(lambda row: row.str.contains(q, regex=False)).any(axis=1)
     df_filtrado = df_filtrado[mask]
@@ -879,6 +896,7 @@ html = """
 
 if not df_filtrado.empty:
     for _, row in df_filtrado.iterrows():
+        # Usamos .get() com um valor padrão para evitar KeyError se a coluna não existir
         operacao = row.get('Operação', '')
         reservatorio = row.get('Reservatório/Sistema', '')
         data_reuniao = row.get('Data da Reunião', '')
@@ -886,7 +904,7 @@ if not df_filtrado.empty:
         parametros = row.get('Parâmetros aprovados', '')
         vazao = row.get('Vazão média', '')
 
-        # links (sempre converter para str antes de strip)
+        # links (sempre converter para str antes de strip e verificar se não é NaN/None)
         apresentacao_file = str(row.get('Apresentação', '') or '').strip()
         ap_link = f"<a class='download-btn' href='{apresentacao_file}' target='_blank' rel='noopener'>Baixar</a>" if apresentacao_file else "—"
 
@@ -906,7 +924,7 @@ if not df_filtrado.empty:
         </tr>
         """
 else:
-    html += "<tr><td colspan='8'>Nenhum dado disponível</td></tr>"
+    html += "<tr><td colspan='8'>Nenhum registro encontrado com os filtros aplicados.</td></tr>"
 
 html += "</table></div>"
 
