@@ -41,7 +41,6 @@ data_hoje = f"{dias_semana[agora.strftime('%A')]}, {agora.day:02d} de {meses[ago
 
 st.markdown(f"""
 <style>
-/* Estilos CSS anteriores mantidos */
 [data-testid="stHeader"] {{
     visibility: hidden;
     height: 0;
