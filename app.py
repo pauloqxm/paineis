@@ -1107,7 +1107,7 @@ st.markdown(f"""
     color: white;
     padding: 5px 0;
     font-family: 'Segoe UI', Roboto, sans-serif;
-    border-top: 3px solid #fad905;
+    border-top: 30px solid #fad905;
     margin-bottom: -100px !important;
     text-align: center;
     z-index: 999;
