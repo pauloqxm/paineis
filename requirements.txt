@@ -6,5 +6,3 @@ streamlit-folium
 streamlit-option-menu
 openpyxl
 tabulate
-unicodedata
-numpy
