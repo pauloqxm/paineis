@@ -42,22 +42,22 @@ st.markdown(f"""
 /* Oculta o cabeçalho padrão do Streamlit */
 [data-testid="stHeader"]{{visibility:hidden;}}
 
-/* Estilo do cabeçalho fixo */
+/* Estilo do cabeçalho fixo com duas seções */
 .custom-header{{
     position:fixed;
     top:0;
     left:0;
     width:100%;
-    background:linear-gradient(135deg,#228B22 0%,#006400 50%,#004d00 100%);
-    color:white;
-    padding:12px 5%;
     font-family:'Segoe UI',Roboto,sans-serif;
     box-shadow:0 4px 12px rgba(0,0,0,.1);
     z-index:9999;
 }}
-.header-container{{
-    max-width:1200px;
-    margin: 8px; auto;
+
+/* Seção superior do cabeçalho (verde) */
+.header-top-bar {{
+    background:linear-gradient(135deg,#228B22 0%,#006400 50%,#004d00 100%);
+    color:white;
+    padding:12px 5%;
     display:flex;
     flex-wrap:wrap;
     justify-content:space-between;
@@ -94,34 +94,25 @@ st.markdown(f"""
     white-space:nowrap;
 }}
 
-/* Barra de menu debaixo do cabeçalho */
-.social-menu-container {{
-    position: relative;
-    left: 50%;
-    right: 50%;
-    margin-left: -50vw;
-    margin-right: -50vw;
-    width: 100vw;
+/* Seção inferior do cabeçalho (azul) */
+.header-bottom-bar {{
     background-color: #04a5c9;
     color: white;
     padding: 6px 32px;
-    font-family: Tahoma, sans-serif;
     font-size: 13px;
     display: flex;
     justify-content: center;
     align-items: center;
     gap: 20px;
     flex-wrap: wrap;
-    margin-top: -20px;
     border-bottom: 3px solid #b6b8ba;
-    z-index: 1;
 }}
-.social-menu-container a {{
+.header-bottom-bar a {{
     color: white;
     text-decoration: none;
     transition: color 0.3s ease, background-color 0.3s ease;
 }}
-.social-menu-container a:hover {{
+.header-bottom-bar a:hover {{
     color: #fad905;
 }}
 .btn-chip {{
@@ -130,6 +121,7 @@ st.markdown(f"""
     border-radius: 20px;
     padding: 6px 12px;
 }}
+
 /* Estilos para o Dropdown */
 .dropdown {{
     position: relative;
@@ -179,8 +171,14 @@ st.markdown(f"""
 .dropdown:hover .dropdown-content {{
     display: block;
 }}
-/* Estilos para o restante da página */
-.main .block-container{{padding-top:90px}}
+
+/* Ajuste do padding do conteúdo para o novo cabeçalho */
+.main .block-container{{padding-top:105px}}
+@media(max-width:600px){{
+    .main .block-container{{padding-top:125px}}
+}}
+
+/* Estilos para outros elementos */
 .filter-card{{border:1px solid #e6e6e6;border-radius:1px;padding:1px 1px;background:#fff;box-shadow:0 4px 14px rgba(0,0,0,.06);margin-top:6px}}
 .filter-title{{font-weight:600;margin-bottom:6px}}
 .quick-chips span{{display:inline-block;border:1px solid #dcdcdc;border-radius:999px;padding:4px 10px;margin-right:6px;margin-top:4px;cursor:pointer;font-size:12px}}
@@ -197,13 +195,10 @@ st.markdown(f"""
 .map-style-selector {{
     margin-top: -10px;
 }}
-@media(max-width:600px){{
-    .main .block-container{{padding-top:110px}}
-}}
 </style>
 
 <div class="custom-header">
-    <div class="header-container">
+    <div class="header-top-bar">
         <div class="header-brand">
             <img src="https://cdn-icons-png.flaticon.com/512/1006/1006363.png" class="header-logo">
             <div>
@@ -213,19 +208,19 @@ st.markdown(f"""
         </div>
         <div class="header-date">📅 {data_hoje}</div>
     </div>
-</div>
 
-<div class="social-menu-container">
-    <div class="dropdown">
-        <a href="#" class="dropdown-toggle btn-chip">📸 Vinculadas <span class="caret"></span></a>
-        <div class="dropdown-content">
-            <a href="https://www.cogerh.com.br/" target="_blank" rel="noopener">🏢 COGERH</a>
-            <a href="https://www.sohidra.ce.gov.br/" target="_blank" rel="noopener">💧 SOHIDRA</a>
-            <a href="https://www.funceme.br/" target="_blank" rel="noopener">🌦️ FUNCEME</a>
+    <div class="header-bottom-bar">
+        <div class="dropdown">
+            <a href="#" class="dropdown-toggle btn-chip">📸 Vinculadas <span class="caret"></span></a>
+            <div class="dropdown-content">
+                <a href="https://www.cogerh.com.br/" target="_blank" rel="noopener">🏢 COGERH</a>
+                <a href="https://www.sohidra.ce.gov.br/" target="_blank" rel="noopener">💧 SOHIDRA</a>
+                <a href="https://www.funceme.br/" target="_blank" rel="noopener">🌦️ FUNCEME</a>
+            </div>
         </div>
+        <a href="https://www.facebook.com/seuusuario" target="_blank" rel="noopener" class="btn-chip">📘 Facebook</a>
+        <a href="https://wa.me/5588999999999" target="_blank" rel="noopener" class="btn-chip">💬 WhatsApp</a>
     </div>
-    <a href="https://www.facebook.com/seuusuario" target="_blank" rel="noopener" class="btn-chip">📘 Facebook</a>
-    <a href="https://wa.me/5588999999999" target="_blank" rel="noopener" class="btn-chip">💬 WhatsApp</a>
 </div>
 """, unsafe_allow_html=True)
 
