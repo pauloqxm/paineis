@@ -37,6 +37,7 @@ dias_semana = {'Monday':'Segunda-feira','Tuesday':'Terça-feira','Wednesday':'Qu
 meses = {'January':'janeiro','February':'fevereiro','March':'março','April':'abril','May':'maio','June':'junho','July':'julho','August':'agosto','September':'setembro','October':'outubro','November':'novembro','December':'dezembro'}
 data_hoje = f"{dias_semana[agora.strftime('%A')]}, {agora.day:02d} de {meses[agora.strftime('%B')]} de {agora.year}"
 
+#-----------------BARA FIXA------------
 st.markdown(f"""
 <style>
 [data-testid="stHeader"]{{visibility:hidden;}}
@@ -57,8 +58,6 @@ box-shadow:0 4px 12px rgba(0,0,0,.1);z-index:9999}}
 .dropdown-btn:hover{{background:rgba(255,255,255,0.2)}}
 .dropdown-content a{{color:white;padding:8px 16px;text-decoration:none;display:block;font-size:13px}}
 .dropdown-content a:hover{{background-color:#004d00}}
-.btn-chip{{background:rgba(255,255,255,0.1);border:none;color:white;padding:8px 12px;border-radius:20px;cursor:pointer;font-size:13px;text-decoration:none;display:inline-flex;align-items:center;gap:5px}}
-.btn-chip:hover{{background:rgba(255,255,255,0.2)}}
 .main .block-container{{padding-top:90px}}
 .filter-card{{border:1px solid #e6e6e6;border-radius:1px;padding:1px 1px;background:#fff;box-shadow:0 4px 14px rgba(0,0,0,.06);margin-top:6px}}
 .filter-title{{font-weight:600;margin-bottom:6px}}
@@ -72,7 +71,7 @@ box-shadow:0 4px 12px rgba(0,0,0,.1);z-index:9999}}
 @media(max-width:600px){{
  .main .block-container{{padding-top:110px}}
  .header-links{{gap:10px}}
- .dropdown-btn, .btn-chip{{padding:6px 10px}}
+ .dropdown-btn{{padding:6px 10px}}
 }}
 </style>
 <div class="custom-header">
@@ -93,8 +92,14 @@ box-shadow:0 4px 12px rgba(0,0,0,.1);z-index:9999}}
           <a href="https://www.funceme.br/" target="_blank" rel="noopener">🌦️ FUNCEME</a>
         </div>
       </div>
-      <a href="https://www.facebook.com/seuusuario" target="_blank" rel="noopener" class="btn-chip">📘 Facebook</a>
-      <a href="https://wa.me/5588999999999" target="_blank" rel="noopener" class="btn-chip">💬 WhatsApp</a>
+      <div class="dropdown">
+        <button class="dropdown-btn">🏛️ Institucional <span>▼</span></button>
+        <div class="dropdown-content">
+          <a href="https://www.cogerh.com.br/" target="_blank" rel="noopener">🏢 COGERH</a>
+          <a href="https://www.sohidra.ce.gov.br/" target="_blank" rel="noopener">💧 SOHIDRA</a>
+          <a href="https://www.funceme.br/" target="_blank" rel="noopener">🌦️ FUNCEME</a>
+        </div>
+      </div>
       <div class="header-date">📅 {data_hoje}</div>
     </div>
   </div>
