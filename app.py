@@ -1,4 +1,5 @@
 
+
 import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
@@ -726,108 +727,72 @@ except Exception as e:
     st.error(f"Não foi possível carregar os dados da planilha. Erro: {e}")
     df = pd.DataFrame()
 
-# Criar HTML da tabela responsiva
-SHEET_ID = "1-Tn_ZDHH-mNgJAY1WtjWd_Pyd2f5kv_ZU8dhL0caGDI"
-GID = "0"
-URL = f"https://docs.google.com/spreadsheets/d/{SHEET_ID}/export?format=csv&gid={GID}"
-
-# Ler planilha
-try:
-    df = pd.read_csv(URL, encoding='utf-8-sig').dropna(how='all')
-except Exception as e:
-    st.error(f"Não foi possível carregar os dados da planilha. Erro: {e}")
-    df = pd.DataFrame()
-
-st.markdown("### 📜 Documentos para Download")
-st.write("Nesta página você encontra atas e apresentações das reuniões da Bacia do Banabuiú, com detalhes de operação, reservatório, parâmetros aprovados e vazões médias.")
-
-# Escape seguro sem depender de 'html.escape'
-def esc(x):
-    if pd.notna(x) and x is not None:
-        s = str(x)
-        return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
-    return ""
-
-# Monta linhas (ordem pedida)
-rows = []
-if not df.empty:
-    for _, r in df.iterrows():
-        operacao      = esc(r.get('Operação', ''))
-        reservatorio  = esc(r.get('Reservatório/Sistema', ''))
-        data_reuniao  = esc(r.get('Data da Reunião', ''))
-        local_reuniao = esc(r.get('Local da Reunião', ''))
-        parametros    = esc(r.get('Parâmetros aprovados', ''))
-        vazao         = esc(r.get('Vazão média', ''))
-
-        ap_url  = str(r.get('Apresentação', '') or '').strip()
-        ata_url = str(r.get('Ata da Reunião', '') or '').strip()
-
-        ap_link  = f"<a class='btn btn-green' href='{esc(ap_url)}' target='_blank' rel='noopener'>Baixar</a>" if ap_url else "—"
-        ata_link = f"<a class='btn btn-blue'  href='{esc(ata_url)}' target='_blank' rel='noopener'>Baixar</a>" if ata_url else "—"
-
-        rows.append(
-            f"<tr>"
-            f"<td>{operacao}</td>"
-            f"<td>{reservatorio}</td>"
-            f"<td>{data_reuniao}</td>"
-            f"<td>{local_reuniao}</td>"
-            f"<td>{parametros}</td>"
-            f"<td>{vazao}</td>"
-            f"<td>{ap_link}</td>"
-            f"<td>{ata_link}</td>"
-            f"</tr>"
-        )
-else:
-    rows.append("<tr><td colspan='8'>Nenhum dado disponível</td></tr>")
-
-html = f"""
+# Criar HTML da tabela
+html = """
 <style>
-.table-wrap {{ overflow-x: auto; }}
-.table-docs {{
-  border-collapse: collapse; width: 100%; min-width: 1080px;
-  font-size: 14px;
-}}
-.table-docs th, .table-docs td {{
-  border: 1px solid #e5e7eb; padding: 8px 10px; text-align: left;
-}}
-.table-docs th {{ background:#f3f4f6; font-weight:700; }}
-.btn {{
-  display:inline-block; padding:6px 10px; border-radius:6px; text-decoration:none; font-weight:600;
-  color:#fff !important;
-}}
-.btn-green {{ background:#22c55e; }}
-.btn-green:hover {{ background:#16a34a; }}
-.btn-blue  {{ background:#3b82f6; }}
-.btn-blue:hover  {{ background:#2563eb; }}
-@media (max-width: 640px) {{
-  .table-docs {{ font-size:13px; min-width: 900px; }}
-}}
+table {
+    border-collapse: collapse;
+    width: 100%;
+}
+th, td {
+    border: 1px solid #ddd;
+    padding: 6px;
+    text-align: center;
+}
+th {
+    background-color: #f2f2f2;
+}
+.download-btn {
+    display: inline-block;
+    padding: 4px 8px;
+    background-color: #4CAF50;
+    color: white !important;
+    border-radius: 4px;
+    text-decoration: none;
+    font-size: 13px;
+}
+.download-btn:hover {
+    background-color: #45a049;
+}
 </style>
-<div class="table-wrap">
-  <table class="table-docs">
-    <thead>
-      <tr>
-        <th>Operação</th>
-        <th>Reservatório/Sistema</th>
-        <th>Data da Reunião</th>
-        <th>Local da Reunião</th>
-        <th>Parâmetros aprovados</th>
-        <th>Vazão média</th>
-        <th>Apresentação</th>
-        <th>Ata da Reunião</th>
-      </tr>
-    </thead>
-    <tbody>
-      {''.join(rows)}
-    </tbody>
-  </table>
-</div>
+<table>
+<tr>
+    <th>Operação</th>
+    <th>Reservatório/Sistema</th>
+    <th>Data</th>
+    <th>Local</th>
+    <th>Apresentação</th>
+    <th>Ata</th>
+</tr>
 """
 
-# Renderiza HTML real (evita aparecer como código)
-components.html(html, height=560, scrolling=True)
+if not df.empty:
+    for _, row in df.iterrows():
+        operacao = row.get('Operação', '')
+        reservatorio = row.get('Reservatório/Sistema', '')
+        data_reuniao = row.get('Data da Reunião', '')
+        local_reuniao = row.get('Local da Reunião', '')
 
-# Renderiza como HTML real (evita aparecer "código")
-components.html(html, height=500, scrolling=True)
+        # Links vindos direto da planilha
+        apresentacao_file = row.get('Apresentação', '')
+        if pd.notna(apresentacao_file) and apresentacao_file.strip():
+            ap_link = f"<a class='download-btn' href='{apresentacao_file}' target='_blank'>Baixar</a>"
+        else:
+            ap_link = "—"
 
+        ata_file = row.get('Ata da Reunião', '')
+        if pd.notna(ata_file) and ata_file.strip():
+            ata_link = f"<a class='download-btn' href='{ata_file}' target='_blank'>Baixar</a>"
+        else:
+            ata_link = "—"
 
+        html += f"<tr><td>{operacao}</td><td>{reservatorio}</td><td>{data_reuniao}</td><td>{local_reuniao}</td><td>{ap_link}</td><td>{ata_link}</td></tr>"
+else:
+    html += "<tr><td colspan='6'>Nenhum dado disponível</td></tr>"
+
+html += "</table>"
+
+# Exibir no Streamlit
+st.markdown("### 📜 Documentos para Download")
+st.write("Nesta página você encontra atas e apresentações das reuniões da Bacia do Banabuiú, organizadas por operação, reservatório e data.")
+st.markdown(html, unsafe_allow_html=True)
