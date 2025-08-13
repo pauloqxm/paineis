@@ -860,17 +860,32 @@ df_filtrado = df.copy()
 
 if filtro_operacao != "Todos":
     # Assegura que a coluna "Operação" seja tratada como string antes da comparação
-    df_filtrado = df_filtrado[df_filtrado["Operação"].astype(str) == filtro_operacao]
+    if "Operação" in df_filtrado.columns: # Adiciona verificação de existência da coluna
+        df_filtrado = df_filtrado[df_filtrado["Operação"].astype(str) == filtro_operacao]
+    else: # Se a coluna não existir, filtra para não retornar nada para evitar erros
+        df_filtrado = df_filtrado[0:0] # Retorna um DataFrame vazio
 
 if filtro_data != "Todos":
     # Assegura que a coluna "Data da Reunião" seja tratada como string antes da comparação
-    df_filtrado = df_filtrado[df_filtrado["Data da Reunião"].astype(str) == filtro_data]
+    if "Data da Reunião" in df_filtrado.columns: # Adiciona verificação de existência da coluna
+        df_filtrado = df_filtrado[df_filtrado["Data da Reunião"].astype(str) == filtro_data]
+    else: # Se a coluna não existir, filtra para não retornar nada para evitar erros
+        df_filtrado = df_filtrado[0:0] # Retorna um DataFrame vazio
+
 
 if busca and busca.strip():
     q = _norm(busca.strip())
     # Garante que todas as colunas sejam strings e normalizadas antes de aplicar a busca
-    tmp = df_filtrado.fillna("").astype(str).applymap(_norm)
-    mask = tmp.apply(lambda row: row.str.contains(q, regex=False)).any(axis=1)
+    # Garante que a aplicação de `_norm` seja feita apenas em colunas que existem.
+    
+    # Cria uma cópia do DataFrame para a operação de mapeamento e preenchimento de NaN
+    df_temp_search = df_filtrado.copy()
+    
+    # Converte todas as colunas para string e normaliza
+    for col in df_temp_search.columns:
+        df_temp_search[col] = df_temp_search[col].astype(str).apply(_norm)
+
+    mask = df_temp_search.apply(lambda row: row.str.contains(q, regex=False)).any(axis=1)
     df_filtrado = df_filtrado[mask]
 
 # Contador de registros
@@ -904,12 +919,18 @@ if not df_filtrado.empty:
         parametros = row.get('Parâmetros aprovados', '')
         vazao = row.get('Vazão média', '')
 
-        # links (sempre converter para str antes de strip e verificar se não é NaN/None)
-        apresentacao_file = str(row.get('Apresentação', '') or '').strip()
-        ap_link = f"<a class='download-btn' href='{apresentacao_file}' target='_blank' rel='noopener'>Baixar</a>" if apresentacao_file else "—"
+        # links (verificar explicitamente por NaN e a string 'nan')
+        apresentacao_file = row.get('Apresentação')
+        if pd.isna(apresentacao_file) or str(apresentacao_file).strip().lower() == 'nan' or not str(apresentacao_file).strip():
+            ap_link = "—"
+        else:
+            ap_link = f"<a class='download-btn' href='{str(apresentacao_file).strip()}' target='_blank' rel='noopener'>Baixar</a>"
 
-        ata_file = str(row.get('Ata da Reunião', '') or '').strip()
-        ata_link = f"<a class='download-btn' href='{ata_file}' target='_blank' rel='noopener'>Baixar</a>" if ata_file else "—"
+        ata_file = row.get('Ata da Reunião')
+        if pd.isna(ata_file) or str(ata_file).strip().lower() == 'nan' or not str(ata_file).strip():
+            ata_link = "—"
+        else:
+            ata_link = f"<a class='download-btn' href='{str(ata_file).strip()}' target='_blank' rel='noopener'>Baixar</a>"
 
         html += f"""
         <tr>
