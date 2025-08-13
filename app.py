@@ -6,6 +6,7 @@ import plotly.express as px
 import folium
 import json
 import base64
+import unicodedata
 from datetime import datetime, timedelta, timezone
 from streamlit_folium import folium_static
 from folium.plugins import Fullscreen, MiniMap, MousePosition, MeasureControl, MarkerCluster
@@ -715,10 +716,6 @@ with tab2:
     folium_static(m2, width=1200)
 
 # Página Documentos Oficiais
-
-import pandas as pd
-import streamlit as st
-import unicodedata
 
 # =========================
 # CONFIG DA PLANILHA
