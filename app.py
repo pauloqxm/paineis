@@ -1096,7 +1096,7 @@ with tab3:
 st.markdown(f"""
 <style>
 .footer-full-width {{
-    position: fixed;
+    position: ;
     bottom: 0;
     left: 0;
     width: 100%;
