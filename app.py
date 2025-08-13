@@ -84,7 +84,7 @@ st.markdown(f"""
         <div class="header-date">📅 {data_hoje}</div>
     </div>
 
-    <!-- SEÇÃO CORRIGIDA E MELHORADA -->
+    
     <div class="header-bottom-bar">
         <div class="dropdown">
             <a href="#" class="dropdown-toggle btn-chip">📸 Vinculadas <span class="caret"></span></a>
