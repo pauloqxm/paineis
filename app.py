@@ -1,5 +1,4 @@
 
-
 import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
@@ -7,7 +6,6 @@ import plotly.express as px
 import folium
 import json
 import base64
-import unicodedata2
 from datetime import datetime, timedelta, timezone
 from streamlit_folium import folium_static
 from folium.plugins import Fullscreen, MiniMap, MousePosition, MeasureControl, MarkerCluster
@@ -716,143 +714,130 @@ with tab2:
     folium.LayerControl(collapsed=True, position='topright').add_to(m2)
     folium_static(m2, width=1200)
 
-# Configurações da planilha
+# Página Documentos Oficiais
+
+import unicodedata
+
 SHEET_ID = "1-Tn_ZDHH-mNgJAY1WtjWd_Pyd2f5kv_ZU8dhL0caGDI"
-GID = "0"
+GID = "0"  # gid da aba
 URL = f"https://docs.google.com/spreadsheets/d/{SHEET_ID}/export?format=csv&gid={GID}"
 
-# Carregar dados com cache
-@st.cache_data(ttl=3600)
-def load_data():
-    try:
-        df = pd.read_csv(URL, encoding='utf-8-sig').dropna(how='all')
-        # Converter colunas para string
-        text_cols = ['Operação', 'Data da Reunião', 'Reservatório/Sistema', 
-                    'Local da Reunião', 'Parâmetros aprovados', 'Vazão média']
-        for col in text_cols:
-            if col in df.columns:
-                df[col] = df[col].astype(str)
-        return df
-    except Exception as e:
-        st.error(f"Erro ao carregar dados: {e}")
-        return pd.DataFrame()
+# Ler planilha
+try:
+    df = pd.read_csv(URL, encoding='utf-8-sig').dropna(how='all')
+except Exception as e:
+    st.error(f"Não foi possível carregar os dados da planilha. Erro: {e}")
+    df = pd.DataFrame()
 
-df = load_data()
+# ====== Busca textual (todas as colunas) ======
+def _norm(s):
+    s = "" if s is None else str(s)
+    s = unicodedata.normalize("NFKD", s)
+    s = "".join(c for c in s if not unicodedata.combining(c))
+    return s.lower()
 
-# Container para filtros
-with st.container(border=True):
-    st.markdown("**Filtrar dados**")
-    
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        operacoes = ['Todos'] + sorted(df['Operação'].unique()) if 'Operação' in df.columns else ['Todos']
-        filtro_operacao = st.selectbox('Operação', operacoes, index=0)
-    
-    with col2:
-        datas = ['Todos'] + sorted(df['Data da Reunião'].unique()) if 'Data da Reunião' in df.columns else ['Todos']
-        filtro_data = st.selectbox('Data da Reunião', datas, index=0)
-    
-    busca = st.text_input('Buscar em todos os campos', '')
+busca = st.text_input("Buscar em todas as colunas", placeholder="Digite um termo (ex.: açude, reunião, 2025)...")
 
-# Aplicar filtros
-df_filtrado = df.copy()
-
-if filtro_operacao != 'Todos':
-    df_filtrado = df_filtrado[df_filtrado['Operação'] == filtro_operacao]
-
-if filtro_data != 'Todos':
-    df_filtrado = df_filtrado[df_filtrado['Data da Reunião'] == filtro_data]
-
-if busca:
-    busca_lower = busca.lower()
-    mask = df_filtrado.apply(
-        lambda row: any(busca_lower in str(val).lower() for val in row.values), 
-        axis=1
-    )
-    df_filtrado = df_filtrado[mask]
-
-# Exibir contagem de resultados
-st.markdown(f"**{len(df_filtrado)} registros encontrados**")
-
-# HTML da tabela simplificado
-table_html = """
+# ====== CSS responsivo para filtros lado a lado / empilhados no mobile ======
+st.markdown("""
 <style>
+@media (max-width: 680px) {
+  div[data-testid="stHorizontalBlock"] > div[data-testid="column"] {
+    width: 100% !important;
+    flex: 1 0 100% !important;
+    padding-right: 0 !important;
+  }
+}
+.table-wrap { overflow-x: auto; }
 table {
-    width: 100%;
     border-collapse: collapse;
-    margin-top: 10px;
+    width: 100%;
+    min-width: 1080px; /* rolagem horizontal no mobile */
 }
 th, td {
     border: 1px solid #ddd;
-    padding: 8px;
+    padding: 6px;
     text-align: center;
 }
 th {
     background-color: #f2f2f2;
 }
 .download-btn {
-    background-color: #4CAF50;
-    color: white;
+    display: inline-block;
     padding: 4px 8px;
-    text-decoration: none;
+    background-color: #4CAF50;
+    color: white !important;
     border-radius: 4px;
+    text-decoration: none;
     font-size: 13px;
 }
+.download-btn:hover {
+    background-color: #45a049;
+}
 </style>
+""", unsafe_allow_html=True)
+
+# ====== FILTROS ======
+c1, c2 = st.columns(2)
+with c1:
+    ops = ["Todos"] + sorted(df["Operação"].dropna().astype(str).unique()) if not df.empty else ["Todos"]
+    filtro_operacao = st.selectbox("Filtrar por Operação", ops, index=0)
+with c2:
+    datas = ["Todos"] + sorted(df["Data da Reunião"].dropna().astype(str).unique()) if not df.empty else ["Todos"]
+    filtro_data = st.selectbox("Filtrar por Data da Reunião", datas, index=0)
+
+# ====== Aplica filtros básicos ======
+df_filtrado = df.copy()
+if filtro_operacao != "Todos":
+    df_filtrado = df_filtrado[df_filtrado["Operação"].astype(str) == filtro_operacao]
+if filtro_data != "Todos":
+    df_filtrado = df_filtrado[df_filtrado["Data da Reunião"].astype(str) == filtro_data]
+
+# ====== Aplica busca em todas as colunas (acentos/caixa-insensitive) ======
+if busca and busca.strip():
+    q = _norm(busca.strip())
+    temp = df_filtrado.fillna("").astype(str).applymap(_norm)
+    mask = temp.apply(lambda row: row.str.contains(q, regex=False)).any(axis=1)
+    df_filtrado = df_filtrado[mask]
+
+# ====== TABELA HTML ======
+html = """
+<div class="table-wrap">
 <table>
 <tr>
     <th>Operação</th>
-    <th>Reservatório</th>
-    <th>Data</th>
-    <th>Local</th>
-    <th>Parâmetros</th>
-    <th>Vazão</th>
+    <th>Reservatório/Sistema</th>
+    <th>Data da Reunião</th>
+    <th>Local da Reunião</th>
+    <th>Parâmetros aprovados</th>
+    <th>Vazão média</th>
     <th>Apresentação</th>
-    <th>Ata</th>
+    <th>Ata da Reunião</th>
 </tr>
 """
 
 if not df_filtrado.empty:
     for _, row in df_filtrado.iterrows():
-        # Extrair valores
         operacao = row.get('Operação', '')
         reservatorio = row.get('Reservatório/Sistema', '')
-        data = row.get('Data da Reunião', '')
-        local = row.get('Local da Reunião', '')
+        data_reuniao = row.get('Data da Reunião', '')
+        local_reuniao = row.get('Local da Reunião', '')
         parametros = row.get('Parâmetros aprovados', '')
         vazao = row.get('Vazão média', '')
-        
-        # Links de download
-        apresentacao = row.get('Apresentação', '')
-        ap_link = "—"
-        if pd.notna(apresentacao) and str(apresentacao).strip() not in ['', 'nan']:
-            ap_link = f"<a class='download-btn' href='{apresentacao}' target='_blank'>Baixar</a>"
-            
-        ata = row.get('Ata da Reunião', '')
-        ata_link = "—"
-        if pd.notna(ata) and str(ata).strip() not in ['', 'nan']:
-            ata_link = f"<a class='download-btn' href='{ata}' target='_blank'>Baixar</a>"
-        
-        # Adicionar linha
-        table_html += f"""
-        <tr>
-            <td>{operacao}</td>
-            <td>{reservatorio}</td>
-            <td>{data}</td>
-            <td>{local}</td>
-            <td>{parametros}</td>
-            <td>{vazao}</td>
-            <td>{ap_link}</td>
-            <td>{ata_link}</td>
-        </tr>
-        """
+
+        apresentacao_file = str(row.get('Apresentação', '') or '').strip()
+        ap_link = f"<a class='download-btn' href='{apresentacao_file}' target='_blank' rel='noopener'>Baixar</a>" if apresentacao_file else "—"
+
+        ata_file = str(row.get('Ata da Reunião', '') or '').strip()
+        ata_link = f"<a class='download-btn' href='{ata_file}' target='_blank' rel='noopener'>Baixar</a>" if ata_file else "—"
+
+        html += f"<tr><td>{operacao}</td><td>{reservatorio}</td><td>{data_reuniao}</td><td>{local_reuniao}</td><td>{parametros}</td><td>{vazao}</td><td>{ap_link}</td><td>{ata_link}</td></tr>"
 else:
-    table_html += "<tr><td colspan='8'>Nenhum registro encontrado</td></tr>"
+    html += "<tr><td colspan='8'>Nenhum dado disponível</td></tr>"
 
-table_html += "</table>"
+html += "</table></div>"
 
-# Exibir interface
+# Exibir
 st.markdown("### 📜 Documentos para Download")
-st.write("Nesta página você encontra atas e apresentações das reuniões da Bacia do Banabuiú.")
-st.markdown(table_html, unsafe_allow_html=True)  # Corrigido para usar table_html
+st.write("Nesta página você encontra atas e apresentações das reuniões da Bacia do Banabuiú, organizadas por operação, reservatório, parâmetros aprovados e vazão média.")
+st.markdown(html, unsafe_allow_html=True)
