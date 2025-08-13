@@ -668,6 +668,30 @@ with tab1:
 
 with tab2:
     st.title("🗺️ Açudes Monitorados")
+
+    st.markdown("""
+<div style="
+    background: linear-gradient(135deg, #f5f7fa 0%, #e4e8eb 100%);
+    border-radius: 12px;
+    padding: 20px;
+    border-left: 4px solid #228B22;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    margin-bottom: 20px;
+">
+    <p style="
+        font-family: 'Segoe UI', Roboto, sans-serif;
+        color: #2c3e50;
+        font-size: 16px;
+        line-height: 1.6;
+        margin: 0;
+    ">
+        <span style="font-weight: 600; color: #006400;">📌 Nesta página você encontra:</span><br>
+        • Atas e apresentações das reuniões da Bacia do Banabuiú<br>
+        • Organizadas por operação, reservatório e parâmetros<br>
+        • Dados de vazão média aprovados
+    </p>
+</div>
+""", unsafe_allow_html=True)
     
     with st.expander("☰ Estilo do Mapa", expanded=False):
         tile_option = st.selectbox(
@@ -701,9 +725,9 @@ with tab2:
 
     # Adiciona a camada da bacia primeiro para calcular o bounds
     bacia_layer = folium.GeoJson(geojson_bacia,
-                                name="Bacia do Banabuiu",
-                                tooltip=folium.GeoJsonTooltip(fields=["DESCRICA1"], aliases=["Bacia:"]),
-                                style_function=lambda x: {"color":"darkblue","weight":2})
+                                 name="Bacia do Banabuiu",
+                                 tooltip=folium.GeoJsonTooltip(fields=["DESCRICA1"], aliases=["Bacia:"]),
+                                 style_function=lambda x: {"color": "darkblue", "weight": 2})
     bacia_layer.add_to(m2)
 
     # Ajusta o zoom para focar na bacia com um padding
