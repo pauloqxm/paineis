@@ -68,7 +68,6 @@ st.markdown(f"""
     gap: 10px;
 }}
 
-/* ... (manter todos os outros estilos CSS anteriores) ... */
 
 </style>
 
@@ -83,7 +82,6 @@ st.markdown(f"""
         </div>
         <div class="header-date">📅 {data_hoje}</div>
     </div>
-
     
     <div class="header-bottom-bar">
         <div class="dropdown">
