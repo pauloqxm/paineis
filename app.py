@@ -708,7 +708,7 @@ with tab2:
     bacia_layer.add_to(m2)
 
     # Ajusta o zoom para focar na bacia com um padding
-    m2.fit_bounds(bacia_layer.get_bounds(), padding=(30, 30))
+    m2.fit_bounds(bacia_layer.get_bounds(), padding=(0, 0))
 
     # Carregar dados da planilha Google
     @st.cache_data(ttl=3600)
