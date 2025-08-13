@@ -1,6 +1,4 @@
 
-
-
 import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
@@ -692,7 +690,7 @@ with tab2:
     tile_attr = {
         "OpenStreetMap": '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
         "Stamen Terrain": 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, under <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>. Data by <a href="http://openstreetmap.org">OpenStreetMap</a>, under a href="http://www.openstreetmap.org/copyright">ODbL</a>.',
-        "Stamen Toner": 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, under <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>. Data by <a href="http://openstreetmap.org">OpenStreetMap</a>, under a href="http://www.openstreetmap.org/copyright">ODbL</a>.',
+        "Stamen Toner": 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, under a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>. Data by <a href="http://openstreetmap.org">OpenStreetMap</a>, under a href="http://www.openstreetmap.org/copyright">ODbL</a>.',
         "CartoDB positron": '&copy; <a href="https://carto.com/attributions">CARTO</a>',
         "CartoDB dark_matter": '&copy; <a href="https://carto.com/attributions">CARTO</a>',
         "Esri Satellite": "Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community"
@@ -752,8 +750,23 @@ with tab2:
                     data_coleta = row['Data_Formatada'].strftime('%d/%m/%Y')
                     
                 popup_info = f"""
-<div style='font-family: "Segoe UI", Arial, sans-serif; padding: 14px; background: white; border-radius: 10px; box-shadow: 0 3px 10px rgba(0,0,0,0.15); border-left: 5px solid #228B22; min-width: 250px;'>
-    <div style='font-size: 17px; font-weight: 700; color: #006400; margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 8px;'>
+<div style='
+    font-family: "Segoe UI", Arial, sans-serif;
+    padding: 14px;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.15);
+    border-left: 5px solid #228B22;
+    max-width: 90vw;
+'>
+    <div style='
+        font-size: 17px; 
+        font-weight: 700; 
+        color: #006400;
+        margin-bottom: 10px;
+        border-bottom: 1px solid #eee;
+        padding-bottom: 8px;
+    '>
         {row.get('Reservatório', 'N/A')}
     </div>
     <div style='margin: 8px 0;'><div style='font-weight: 600; color: #555;'>Data de Coleta:</div><div style='color: #333;'>{data_coleta if data_coleta else 'N/A'}</div></div>
@@ -765,7 +778,7 @@ with tab2:
 </div>
 """
                 folium.Marker(
-                    [row['Latitude'], row['Longitude']],
+                    row[['Latitude', 'Longitude']].tolist(),
                     icon=folium.CustomIcon("https://cdn-icons-png.flaticon.com/512/3059/3059518.png", icon_size=(28, 28)),
                     tooltip=f"{row.get('Reservatório', 'Reservatório')} - {data_coleta}" if data_coleta else row.get('Reservatório', 'Reservatório'),
                     popup=folium.Popup(popup_info, max_width=300)
@@ -782,9 +795,22 @@ with tab2:
     for feature in geojson_c_gestoras["features"]:
         props = feature["properties"]; coords = feature["geometry"]["coordinates"]
         nome_g = props.get("SISTEMAH3","Sem nome")
-        popup_info = f"""
-<div style='font-family: "Segoe UI", Arial, sans-serif; padding: 12px; background: white; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); border-top: 4px solid #228B22; min-width: 200px;'>
-    <div style='font-size: 16px; font-weight: 600; color: #2c3e50; margin-bottom: 8px;'>
+        popup_info_gestoras = f"""
+<div style='
+    font-family: "Segoe UI", Arial, sans-serif;
+    padding: 12px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    border-top: 4px solid #228B22;
+    max-width: 90vw;
+'>
+    <div style='
+        font-size: 16px; 
+        font-weight: 600; 
+        color: #2c3e50;
+        margin-bottom: 8px;
+    '>
         {nome_g}
     </div>
     
@@ -805,10 +831,10 @@ with tab2:
 </div>
 """
         folium.Marker(
-            [coords[1], coords[0]],
+            coords[::-1],
             icon=folium.CustomIcon("https://cdn-icons-png.flaticon.com/512/4144/4144517.png", icon_size=(30,30)),
             tooltip=nome_g,
-            popup=folium.Popup(popup_info, max_width=300)
+            popup=folium.Popup(popup_info_gestoras, max_width=300)
         ).add_to(gestoras_layer)
     gestoras_layer.add_to(m2)
 
@@ -817,8 +843,8 @@ with tab2:
         folium.TileLayer(tiles='OpenStreetMap').add_to(m2)
     else:
         folium.TileLayer(
-            tiles=tile_urls[tile_option],
-            attr=tile_attr[tile_option],
+            tiles=tile_urls.get(tile_option),
+            attr=tile_attr.get(tile_option),
             name=tile_option
         ).add_to(m2)
 
