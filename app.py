@@ -719,221 +719,204 @@ with tab2:
 # Página Documentos Oficiais
 
 SHEET_ID = "1-Tn_ZDHH-mNgJAY1WtjWd_Pyd2f5kv_ZU8dhL0caGDI"
-GID = "0"  # abra a aba no Sheets e pegue o número após #gid=
+GID = "0"
 URL = f"https://docs.google.com/spreadsheets/d/{SHEET_ID}/export?format=csv&gid={GID}"
 
 # =========================
 # CARREGAR PLANILHA (COM CACHE)
 # =========================
-# Usamos st.cache_data para armazenar o DataFrame em cache.
-# Isso evita que os dados sejam recarregados do Google Sheets em cada interação,
-# tornando a aplicação muito mais rápida.
-@st.cache_data(ttl=3600) # Cache por 1 hora (3600 segundos)
+@st.cache_data(ttl=3600)
 def load_data(url):
     try:
         df = pd.read_csv(url, encoding='utf-8-sig').dropna(how='all')
-        # Garante que as colunas usadas para filtros e exibição sejam strings
-        # para evitar problemas de tipo de dado misturado.
-        if "Operação" in df.columns:
-            df["Operação"] = df["Operação"].astype(str)
-        if "Data da Reunião" in df.columns:
-            df["Data da Reunião"] = df["Data da Reunião"].astype(str)
+        # Converter colunas relevantes para string
+        cols_to_str = ["Operação", "Data da Reunião", "Reservatório/Sistema", 
+                      "Local da Reunião", "Parâmetros aprovados", "Vazão média"]
+        for col in cols_to_str:
+            if col in df.columns:
+                df[col] = df[col].astype(str)
         return df
     except Exception as e:
-        st.error(f"Não foi possível carregar os dados da planilha. Erro: {e}")
+        st.error(f"Erro ao carregar dados: {e}")
         return pd.DataFrame()
 
 df = load_data(URL)
 
 # =========================
-# TÍTULO + CONTEXTO
+# INTERFACE
 # =========================
 st.markdown("### 📜 Documentos para Download")
-st.write(
-    "Nesta página você encontra atas e apresentações das reuniões da Bacia do Banabuiú, "
-    "organizadas por operação, reservatório, parâmetros aprovados e vazão média."
-)
+st.write("""
+Nesta página você encontra atas e apresentações das reuniões da Bacia do Banabuiú, 
+organizadas por operação, reservatório, parâmetros aprovados e vazão média.
+""")
 
 # =========================
-# CSS (apenas estilos gerais e tabela responsiva, o card de filtro foi removido)
+# CSS
 # =========================
 st.markdown("""
 <style>
-/* Empilhar colunas no mobile */
-@media (max-width: 680px) {
-    div[data-testid="stHorizontalBlock"] > div[data-testid="column"] {
-        width: 100% !important;
-        flex: 1 0 100% !important;
-        padding-right: 0 !important;
-    }
+.table-responsive {
+    overflow-x: auto;
+    margin-top: 1rem;
 }
-
-/* Tabela responsiva */
-.table-wrap { overflow-x: auto; }
 .table-docs {
-    border-collapse: collapse;
     width: 100%;
-    min-width: 1080px; /* ativa rolagem horizontal em telas pequenas */
+    min-width: 1000px;
+    border-collapse: collapse;
     font-size: 14px;
 }
 .table-docs th, .table-docs td {
     border: 1px solid #ddd;
-    padding: 6px 8px;
+    padding: 8px 12px;
     text-align: center;
 }
 .table-docs th {
     background-color: #f2f2f2;
-    font-weight: 700;
+    font-weight: 600;
 }
 .download-btn {
     display: inline-block;
-    padding: 4px 8px;
+    padding: 4px 12px;
     background-color: #4CAF50;
     color: white !important;
-    border-radius: 6px;
+    border-radius: 4px;
     text-decoration: none;
     font-size: 13px;
-    white-space: nowrap; /* Evita quebra de linha no botão */
 }
-.download-btn:hover { background-color: #45a049; }
+.download-btn:hover {
+    background-color: #45a049;
+}
 .counter {
-    margin: 6px 2px 0 2px; font-size: 13px; color: #374151;
+    margin: 10px 0;
+    font-size: 14px;
+    color: #555;
+}
+.filter-row {
+    margin-bottom: 15px;
 }
 </style>
 """, unsafe_allow_html=True)
 
 # =========================
-# BUSCA + FILTROS (agora posicionados antes da tabela)
+# FILTROS
 # =========================
-def _norm(s: str) -> str:
-    # Garante que 's' seja uma string antes de normalizar
-    s = "" if s is None else str(s)
-    s = unicodedata.normalize("NFKD", s)
-    s = "".join(c for c in s if not unicodedata.combining(c))
-    return s.lower()
+def normalize_text(text):
+    text = str(text)
+    text = unicodedata.normalize("NFKD", text)
+    text = "".join([c for c in text if not unicodedata.combining(c)])
+    return text.lower()
+
+# Filtros em colunas
+col1, col2 = st.columns(2)
+with col1:
+    operacoes = ["Todos"] + sorted(df["Operação"].unique()) if "Operação" in df.columns else ["Todos"]
+    filtro_operacao = st.selectbox("Filtrar por Operação", operacoes, index=0)
+with col2:
+    datas = ["Todos"] + sorted(df["Data da Reunião"].unique()) if "Data da Reunião" in df.columns else ["Todos"]
+    filtro_data = st.selectbox("Filtrar por Data da Reunião", datas, index=0)
 
 # Busca global
-busca = st.text_input(
-    "Buscar em todas as colunas",
-    placeholder="Digite um termo (ex.: açude, reunião, 2025)…",
-    key="busca_docs" # Mantido o key para gerenciamento de estado
-)
+busca = st.text_input("Buscar em todas as colunas", placeholder="Digite um termo...")
 
-# Linha de filtros
-c1, c2 = st.columns(2)
-with c1:
-    # Garante que as opções "Todos" e as do DataFrame sejam do mesmo tipo (string)
-    ops = ["Todos"] + (sorted(df["Operação"].dropna().astype(str).unique()) if not df.empty and "Operação" in df.columns else [])
-    filtro_operacao = st.selectbox("Filtrar por Operação", ops, index=0, key="f_op") # Mantido o key
-with c2:
-    # Garante que as opções "Todos" e as do DataFrame sejam do mesmo tipo (string)
-    datas = ["Todos"] + (sorted(df["Data da Reunião"].dropna().astype(str).unique()) if not df.empty and "Data da Reunião" in df.columns else [])
-    filtro_data = st.selectbox("Filtrar por Data da Reunião", datas, index=0, key="f_dt") # Mantido o key
-
-# Botões auxiliares (limpar filtros)
-col_b1, col_b2 = st.columns([1, 5])
-with col_b1:
-    if st.button("Limpar filtros"):
-        # Limpa o estado da sessão para os filtros
-        st.session_state["busca_docs"] = ""
-        st.session_state["f_op"] = "Todos"
-        st.session_state["f_dt"] = "Todos"
-        # st.rerun() é o método mais recente para re-executar a aplicação
-        st.rerun() 
+# Botão limpar filtros
+if st.button("Limpar filtros"):
+    filtro_operacao = "Todos"
+    filtro_data = "Todos"
+    busca = ""
+    st.rerun()
 
 # =========================
 # APLICAR FILTROS
 # =========================
 df_filtrado = df.copy()
 
+# Filtro por operação
 if filtro_operacao != "Todos":
-    # Assegura que a coluna "Operação" seja tratada como string antes da comparação
-    if "Operação" in df_filtrado.columns: # Adiciona verificação de existência da coluna
-        df_filtrado = df_filtrado[df_filtrado["Operação"].astype(str) == filtro_operacao]
-    else: # Se a coluna não existir, filtra para não retornar nada para evitar erros
-        df_filtrado = df_filtrado[0:0] # Retorna um DataFrame vazio
+    df_filtrado = df_filtrado[df_filtrado["Operação"] == filtro_operacao]
 
+# Filtro por data
 if filtro_data != "Todos":
-    # Assegura que a coluna "Data da Reunião" seja tratada como string antes da comparação
-    if "Data da Reunião" in df_filtrado.columns: # Adiciona verificação de existência da coluna
-        df_filtrado = df_filtrado[df_filtrado["Data da Reunião"].astype(str) == filtro_data]
-    else: # Se a coluna não existir, filtra para não retornar nada para evitar erros
-        df_filtrado = df_filtrado[0:0] # Retorna um DataFrame vazio
+    df_filtrado = df_filtrado[df_filtrado["Data da Reunião"] == filtro_data]
 
-if busca and busca.strip():
-    q = _norm(busca.strip())
-    # Cria uma cópia do DataFrame para a operação de mapeamento e preenchimento de NaN
-    df_temp_search = df_filtrado.copy()
-    
-    # Converte todas as colunas para string e normaliza
-    for col in df_temp_search.columns:
-        df_temp_search[col] = df_temp_search[col].astype(str).apply(_norm)
-
-    mask = df_temp_search.apply(lambda row: row.str.contains(q, regex=False)).any(axis=1)
+# Filtro por busca
+if busca:
+    busca_norm = normalize_text(busca)
+    mask = df_filtrado.apply(
+        lambda row: any(busca_norm in normalize_text(val) for val in row.values), 
+        axis=1
+    )
     df_filtrado = df_filtrado[mask]
 
-# Contador de registros
-st.markdown(f"<div class='counter'><b>{len(df_filtrado)}</b> registro(s) encontrado(s).</div>", unsafe_allow_html=True)
+# Contador de resultados
+st.markdown(f"<div class='counter'><b>{len(df_filtrado)}</b> registro(s) encontrado(s)</div>", 
+            unsafe_allow_html=True)
 
 # =========================
-# TABELA HTML (ordem pedida)
+# TABELA DE RESULTADOS
 # =========================
-html = """
-<div class="table-wrap">
-  <table class="table-docs">
-    <tr>
-      <th>Operação</th>
-      <th>Reservatório/Sistema</th>
-      <th>Data da Reunião</th>
-      <th>Local da Reunião</th>
-      <th>Parâmetros aprovados</th>
-      <th>Vazão média</th>
-      <th>Apresentação</th>
-      <th>Ata da Reunião</th>
-    </tr>
-"""
-
 if not df_filtrado.empty:
+    st.markdown('<div class="table-responsive">', unsafe_allow_html=True)
+    
+    # Criar tabela HTML
+    html = """
+    <table class="table-docs">
+        <thead>
+            <tr>
+                <th>Operação</th>
+                <th>Reservatório/Sistema</th>
+                <th>Data da Reunião</th>
+                <th>Local da Reunião</th>
+                <th>Parâmetros Aprovados</th>
+                <th>Vazão Média</th>
+                <th>Apresentação</th>
+                <th>Ata da Reunião</th>
+            </tr>
+        </thead>
+        <tbody>
+    """
+    
     for _, row in df_filtrado.iterrows():
-        # Usamos .get() com um valor padrão para evitar KeyError se a coluna não existir
-        operacao = row.get('Operação', '')
-        reservatorio = row.get('Reservatório/Sistema', '')
-        data_reuniao = row.get('Data da Reunião', '')
-        local_reuniao = row.get('Local da Reunião', '')
-        parametros = row.get('Parâmetros aprovados', '')
-        vazao = row.get('Vazão média', '')
-
-        # links (verificar explicitamente por NaN e a string 'nan')
-        apresentacao_file = row.get('Apresentação')
-        if pd.isna(apresentacao_file) or str(apresentacao_file).strip().lower() == 'nan' or not str(apresentacao_file).strip():
-            ap_link = "—"
-        else:
-            ap_link = f"<a class='download-btn' href='{str(apresentacao_file).strip()}' target='_blank' rel='noopener'>Baixar</a>"
-
-        ata_file = row.get('Ata da Reunião')
-        if pd.isna(ata_file) or str(ata_file).strip().lower() == 'nan' or not str(ata_file).strip():
-            ata_link = "—"
-        else:
-            ata_link = f"<a class='download-btn' href='{str(ata_file).strip()}' target='_blank' rel='noopener'>Baixar</a>"
-
+        # Obter valores das colunas
+        vals = {
+            'op': row.get('Operação', ''),
+            'res': row.get('Reservatório/Sistema', ''),
+            'data': row.get('Data da Reunião', ''),
+            'local': row.get('Local da Reunião', ''),
+            'param': row.get('Parâmetros aprovados', ''),
+            'vazao': row.get('Vazão média', ''),
+            'apres': row.get('Apresentação', ''),
+            'ata': row.get('Ata da Reunião', '')
+        }
+        
+        # Formatando links de download
+        ap_link = "—"
+        if vals['apres'] and str(vals['apres'] not in ['nan', 'None']:
+            ap_link = f'<a class="download-btn" href="{vals["apres"]}" target="_blank">Baixar</a>'
+            
+        ata_link = "—"
+        if vals['ata'] and str(vals['ata']) not in ['nan', 'None']:
+            ata_link = f'<a class="download-btn" href="{vals["ata"]}" target="_blank">Baixar</a>'
+        
         html += f"""
         <tr>
-          <td>{operacao}</td>
-          <td>{reservatorio}</td>
-          <td>{data_reuniao}</td>
-          <td>{local_reuniao}</td>
-          <td>{parametros}</td>
-          <td>{vazao}</td>
-          <td>{ap_link}</td>
-          <td>{ata_link}</td>
+            <td>{vals['op']}</td>
+            <td>{vals['res']}</td>
+            <td>{vals['data']}</td>
+            <td>{vals['local']}</td>
+            <td>{vals['param']}</td>
+            <td>{vals['vazao']}</td>
+            <td>{ap_link}</td>
+            <td>{ata_link}</td>
         </tr>
         """
+    
+    html += """
+        </tbody>
+    </table>
+    </div>
+    """
+    
+    st.markdown(html, unsafe_allow_html=True)
 else:
-    html += "<tr><td colspan='8'>Nenhum registro encontrado com os filtros aplicados.</td></tr>"
-
-html += "</table></div>"
-
-# =========================
-# RENDERIZAR TABELA
-# =========================
-st.markdown(html, unsafe_allow_html=True)
+    st.info("Nenhum registro encontrado com os filtros aplicados.")
