@@ -889,9 +889,9 @@ if not df_filtrado.empty:
             'ata': row.get('Ata da Reunião', '')
         }
         
-        # Formatando links de download
+        # Formatando links de download - CORREÇÃO APLICADA AQUI
         ap_link = "—"
-        if vals['apres'] and str(vals['apres'] not in ['nan', 'None']:
+        if vals['apres'] and str(vals['apres']) not in ['nan', 'None']:
             ap_link = f'<a class="download-btn" href="{vals["apres"]}" target="_blank">Baixar</a>'
             
         ata_link = "—"
