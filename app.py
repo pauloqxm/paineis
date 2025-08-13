@@ -716,6 +716,8 @@ with tab2:
 
 # Página Documentos Oficiais
 
+import unicodedata
+
 SHEET_ID = "1-Tn_ZDHH-mNgJAY1WtjWd_Pyd2f5kv_ZU8dhL0caGDI"
 GID = "0"  # gid da aba
 URL = f"https://docs.google.com/spreadsheets/d/{SHEET_ID}/export?format=csv&gid={GID}"
@@ -727,10 +729,18 @@ except Exception as e:
     st.error(f"Não foi possível carregar os dados da planilha. Erro: {e}")
     df = pd.DataFrame()
 
-# ====== CSS para responsividade dos filtros (colunas empilham no mobile) ======
+# ====== Busca textual (todas as colunas) ======
+def _norm(s):
+    s = "" if s is None else str(s)
+    s = unicodedata.normalize("NFKD", s)
+    s = "".join(c for c in s if not unicodedata.combining(c))
+    return s.lower()
+
+busca = st.text_input("Buscar em todas as colunas", placeholder="Digite um termo (ex.: açude, reunião, 2025)...")
+
+# ====== CSS responsivo para filtros lado a lado / empilhados no mobile ======
 st.markdown("""
 <style>
-/* Torna qualquer par de colunas mais "flexível" em telas pequenas */
 @media (max-width: 680px) {
   div[data-testid="stHorizontalBlock"] > div[data-testid="column"] {
     width: 100% !important;
@@ -738,28 +748,6 @@ st.markdown("""
     padding-right: 0 !important;
   }
 }
-</style>
-""", unsafe_allow_html=True)
-
-# ====== FILTROS (lado a lado no desktop, empilhados no mobile) ======
-c1, c2 = st.columns(2)
-with c1:
-    ops = ["Todos"] + sorted(df["Operação"].dropna().astype(str).unique()) if not df.empty else ["Todos"]
-    filtro_operacao = st.selectbox("Filtrar por Operação", ops, index=0)
-with c2:
-    datas = ["Todos"] + sorted(df["Data da Reunião"].dropna().astype(str).unique()) if not df.empty else ["Todos"]
-    filtro_data = st.selectbox("Filtrar por Data da Reunião", datas, index=0)
-
-# Aplica filtros
-df_filtrado = df.copy()
-if filtro_operacao != "Todos":
-    df_filtrado = df_filtrado[df_filtrado["Operação"].astype(str) == filtro_operacao]
-if filtro_data != "Todos":
-    df_filtrado = df_filtrado[df_filtrado["Data da Reunião"].astype(str) == filtro_data]
-
-# Criar HTML da tabela (ordem atualizada)
-html = """
-<style>
 .table-wrap { overflow-x: auto; }
 table {
     border-collapse: collapse;
@@ -787,6 +775,33 @@ th {
     background-color: #45a049;
 }
 </style>
+""", unsafe_allow_html=True)
+
+# ====== FILTROS ======
+c1, c2 = st.columns(2)
+with c1:
+    ops = ["Todos"] + sorted(df["Operação"].dropna().astype(str).unique()) if not df.empty else ["Todos"]
+    filtro_operacao = st.selectbox("Filtrar por Operação", ops, index=0)
+with c2:
+    datas = ["Todos"] + sorted(df["Data da Reunião"].dropna().astype(str).unique()) if not df.empty else ["Todos"]
+    filtro_data = st.selectbox("Filtrar por Data da Reunião", datas, index=0)
+
+# ====== Aplica filtros básicos ======
+df_filtrado = df.copy()
+if filtro_operacao != "Todos":
+    df_filtrado = df_filtrado[df_filtrado["Operação"].astype(str) == filtro_operacao]
+if filtro_data != "Todos":
+    df_filtrado = df_filtrado[df_filtrado["Data da Reunião"].astype(str) == filtro_data]
+
+# ====== Aplica busca em todas as colunas (acentos/caixa-insensitive) ======
+if busca and busca.strip():
+    q = _norm(busca.strip())
+    temp = df_filtrado.fillna("").astype(str).applymap(_norm)
+    mask = temp.apply(lambda row: row.str.contains(q, regex=False)).any(axis=1)
+    df_filtrado = df_filtrado[mask]
+
+# ====== TABELA HTML ======
+html = """
 <div class="table-wrap">
 <table>
 <tr>
@@ -810,11 +825,10 @@ if not df_filtrado.empty:
         parametros = row.get('Parâmetros aprovados', '')
         vazao = row.get('Vazão média', '')
 
-        # Links diretos vindos da planilha
-        apresentacao_file = (row.get('Apresentação', '') or '').strip()
+        apresentacao_file = str(row.get('Apresentação', '') or '').strip()
         ap_link = f"<a class='download-btn' href='{apresentacao_file}' target='_blank' rel='noopener'>Baixar</a>" if apresentacao_file else "—"
 
-        ata_file = (row.get('Ata da Reunião', '') or '').strip()
+        ata_file = str(row.get('Ata da Reunião', '') or '').strip()
         ata_link = f"<a class='download-btn' href='{ata_file}' target='_blank' rel='noopener'>Baixar</a>" if ata_file else "—"
 
         html += f"<tr><td>{operacao}</td><td>{reservatorio}</td><td>{data_reuniao}</td><td>{local_reuniao}</td><td>{parametros}</td><td>{vazao}</td><td>{ap_link}</td><td>{ata_link}</td></tr>"
@@ -823,9 +837,10 @@ else:
 
 html += "</table></div>"
 
-# Exibir no Streamlit
+# Exibir
 st.markdown("### 📜 Documentos para Download")
 st.write("Nesta página você encontra atas e apresentações das reuniões da Bacia do Banabuiú, organizadas por operação, reservatório, parâmetros aprovados e vazão média.")
 st.markdown(html, unsafe_allow_html=True)
+
 
 
