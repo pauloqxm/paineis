@@ -1090,3 +1090,102 @@ with tab3:
 
     # Exibir tabela
     st.markdown(table_html, unsafe_allow_html=True)
+    
+#--------------------------RODAPÉ----------------------
+
+st.markdown(f"""
+<style>
+/* Rodapé Estilizado */
+.footer-full-width {{
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: linear-gradient(135deg, #228B22 0%, #006400 100%);
+    color: white;
+    padding: 12px 0;
+    font-family: 'Segoe UI', Roboto, sans-serif;
+    border-top: 3px solid #fad905;
+    text-align: center;
+    z-index: 9999;
+    box-shadow: 0 -4px 12px rgba(0,0,0,0.1);
+}}
+
+.footer-content {{
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}}
+
+.footer-info {{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+    font-size: 14px;
+}}
+
+.footer-address {{
+    font-size: 13px;
+    opacity: 0.9;
+    margin-top: 4px;
+}}
+
+.footer-divider {{
+    color: rgba(255,255,255,0.5);
+}}
+
+.footer-link {{
+    color: white;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s ease;
+}}
+
+.footer-link:hover {{
+    color: #fad905;
+    transform: translateY(-1px);
+}}
+
+@media (max-width: 768px) {{
+    .footer-info {{
+        gap: 10px;
+        font-size: 13px;
+    }}
+    .footer-address {{
+        font-size: 12px;
+        padding: 0 16px;
+    }}
+}}
+
+@media (max-width: 480px) {{
+    .footer-info {{
+        flex-direction: column;
+        gap: 8px;
+    }}
+    .footer-divider {{
+        display: none;
+    }}
+}}
+</style>
+
+<div class="footer-full-width">
+    <div class="footer-content">
+        <div class="footer-info">
+            <a href="tel:+5588999999999" class="footer-link">📞 (88) 99999-9999</a>
+            <span class="footer-divider">|</span>
+            <a href="mailto:vocedenuncia@qvocedenuncia" class="footer-link">📧 vocedenuncia@qvocedenuncia</a>
+            <span class="footer-divider">|</span>
+            <span class="footer-link"><b>Plataforma Você Denuncia</b></span>
+        </div>
+        <div class="footer-address">
+            🏢 R. 14 de Agosto, 123 - Centro, Quixeramobim - CE, 63800-000
+        </div>
+    </div>
+</div>
+""", unsafe_allow_html=True)
