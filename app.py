@@ -734,17 +734,29 @@ with tab2:
     # Adicionar camada de reservatórios
     reservatorios_layer = folium.FeatureGroup(name="Reservatórios (Dados Atualizados)", show=True)
     
-    if not df_reservatorios.empty:
-        for _, row in df_reservatorios.iterrows():
-            try:
-                if not (-90 <= row['Latitude'] <= 90) or not (-180 <= row['Longitude'] <= 180):
-                    continue
-                    
-                popup_info = f"""
+if not df_reservatorios.empty:
+    # Primeiro verifique se a coluna de data existe e converta para datetime
+    if 'Data de Coleta' in df_reservatorios.columns:
+        df_reservatorios['Data_Formatada'] = pd.to_datetime(df_reservatorios['Data de Coleta'], errors='coerce', dayfirst=True)
+        # Ordena por data decrescente para pegar a mais recente para cada reservatório
+        df_reservatorios.sort_values('Data_Formatada', ascending=False, inplace=True)
+    
+    for _, row in df_reservatorios.iterrows():
+        try:
+            if not (-90 <= row['Latitude'] <= 90) or not (-180 <= row['Longitude'] <= 180):
+                continue
+                
+            # Formata a data para exibição (se existir)
+            data_coleta = ''
+            if 'Data_Formatada' in df_reservatorios.columns and pd.notna(row['Data_Formatada']):
+                data_coleta = row['Data_Formatada'].strftime('%d/%m/%Y')
+                
+            popup_info = f"""
 <div style='font-family: "Segoe UI", Arial, sans-serif; padding: 14px; background: white; border-radius: 10px; box-shadow: 0 3px 10px rgba(0,0,0,0.15); border-left: 5px solid #228B22; min-width: 250px;'>
     <div style='font-size: 17px; font-weight: 700; color: #006400; margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 8px;'>
         {row.get('Reservatório', 'N/A')}
     </div>
+    <div style='margin: 8px 0;'><div style='font-weight: 600; color: #555;'>Data de Coleta:</div><div style='color: #333;'>{data_coleta if data_coleta else 'N/A'}</div></div>
     <div style='margin: 8px 0;'><div style='font-weight: 600; color: #555;'>Região Hidrográfica:</div><div style='color: #333;'>{row.get('Região Hidrográfica', 'N/A')}</div></div>
     <div style='margin: 8px 0;'><div style='font-weight: 600; color: #555;'>Município:</div><div style='color: #333;'>{row.get('Município', 'N/A')}</div></div>
     <div style='margin: 8px 0;'><div style='font-weight: 600; color: #555;'>Cota Sangria:</div><div style='color: #333;'>{row.get('Cota Sangria', 'N/A')}</div></div>
@@ -752,18 +764,18 @@ with tab2:
     <div style='margin: 8px 0;'><div style='font-weight: 600; color: #555;'>Percentual:</div><div style='color: #228B22; font-weight: 700;'>{row.get('Percentual', 'N/A')}%</div></div>
 </div>
 """
-                folium.Marker(
-                    [row['Latitude'], row['Longitude']],
-                    icon=folium.CustomIcon("https://cdn-icons-png.flaticon.com/512/3059/3059518.png", icon_size=(28, 28)),
-                    tooltip=row.get('Reservatório', 'Reservatório'),
-                    popup=folium.Popup(popup_info, max_width=300)
-                ).add_to(reservatorios_layer)
-                
-            except Exception as e:
-                st.sidebar.error(f"Erro ao plotar reservatório {row.get('Reservatório', '')}: {str(e)}")
-                continue
-    
-    reservatorios_layer.add_to(m2)
+            folium.Marker(
+                [row['Latitude'], row['Longitude']],
+                icon=folium.CustomIcon("https://cdn-icons-png.flaticon.com/512/3059/3059518.png", icon_size=(28, 28)),
+                tooltip=f"{row.get('Reservatório', 'Reservatório')} - {data_coleta}" if data_coleta else row.get('Reservatório', 'Reservatório'),
+                popup=folium.Popup(popup_info, max_width=300)
+            ).add_to(reservatorios_layer)
+            
+        except Exception as e:
+            st.sidebar.error(f"Erro ao plotar reservatório {row.get('Reservatório', '')}: {str(e)}")
+            continue
+
+reservatorios_layer.add_to(m2)
 
     # Demais camadas (Comissões Gestoras, Açudes, etc.)
     gestoras_layer = folium.FeatureGroup(name="Comissões Gestoras", show=False)
