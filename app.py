@@ -89,45 +89,45 @@ box-shadow:0 4px 12px rgba(0,0,0,.1);z-index:9999}}
 #Menu Inicial
 
 st.markdown(f"""
-    <style>
-    .social-menu-container {{
-        position: relative;
-        left: 50%;
-        right: 50%;
-        margin-left: -50vw;
-        margin-right: -50vw;
-        width: 100vw;
-        background-color: #04a5c9;
-        color: white;
-        padding: 6px 32px;
-        font-family: Tahoma, sans-serif;
-        font-size: 13px;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        gap: 30px;
-        flex-wrap: wrap;
-        margin-top: -20px;  /* Espaço para aparecer abaixo da barra fixa */
-        border-bottom: 3px solid #b6b8ba;
-        z-index: 1;  /* Mais baixo que o header fixo */
-    }}
+<style>
+.social-menu-container {{
+    position: relative;
+    left: 50%;
+    right: 50%;
+    margin-left: -50vw;
+    margin-right: -50vw;
+    width: 100vw;
+    background-color: #04a5c9;
+    color: white;
+    padding: 6px 32px;
+    font-family: Tahoma, sans-serif;
+    font-size: 13px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 30px;
+    flex-wrap: wrap;
+    margin-top: -20px;
+    border-bottom: 3px solid #b6b8ba;
+    z-index: 1;
+}}
 
-    .social-menu-container a {{
-        color: white;
-        text-decoration: none;
-        transition: color 0.3s ease;
-    }}
+.social-menu-container a {{
+    color: white;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}}
 
-    .social-menu-container a:hover {{
-        color: #fad905;
-    }}
-    </style>
+.social-menu-container a:hover {{
+    color: #fad905;
+}}
+</style>
 
-    <div class="social-menu-container">
-        <a href="https://www.instagram.com/seuusuario" target="_blank">📸 Instagran</a>
-        <a href="https://www.facebook.com/seuusuario" target="_blank">📘 Facebook</a>
-        <a href="https://wa.me/5588999999999" target="_blank">💬 WhatsApp</a>       
-    </div>
+<div class="social-menu-container">
+    <a href="https://www.instagram.com/seuusuario" target="_blank">📸 Instagran</a>
+    <a href="https://www.facebook.com/seuusuario" target="_blank">📘 Facebook</a>
+    <a href="https://wa.me/5588999999999" target="_blank">💬 WhatsApp</a>
+</div>
 """, unsafe_allow_html=True)
 
 # ---------------- UTIL ----------------
