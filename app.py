@@ -728,9 +728,6 @@ with tab2:
 
     df_reservatorios = load_reservatorios_data()
 
-    # DEBUG: Mostrar dados carregados
-    st.sidebar.write("Dados carregados:", df_reservatorios[['Reservatório', 'Latitude', 'Longitude']].head())
-
     # Adicionar camada de reservatórios
     reservatorios_layer = folium.FeatureGroup(name="Reservatórios (Dados Atualizados)", show=True)
     
