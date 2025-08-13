@@ -1,4 +1,5 @@
 
+
 import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
@@ -37,14 +38,196 @@ dias_semana = {'Monday':'Segunda-feira','Tuesday':'Terça-feira','Wednesday':'Qu
 meses = {'January':'janeiro','February':'fevereiro','March':'março','April':'abril','May':'maio','June':'junho','July':'julho','August':'agosto','September':'setembro','October':'outubro','November':'novembro','December':'dezembro'}
 data_hoje = f"{dias_semana[agora.strftime('%A')]}, {agora.day:02d} de {meses[agora.strftime('%B')]} de {agora.year}"
 
-#---------------BARRA SUPERIOR -------------------
-
 st.markdown(f"""
 <style>
-[data-testid="stHeader"]{{visibility:hidden;height:0;}}.custom-header{{position:fixed;top:0;left:0;width:100%;font-family:'Segoe UI',Roboto,sans-serif;box-shadow:0 4px 12px rgba(0,0,0,.1);z-index:9999;}}.header-top-bar{{background:linear-gradient(135deg,#228B22 0%,#006400 50%,#004d00 100%);color:white;padding:12px 5%;display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:10px;}}.header-brand{{display:flex;align-items:center;gap:10px;flex:1;min-width:200px;}}.header-logo{{height:36px;filter:drop-shadow(0 2px 2px rgba(0,0,0,.2));}}.header-title{{font-size:clamp(14px,3vw,18px);font-weight:600;letter-spacing:.5px;text-shadow:0 1px 3px rgba(0,0,0,.3);}}.header-date{{background:rgba(255,255,255,.15);padding:4px 10px;border-radius:20px;font-size:clamp(10px,2.5vw,13px);font-weight:500;display:flex;align-items:center;gap:6px;backdrop-filter:blur(5px);white-space:nowrap;}}.header-bottom-bar{{background-color:#04a5c9;color:white;padding:8px 32px;font-size:13px;display:flex;justify-content:center;align-items:center;gap:20px;flex-wrap:wrap;border-bottom:3px solid #b6b8ba;}}.header-bottom-bar a{{color:white;text-decoration:none;transition:all 0.2s ease;display:inline-flex;align-items:center;gap:5px;}}.header-bottom-bar a:hover{{color:#fad905;transform:translateY(-1px);}}.btn-chip{{background-color:transparent;border:1px solid rgba(255,255,255,0.4);border-radius:20px;padding:6px 12px;transition:all 0.2s ease;}}.btn-chip:hover{{background-color:rgba(255,255,255,0.1);}}.dropdown{{position:relative;display:inline-block;}}.dropdown-toggle{{background-color:transparent;border:1px solid rgba(255,255,255,0.4);border-radius:20px;padding:6px 12px;cursor:pointer;display:inline-flex;align-items:center;gap:5px;}}.dropdown-toggle .caret{{width:0;height:0;border-left:4px solid transparent;border-right:4px solid transparent;border-top:4px solid white;transition:transform 0.2s ease;}}.dropdown-content{{display:none;position:absolute;background-color:#04a5c9;min-width:160px;box-shadow:0 8px 16px rgba(0,0,0,0.2);z-index:1000;border-radius:8px;overflow:hidden;left:50%;transform:translateX(-50%);top:100%;margin-top:5px;border:1px solid #b6b8ba;}}.dropdown-content a{{color:white;padding:10px 16px;text-decoration:none;display:block;transition:all 0.2s ease;font-size:12px;}}.dropdown-content a:hover{{background-color:#038dae;color:#fad905;padding-left:20px;}}.dropdown:hover .dropdown-content{{display:block;}}.dropdown:hover .dropdown-toggle .caret{{transform:rotate(180deg);}}.main .block-container{{padding-top:120px;}}@media (max-width:768px){{.header-bottom-bar{{padding:8px 15px;gap:10px;}}.main .block-container{{padding-top:140px;}}}@media (max-width:480px){{.header-top-bar{{padding:10px 5%;}}.header-bottom-bar{{font-size:12px;gap:8px;}}.btn-chip{{padding:4px 8px;}}.main .block-container{{padding-top:150px;}}}.filter-card{{border:1px solid #e6e6e6;border-radius:8px;padding:12px;background:#fff;box-shadow:0 4px 14px rgba(0,0,0,.06);margin-top:6px;}}.filter-title{{font-weight:600;margin-bottom:6px;}}.quick-chips span{{display:inline-block;border:1px solid #dcdcdc;border-radius:999px;padding:4px 10px;margin-right:6px;margin-top:4px;cursor:pointer;font-size:12px;}}.quick-chips span:hover{{background:#f5f5f5;}}.kpi-card{{border:1px solid #eaeaea;border-radius:14px;padding:14px;background:linear-gradient(180deg,#ffffff 0%,#fafafa 100%);box-shadow:0 6px 16px rgba(0,0,0,.06);text-align:center;}}.kpi-value{{font-size:22px;font-weight:700;margin-top:4px;}}.st-emotion-cache-1q7spjk{{color:#228B22!important;font-weight:bold;}}.st-emotion-cache-1q7spjk:hover{{color:#006400!important;}}.map-style-selector{{margin-top:-10px;}}
+/* Oculta o cabeçalho padrão do Streamlit */
+[data-testid="stHeader"]{{visibility:hidden;}}
+
+/* Estilo do cabeçalho fixo */
+.custom-header{{
+    position:fixed;
+    top:0;
+    left:0;
+    width:100%;
+    background:linear-gradient(135deg,#228B22 0%,#006400 50%,#004d00 100%);
+    color:white;
+    padding:12px 5%;
+    font-family:'Segoe UI',Roboto,sans-serif;
+    box-shadow:0 4px 12px rgba(0,0,0,.1);
+    z-index:9999;
+}}
+.header-container{{
+    max-width:1200px;
+    margin: 8px; auto;
+    display:flex;
+    flex-wrap:wrap;
+    justify-content:space-between;
+    align-items:center;
+    gap:10px;
+}}
+.header-brand{{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    flex:1;
+    min-width:200px;
+}}
+.header-logo{{
+    height:36px;
+    filter:drop-shadow(0 2px 2px rgba(0,0,0,.2));
+}}
+.header-title{{
+    font-size:clamp(14px,3vw,18px);
+    font-weight:600;
+    letter-spacing:.5px;
+    text-shadow:0 1px 3px rgba(0,0,0,.3);
+}}
+.header-date{{
+    background:rgba(255,255,255,.15);
+    padding:4px 10px;
+    border-radius:20px;
+    font-size:clamp(10px,2.5vw,13px);
+    font-weight:500;
+    display:flex;
+    align-items:center;
+    gap:6px;
+    backdrop-filter:blur(5px);
+    white-space:nowrap;
+}}
+
+/* Barra de menu debaixo do cabeçalho */
+.social-menu-container {{
+    position: relative;
+    left: 50%;
+    right: 50%;
+    margin-left: -50vw;
+    margin-right: -50vw;
+    width: 100vw;
+    background-color: #04a5c9;
+    color: white;
+    padding: 6px 32px;
+    font-family: Tahoma, sans-serif;
+    font-size: 13px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+    margin-top: -20px;
+    border-bottom: 3px solid #b6b8ba;
+    z-index: 1;
+}}
+.social-menu-container a {{
+    color: white;
+    text-decoration: none;
+    transition: color 0.3s ease, background-color 0.3s ease;
+}}
+.social-menu-container a:hover {{
+    color: #fad905;
+}}
+.btn-chip {{
+    background-color: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    border-radius: 20px;
+    padding: 6px 12px;
+}}
+/* Estilos para o Dropdown */
+.dropdown {{
+    position: relative;
+    display: inline-block;
+}}
+.dropdown-toggle {{
+    background-color: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    border-radius: 20px;
+    padding: 6px 12px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+}}
+.dropdown-toggle .caret {{
+    margin-left: 6px;
+    border-left: 4px solid transparent;
+    border-right: 4px solid transparent;
+    border-top: 4px solid white;
+}}
+.dropdown-content {{
+    display: none;
+    position: absolute;
+    background-color: #04a5c9;
+    min-width: 160px;
+    box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2);
+    z-index: 1000;
+    border-radius: 8px;
+    overflow: hidden;
+    left: 50%;
+    transform: translateX(-50%);
+    top: 100%;
+    margin-top: 8px;
+    border: 1px solid #b6b8ba;
+}}
+.dropdown-content a {{
+    color: white;
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block;
+    transition: background-color 0.3s ease;
+}}
+.dropdown-content a:hover {{
+    background-color: #038dae;
+    color: #fad905;
+}}
+.dropdown:hover .dropdown-content {{
+    display: block;
+}}
+/* Estilos para o restante da página */
+.main .block-container{{padding-top:90px}}
+.filter-card{{border:1px solid #e6e6e6;border-radius:1px;padding:1px 1px;background:#fff;box-shadow:0 4px 14px rgba(0,0,0,.06);margin-top:6px}}
+.filter-title{{font-weight:600;margin-bottom:6px}}
+.quick-chips span{{display:inline-block;border:1px solid #dcdcdc;border-radius:999px;padding:4px 10px;margin-right:6px;margin-top:4px;cursor:pointer;font-size:12px}}
+.quick-chips span:hover{{background:#f5f5f5}}
+.kpi-card{{border:1px solid #eaeaea;border-radius:14px;padding:14px;background:linear-gradient(180deg,#ffffff 0%, #fafafa 100%);box-shadow:0 6px 16px rgba(0,0,0,.06);text-align:center}}
+.kpi-value{{font-size:22px;font-weight:700;margin-top:4px}}
+.st-emotion-cache-1q7spjk {{
+    color: #228B22 !important;
+    font-weight: bold;
+}}
+.st-emotion-cache-1q7spjk:hover {{
+    color: #006400 !important;
+}}
+.map-style-selector {{
+    margin-top: -10px;
+}}
+@media(max-width:600px){{
+    .main .block-container{{padding-top:110px}}
+}}
 </style>
 
-<div class="custom-header"><div class="header-top-bar"><div class="header-brand"><img src="https://cdn-icons-png.flaticon.com/512/1006/1006363.png" class="header-logo"><div><div class="header-title">Acompanhamento da Operação</div><div style="opacity:.9;font-size:13px">📌 Bacia do Banabuiu</div></div></div><div class="header-date">📅 {data_hoje}</div></div><div class="header-bottom-bar"><div class="dropdown"><a href="#" class="dropdown-toggle btn-chip">📸 Vinculadas <span class="caret"></span></a><div class="dropdown-content"><a href="https://www.cogerh.com.br/" target="_blank" rel="noopener">🏢 COGERH</a><a href="https://www.sohidra.ce.gov.br/" target="_blank" rel="noopener">💧 SOHIDRA</a><a href="https://www.funceme.br/" target="_blank" rel="noopener">🌦️ FUNCEME</a></div></div><a href="https://www.facebook.com/seuusuario" target="_blank" rel="noopener" class="btn-chip">📘 Facebook</a><a href="https://wa.me/5588999999999" target="_blank" rel="noopener" class="btn-chip">💬 WhatsApp</a></div></div>
+<div class="custom-header">
+    <div class="header-container">
+        <div class="header-brand">
+            <img src="https://cdn-icons-png.flaticon.com/512/1006/1006363.png" class="header-logo">
+            <div>
+                <div class="header-title">Acompanhamento da Operação</div>
+                <div style="opacity:.9;font-size:13px">📌 Bacia do Banabuiu</div>
+            </div>
+        </div>
+        <div class="header-date">📅 {data_hoje}</div>
+    </div>
+</div>
+
+<div class="social-menu-container">
+    <div class="dropdown">
+        <a href="#" class="dropdown-toggle btn-chip">📸 Vinculadas <span class="caret"></span></a>
+        <div class="dropdown-content">
+            <a href="https://www.cogerh.com.br/" target="_blank" rel="noopener">🏢 COGERH</a>
+            <a href="https://www.sohidra.ce.gov.br/" target="_blank" rel="noopener">💧 SOHIDRA</a>
+            <a href="https://www.funceme.br/" target="_blank" rel="noopener">🌦️ FUNCEME</a>
+        </div>
+    </div>
+    <a href="https://www.facebook.com/seuusuario" target="_blank" rel="noopener" class="btn-chip">📘 Facebook</a>
+    <a href="https://wa.me/5588999999999" target="_blank" rel="noopener" class="btn-chip">💬 WhatsApp</a>
+</div>
 """, unsafe_allow_html=True)
 
 # ---------------- UTIL ----------------
