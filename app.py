@@ -700,6 +700,52 @@ with tab2:
     center_acudes = [-5.2, -39.2]
     m2 = folium.Map(location=center_acudes, zoom_start=7, tiles=None)
 
+    gestoras_layer = folium.FeatureGroup(name="Comissões Gestoras", show=False)
+        for feature in geojson_c_gestoras["features"]:
+            props = feature["properties"]; coords = feature["geometry"]["coordinates"]
+            nome_g = props.get("SISTEMAH3","Sem nome")
+            popup_info = f"""
+<div style='
+    font-family: "Segoe UI", Arial, sans-serif;
+    padding: 12px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    border-top: 4px solid #228B22;
+    min-width: 200px;
+'>
+    <div style='
+        font-size: 16px; 
+        font-weight: 600; 
+        color: #2c3e50;
+        margin-bottom: 8px;
+    '>
+        {nome_g}
+    </div>
+    
+    <div style='margin: 6px 0;'>
+        <div style='font-weight: 500; color: #7f8c8d;'>Ano de Formação</div>
+        <div style='color: #2c3e50;'>{props.get("ANOFORMA1","N/A")}</div>
+    </div>
+    
+    <div style='margin: 6px 0;'>
+        <div style='font-weight: 500; color: #7f8c8d;'>Sistema</div>
+        <div style='color: #2c3e50;'>{props.get("SISTEMAH3","N/A")}</div>
+    </div>
+    
+    <div style='margin: 6px 0;'>
+        <div style='font-weight: 500; color: #7f8c8d;'>Município</div>
+        <div style='color: #228B22; font-weight: 500;'>{props.get("MUNICIPI6","N/A")}</div>
+    </div>
+</div>
+"""
+            
+            folium.Marker([coords[1], coords[0]],
+                          icon=folium.CustomIcon("https://cdn-icons-png.flaticon.com/512/4144/4144517.png", icon_size=(30,30)),
+                          tooltip=nome_g,
+                          popup=folium.Popup(popup_info, max_width=300)).add_to(gestoras_layer)
+        gestoras_layer.add_to(m)
+
     if tile_option == "OpenStreetMap":
         folium.TileLayer(tiles='OpenStreetMap').add_to(m2)
     else:
