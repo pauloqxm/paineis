@@ -855,8 +855,4 @@ table_html += "</table>"
 # Exibir interface
 st.markdown("### 📜 Documentos para Download")
 st.write("Nesta página você encontra atas e apresentações das reuniões da Bacia do Banabuiú.")
-st.markdown(table_html, unsafe_allow_html=True)
-# Exibição
-st.markdown("### 📜 Documentos para Download")
-st.write("Nesta página você encontra atas e apresentações das reuniões da Bacia do Banabuiú.")
-st.markdown(html, unsafe_allow_html=True)
+st.markdown(table_html, unsafe_allow_html=True)  # Corrigido para usar table_html
