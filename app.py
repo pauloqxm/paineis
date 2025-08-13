@@ -828,7 +828,7 @@ table_html += """
 """
 
 # Exibir tabela
-st.markdown(table_html, unsafe_allow_html=True)
+#st.markdown(table_html, unsafe_allow_html=True)
 
 #================PÁGINA > AÇUDES MONITORADOS==================
 
