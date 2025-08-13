@@ -728,24 +728,54 @@ with tab3:
 
     st.markdown("""
 <div style="
-    background: linear-gradient(135deg, #f5f7fa 0%, #e4e8eb 100%);
-    border-radius: 12px;
-    padding: 20px;
-    border-left: 4px solid #228B22;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-    margin-bottom: 20px;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-radius: 14px;
+    padding: 22px;
+    border-left: 5px solid #228B22;
+    box-shadow: 0 6px 16px rgba(0,0,0,0.08);
+    margin: 10px 0 30px 0;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border-top: 1px solid rgba(0,100,0,0.1);
 ">
     <p style="
-        font-family: 'Segoe UI', Roboto, sans-serif;
+        font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
         color: #2c3e50;
-        font-size: 16px;
-        line-height: 1.6;
+        font-size: 15.5px;
+        line-height: 1.7;
         margin: 0;
+        text-align: left;
     ">
-        <span style="font-weight: 600; color: #006400;">📌 Nesta página você encontra:</span><br>
-        • Atas e apresentações das reuniões da Bacia do Banabuiú<br>
-        • Organizadas por operação, reservatório e parâmetros<br>
-        • Dados de vazão média aprovados
+        <span style="
+            font-weight: 700;
+            color: #006400;
+            font-size: 16.5px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 12px;
+        ">
+            <span style="font-size: 20px;">📋</span>
+            Documentação Completa
+        </span>
+        
+        <span style="display: block; margin-bottom: 8px;">
+        Nesta seção você encontra todos os <span style="font-weight:600;color:#006400;">documentos oficiais</span> organizados por:
+        </span>
+        
+        <span style="
+            display: inline-block;
+            background: rgba(34, 139, 34, 0.1);
+            border-radius: 6px;
+            padding: 8px 12px;
+            margin: 5px 0;
+            width: 100%;
+            box-sizing: border-box;
+        ">
+        • <span style="font-weight:500;">Operação</span><br>
+        • <span style="font-weight:500;">Reservatório</span><br>
+        • <span style="font-weight:500;">Parâmetros aprovados</span><br>
+        • <span style="font-weight:500;">Vazão média</span>
+        </span>
     </p>
 </div>
 """, unsafe_allow_html=True)
