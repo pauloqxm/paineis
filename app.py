@@ -700,6 +700,10 @@ with tab2:
     center_acudes = [-5.2, -39.2]
     m2 = folium.Map(location=center_acudes, zoom_start=7, tiles=None)
 
+    folium.GeoJson(geojson_bacia, name="Bacia do Banabuiu",
+                       tooltip=folium.GeoJsonTooltip(fields=["DESCRICA1"], aliases=["Bacia:"]),
+                       style_function=lambda x: {"color":"darkblue","weight":2}).add_to(m)
+
     # Carregar dados da nova planilha Google
     @st.cache_data(ttl=3600)
     def load_reservatorios_data():
