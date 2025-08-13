@@ -107,7 +107,7 @@ st.markdown(f"""
     align-items: center;
     gap: 30px;
     flex-wrap: wrap;
-    margin-top: -20px;
+    margin-top: -2px;
     border-bottom: 3px solid #b6b8ba;
     z-index: 1;
 }}
