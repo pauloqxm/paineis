@@ -313,19 +313,18 @@ st.markdown(f"""
     </div>
 
     <div class="header-bottom-bar">
-        <div class="dropdown">
-            <a href="#" class="dropdown-toggle btn-chip">📸 Vinculadas <span class="caret"></span></a>
-            <div class="dropdown-content">
-                <a href="https://www.cogerh.com.br/" target="_blank" rel="noopener">🏢 COGERH</a>
-                <a href="https://www.sohidra.ce.gov.br/" target="_blank" rel="noopener">💧 SOHIDRA</a>
-                <a href="https://www.funceme.br/" target="_blank" rel="noopener">🌦️ FUNCEME</a>
-            </div>
+    <div class="dropdown">
+        <a href="#" class="dropdown-toggle btn-chip">📸 Vinculadas <span class="caret"></span></a>
+        <div class="dropdown-content">
+            <a href="https://www.cogerh.com.br/" target="_blank" rel="noopener">🏢 COGERH</a>
+            <a href="https://www.sohidra.ce.gov.br/" target="_blank" rel="noopener">💧 SOHIDRA</a>
+            <a href="https://www.funceme.br/" target="_blank" rel="noopener">🌦️ FUNCEME</a>
         </div>
-        <a href="https://www.facebook.com/seuusuario" target="_blank" rel="noopener" class="btn-chip">📘 Facebook</a>
-        <a href="https://wa.me/5588999999999" target="_blank" rel="noopener" class="btn-chip">💬 WhatsApp</a>
     </div>
+
+    <a href="https://www.facebook.com/seuusuario" target="_blank" rel="noopener" class="btn-chip">📘 Facebook</a>
+    <a href="https://wa.me/5588999999999" target="_blank" rel="noopener" class="btn-chip">💬 WhatsApp</a>
 </div>
-""", unsafe_allow_html=True)
 
 # ---------------- UTIL ----------------
 def convert_vazao(series, unidade):
