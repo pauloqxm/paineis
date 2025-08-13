@@ -6,7 +6,7 @@ import plotly.express as px
 import folium
 import json
 import base64
-import unicodedata
+import unicodedata2
 from datetime import datetime, timedelta, timezone
 from streamlit_folium import folium_static
 from folium.plugins import Fullscreen, MiniMap, MousePosition, MeasureControl, MarkerCluster
