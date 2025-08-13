@@ -1,5 +1,6 @@
 
 
+
 import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
@@ -706,6 +707,9 @@ with tab2:
                                tooltip=folium.GeoJsonTooltip(fields=["DESCRICA1"], aliases=["Bacia:"]),
                                style_function=lambda x: {"color":"darkblue","weight":2})
     bacia_layer.add_to(m2)
+
+    # Ajusta o zoom para focar na bacia com um padding
+    m2.fit_bounds(bacia_layer.get_bounds(), padding=(0, 0))
 
     # Carregar dados da planilha Google
     @st.cache_data(ttl=3600)
