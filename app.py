@@ -741,10 +741,14 @@ except Exception as e:
 st.markdown("### 📜 Documentos para Download")
 st.write("Nesta página você encontra atas e apresentações das reuniões da Bacia do Banabuiú, com detalhes de operação, reservatório, parâmetros aprovados e vazões médias.")
 
+# Escape seguro sem depender de 'html.escape'
 def esc(x):
-    return ihtml.escape(str(x)) if pd.notna(x) else ""
+    if pd.notna(x) and x is not None:
+        s = str(x)
+        return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+    return ""
 
-# Monta HTML (ordem pedida)
+# Monta linhas (ordem pedida)
 rows = []
 if not df.empty:
     for _, r in df.iterrows():
@@ -758,8 +762,8 @@ if not df.empty:
         ap_url  = str(r.get('Apresentação', '') or '').strip()
         ata_url = str(r.get('Ata da Reunião', '') or '').strip()
 
-        ap_link  = f"<a class='btn btn-green' href='{ihtml.escape(ap_url)}' target='_blank' rel='noopener'>Baixar</a>" if ap_url else "—"
-        ata_link = f"<a class='btn btn-blue'  href='{ihtml.escape(ata_url)}' target='_blank' rel='noopener'>Baixar</a>" if ata_url else "—"
+        ap_link  = f"<a class='btn btn-green' href='{esc(ap_url)}' target='_blank' rel='noopener'>Baixar</a>" if ap_url else "—"
+        ata_link = f"<a class='btn btn-blue'  href='{esc(ata_url)}' target='_blank' rel='noopener'>Baixar</a>" if ata_url else "—"
 
         rows.append(
             f"<tr>"
@@ -819,6 +823,9 @@ html = f"""
   </table>
 </div>
 """
+
+# Renderiza HTML real (evita aparecer como código)
+components.html(html, height=560, scrolling=True)
 
 # Renderiza como HTML real (evita aparecer "código")
 components.html(html, height=500, scrolling=True)
