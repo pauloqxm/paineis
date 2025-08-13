@@ -729,30 +729,27 @@ organizadas por operação, reservatório, parâmetros aprovados e vazão média
 """)
 
 # Carregar dados
-try:
-    df = pd.read_csv(URL, encoding='utf-8-sig').dropna(how='all')
-    # Converter colunas para string
-    cols_to_str = ["Operação", "Data da Reunião", "Reservatório/Sistema", 
-                  "Local da Reunião", "Parâmetros aprovados", "Vazão média"]
-    for col in cols_to_str:
-        if col in df.columns:
-            df[col] = df[col].astype(str)
-except Exception as e:
-    st.error(f"Erro ao carregar dados: {e}")
-    df = pd.DataFrame()
+@st.cache_data(ttl=3600)
+def load_data():
+    try:
+        df = pd.read_csv(URL, encoding='utf-8-sig').dropna(how='all')
+        # Converter colunas para string
+        text_cols = ["Operação", "Data da Reunião", "Reservatório/Sistema", 
+                    "Local da Reunião", "Parâmetros aprovados", "Vazão média"]
+        for col in text_cols:
+            if col in df.columns:
+                df[col] = df[col].astype(str)
+        return df
+    except Exception as e:
+        st.error(f"Erro ao carregar dados: {e}")
+        return pd.DataFrame()
 
-# Função para normalizar busca
-def normalize_text(text):
-    text = str(text)
-    text = unicodedata.normalize("NFKD", text)
-    text = "".join([c for c in text if not unicodedata.combining(c)])
-    return text.lower()
+df = load_data()
 
-# Container estilizado para filtros
+# Container para filtros
 with st.container(border=True):
-    st.markdown("**Filtrar documentos**", help="Use os filtros para encontrar documentos específicos")
+    st.markdown("**Filtrar documentos**")
     
-    # Layout em colunas responsivas
     col1, col2 = st.columns(2)
     
     with col1:
@@ -763,8 +760,7 @@ with st.container(border=True):
         datas = ["Todos"] + sorted(df["Data da Reunião"].unique()) if "Data da Reunião" in df.columns else ["Todos"]
         filtro_data = st.selectbox("Data da Reunião", datas, index=0)
     
-    # Barra de busca
-    busca = st.text_input("Buscar em todos os campos", placeholder="Digite um termo...")
+    busca = st.text_input("Buscar em todos os campos", "")
 
 # Aplicar filtros
 df_filtrado = df.copy()
@@ -776,9 +772,9 @@ if filtro_data != "Todos":
     df_filtrado = df_filtrado[df_filtrado["Data da Reunião"] == filtro_data]
 
 if busca:
-    busca_norm = normalize_text(busca)
+    busca_norm = busca.lower()
     mask = df_filtrado.apply(
-        lambda row: any(busca_norm in normalize_text(val) for val in row.values), 
+        lambda row: any(busca_norm in str(val).lower() for val in row.values), 
         axis=1
     )
     df_filtrado = df_filtrado[mask]
@@ -791,13 +787,12 @@ table_css = """
 <style>
 .table-container {
     border-radius: 8px;
-    overflow: hidden;
+    overflow: auto;
     margin-top: 16px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 table {
     width: 100%;
-    min-width: 1000px;
     border-collapse: collapse;
     font-size: 14px;
 }
@@ -809,6 +804,8 @@ th, td {
 th {
     background-color: #f5f5f5;
     font-weight: 600;
+    position: sticky;
+    top: 0;
 }
 .download-btn {
     display: inline-block;
@@ -826,18 +823,12 @@ th {
 .no-data {
     color: #666;
     font-style: italic;
-}
-.filter-container {
-    border-radius: 10px;
-    border: 1px solid #e0e0e0;
-    padding: 1rem;
-    margin-bottom: 1rem;
-    background-color: #f9f9f9;
+    text-align: center;
 }
 </style>
 """
 
-# HTML da tabela
+# Construir tabela HTML
 table_html = f"""
 {table_css}
 <div class="table-container">
@@ -893,7 +884,11 @@ if not df_filtrado.empty:
         </tr>
         """
 else:
-    table_html += "<tr><td colspan='8' class='no-data'>Nenhum registro encontrado com os filtros aplicados</td></tr>"
+    table_html += """
+    <tr>
+        <td colspan="8" class="no-data">Nenhum registro encontrado com os filtros aplicados</td>
+    </tr>
+    """
 
 table_html += """
     </tbody>
