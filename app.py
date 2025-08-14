@@ -980,20 +980,20 @@ with tab2:
     st.subheader("📊 Dados Detalhados")
 
 if not df_filtrado.empty:
-    # Verificar se a coluna 'Sangria' já existe, se não, criar com base em 'Cota Sangria'
+    # Verificar e criar coluna Sangria se necessário
     if 'Sangria' not in df_filtrado.columns:
         df_filtrado['Sangria'] = df_filtrado['Cota Sangria']
     
-    # Ordem das colunas com 'Sangria' no final
+    # Ordem das colunas
     colunas_exibir = [
         'Data de Coleta', 
         'Reservatório', 
         'Município',
-        'Cota Sangria',  # Mantém a coluna original
+        'Cota Sangria',
         'Volume', 
         'Percentual', 
         'Nivel',
-        'Sangria'  # Nova coluna formatada
+        'Sangria'
     ]
 
     # Criar cópia para exibição
@@ -1001,9 +1001,17 @@ if not df_filtrado.empty:
     
     # Formatar colunas
     df_display['Data de Coleta'] = df_display['Data de Coleta'].dt.strftime('%d/%m/%Y')
-    df_display['Sangria'] = df_display['Sangria'].apply(
-        lambda x: f"{x:.2f} m" if pd.notna(x) else "N/A"
-    )
+    
+    # Formatar Sangria com tratamento seguro
+    def formatar_sangria(x):
+        try:
+            if pd.isna(x):
+                return "N/A"
+            return f"{float(x):.2f} m"
+        except (TypeError, ValueError):
+            return "N/A"
+    
+    df_display['Sangria'] = df_display['Sangria'].apply(formatar_sangria)
 
     # Configurações das colunas
     column_config = {
@@ -1035,7 +1043,7 @@ if not df_filtrado.empty:
         height=400
     )
 
-    # Botão de download mantendo todas colunas originais
+    # Botão de download
     csv = df_filtrado.to_csv(index=False, encoding='utf-8-sig')
     st.download_button(
         label="📥 Baixar dados como CSV",
