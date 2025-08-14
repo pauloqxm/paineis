@@ -713,7 +713,7 @@ with st.expander("Açudes Monitorados"):
 </div>
 """, unsafe_allow_html=True)
 
-    # Função para carregar dados (mantida a sua versão original)
+    # Função para carregar dados
     @st.cache_data(ttl=3600)
     def load_reservatorios_data():
         try:
@@ -730,6 +730,13 @@ with st.expander("Açudes Monitorados"):
             # Adicionar uma coluna de data formatada para filtros
             df['Data_Formatada'] = pd.to_datetime(df['Data de Coleta'], errors='coerce', dayfirst=True)
             df = df.dropna(subset=['Data_Formatada'])
+
+            # --- CORREÇÃO DO ERRO AQUI ---
+            # Converte a coluna 'Percentual' para numérica
+            if 'Percentual' in df.columns:
+                df['Percentual'] = df['Percentual'].astype(str).str.replace(',', '.').str.replace('%', '').str.strip()
+                df['Percentual'] = pd.to_numeric(df['Percentual'], errors='coerce')
+                df['Percentual'] = df['Percentual'].fillna(0)
 
             return df
         except Exception as e:
@@ -762,9 +769,9 @@ with st.expander("Açudes Monitorados"):
 
         min_percentual, max_percentual = st.slider(
             'Selecione o Percentual de Volume (%):',
-            min_value=0.0,
-            max_value=100.0,
-            value=(0.0, 100.0),
+            min_value=float(df_reservatorios['Percentual'].min()),
+            max_value=float(df_reservatorios['Percentual'].max()),
+            value=(float(df_reservatorios['Percentual'].min()), float(df_reservatorios['Percentual'].max())),
             step=0.1
         )
 
@@ -983,12 +990,15 @@ with st.expander("Açudes Monitorados"):
     ]
 
     # Exibe a tabela com os dados filtrados
-    st.dataframe(df_reservatorios_filtrado[colunas_tabela].style.format({
-        'Data de Coleta': lambda t: t.strftime('%d/%m/%Y'),
-        'Percentual': '{:.2f}%'.format,
-        'Volume': '{:.2f}'.format,
-        'Cota Sangria': '{:.2f}'.format
-    }))
+    if not df_reservatorios_filtrado.empty:
+        st.dataframe(df_reservatorios_filtrado[colunas_tabela].style.format({
+            'Data de Coleta': lambda t: t.strftime('%d/%m/%Y'),
+            'Percentual': '{:.2f}%'.format,
+            'Volume': '{:.2f}'.format,
+            'Cota Sangria': '{:.2f}'.format
+        }))
+    else:
+        st.info("Nenhum dado encontrado com os filtros aplicados.")
 
 #================PÁGINA > DOCUMENTOS OFICIAS==================
 
