@@ -133,8 +133,8 @@ with tab1:
     cA1, cA2, cA3 = st.columns([1,1,1])
     with cA1:
         if st.button("🔄 Atualizar agora"):
-        if 'map_rendered' in st.session_state:
-        del st.session_state.map_rendered
+            if 'map_rendered' in st.session_state:
+                del st.session_state.map_rendered
 # Fim do borão
 
     st.markdown("""
