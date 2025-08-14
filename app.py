@@ -741,7 +741,6 @@ with tab2:
             for col, converter in numeric_cols.items():
                 if col in df.columns:
                     df[col] = converter(df[col])
-                    # Substitui NaN por 0 ou outro valor padrão
                     df[col] = df[col].fillna(0)
 
             return df
@@ -873,9 +872,21 @@ with tab2:
         ).add_to(m)
 
         for _, row in df_mapa.iterrows():
-            percentual_str = f"{row.get('Percentual', np.nan):.2f}%" if pd.notnull(row.get('Percentual')) else 'N/A'
-            volume_str = f"{row.get('Volume', np.nan):.2f}" if pd.notnull(row.get('Volume')) else 'N/A'
-            cota_sangria_str = f"{row.get('Cota Sangria', np.nan):.2f}" if pd.notnull(row.get('Cota Sangria')) else 'N/A'
+            # --- Correção na formatação do popup com bloco try-except para segurança ---
+            try:
+                percentual_str = f"{float(row['Percentual']):.2f}%"
+            except (ValueError, TypeError):
+                percentual_str = 'N/A'
+            
+            try:
+                volume_str = f"{float(row['Volume']):.2f}"
+            except (ValueError, TypeError):
+                volume_str = 'N/A'
+            
+            try:
+                cota_sangria_str = f"{float(row['Cota Sangria']):.2f}"
+            except (ValueError, TypeError):
+                cota_sangria_str = 'N/A'
 
             popup_content = f"""
             <div style='font-family: Arial; width: 250px;'>
@@ -918,7 +929,6 @@ with tab2:
         df_display = df_filtrado[colunas].copy()
         df_display['Data de Coleta'] = df_display['Data de Coleta'].dt.strftime('%d/%m/%Y')
         
-        # Corrigindo a exibição do percentual para usar uma barra de progresso
         st.dataframe(
             df_display,
             column_config={
