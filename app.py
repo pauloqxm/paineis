@@ -706,9 +706,9 @@ with tab2:
         margin: 0;
     ">
         <span style="font-weight: 600; color: #006400;">📌 Nesta página você encontra:</span><br>
-        • Atas e apresentações das reuniões da Bacia do Banabuiú<br>
-        • Organizadas por operação, reservatório e parâmetros<br>
-        • Dados de vazão média aprovados
+        • Visualização dos açudes monitorados na bacia do Banabuiú<br>
+        • Filtros interativos para análise dos dados<br>
+        • Tabela detalhada com informações técnicas
     </p>
 </div>
 """, unsafe_allow_html=True)
@@ -719,296 +719,229 @@ with tab2:
             url = "https://docs.google.com/spreadsheets/d/1zZ0RCyYj-AzA_dhWzxRziDWjgforbaH7WIoSEd2EKdk/export?format=csv"
             df = pd.read_csv(url)
             
+            # Verificar e converter coordenadas
             if 'Latitude' in df.columns and 'Longitude' in df.columns:
                 df['Latitude'] = pd.to_numeric(df['Latitude'].astype(str).str.replace(',', '.'), errors='coerce')
                 df['Longitude'] = pd.to_numeric(df['Longitude'].astype(str).str.replace(',', '.'), errors='coerce')
+                df = df.dropna(subset=['Latitude', 'Longitude'])
             else:
-                st.error("As colunas 'Latitude' ou 'Longitude' não foram encontradas no arquivo.")
+                st.error("Colunas 'Latitude' e 'Longitude' são necessárias")
                 return pd.DataFrame()
-            
-            df = df.dropna(subset=['Latitude', 'Longitude'])
 
+            # Converter data
             if 'Data de Coleta' in df.columns:
                 df['Data de Coleta'] = pd.to_datetime(df['Data de Coleta'], errors='coerce', dayfirst=True)
                 df = df.dropna(subset=['Data de Coleta'])
 
-            if 'Percentual' in df.columns:
-                df['Percentual'] = df['Percentual'].astype(str).str.replace(',', '.').str.replace('%', '').str.strip()
-                df['Percentual'] = pd.to_numeric(df['Percentual'], errors='coerce')
-                df['Percentual'] = df['Percentual'].fillna(0)
+            # Converter valores numéricos
+            numeric_cols = {
+                'Percentual': lambda x: pd.to_numeric(x.astype(str).str.replace(',', '.').str.replace('%', ''), errors='coerce'),
+                'Volume': lambda x: pd.to_numeric(x.astype(str).str.replace(',', '.'), errors='coerce'),
+                'Cota Sangria': lambda x: pd.to_numeric(x.astype(str).str.replace(',', '.'), errors='coerce'),
+                'Nivel': lambda x: pd.to_numeric(x.astype(str).str.replace(',', '.'), errors='coerce')
+            }
             
-            for col in ['Volume', 'Cota Sangria']:
+            for col, converter in numeric_cols.items():
                 if col in df.columns:
-                    df[col] = df[col].astype(str).str.replace(',', '.').str.strip()
-                    df[col] = pd.to_numeric(df[col], errors='coerce')
-            
+                    df[col] = converter(df[col])
+
             return df
         except Exception as e:
-            st.error(f"Erro ao carregar dados dos reservatórios: {str(e)}")
+            st.error(f"Erro ao carregar dados: {str(e)}")
             return pd.DataFrame()
 
     df_full = load_reservatorios_data()
-    df_reservatorios = df_full.copy()
+    
+    if df_full.empty:
+        st.warning("Não foi possível carregar os dados dos reservatórios.")
+        st.stop()
 
-    # --- Filtros VISÍVEIS na parte superior do mapa ---
-    if not df_reservatorios.empty:
+    # --- Filtros Interativos ---
+    with st.expander("🔍 Filtros", expanded=True):
         col1, col2, col3 = st.columns(3)
+        
         with col1:
-            today = datetime.date.today()
-            min_date = df_reservatorios['Data de Coleta'].min().date()
+            # Filtro de data
+            min_date = df_full['Data de Coleta'].min().date()
+            max_date = df_full['Data de Coleta'].max().date()
             date_range = st.date_input(
-                "Selecione o intervalo de datas:",
-                value=(min_date, today),
+                "Período:",
+                value=(min_date, max_date),
                 min_value=min_date,
-                max_value=today
+                max_value=max_date
             )
-            if len(date_range) != 2:
-                st.warning("Por favor, selecione um intervalo de duas datas.")
-                st.stop()
             
-            start_date, end_date = date_range
+            if len(date_range) == 2:
+                start_date, end_date = date_range
+            else:
+                st.warning("Selecione um intervalo válido")
+                st.stop()
 
         with col2:
-            reservatorios_disponiveis = sorted(df_reservatorios['Reservatório'].unique())
+            # Filtro de reservatório
+            reservatorios = sorted(df_full['Reservatório'].unique())
             reservatorio_filtro = st.multiselect(
-                "Selecione o(s) Reservatório(s):",
-                options=reservatorios_disponiveis,
-                default=reservatorios_disponiveis
+                "Reservatório(s):",
+                options=reservatorios,
+                default=reservatorios,
+                placeholder="Selecione..."
             )
 
         with col3:
+            # Filtro de município
+            municipios = ['Todos'] + sorted(df_full['Município'].unique().tolist())
             municipio_filtro = st.selectbox(
-                "Selecione o Município:",
-                options=['Todos'] + sorted(df_reservatorios['Município'].unique())
+                "Município:",
+                options=municipios,
+                index=0
             )
 
-        min_percentual, max_percentual = st.slider(
-            'Selecione o Percentual de Volume (%):',
-            min_value=float(df_reservatorios['Percentual'].min()),
-            max_value=float(df_reservatorios['Percentual'].max()),
-            value=(float(df_reservatorios['Percentual'].min()), float(df_reservatorios['Percentual'].max())),
+        # Filtro de percentual
+        min_perc = float(df_full['Percentual'].min()) if 'Percentual' in df_full.columns else 0
+        max_perc = float(df_full['Percentual'].max()) if 'Percentual' in df_full.columns else 100
+        perc_range = st.slider(
+            "Percentual de Volume (%):",
+            min_value=min_perc,
+            max_value=max_perc,
+            value=(min_perc, max_perc),
             step=0.1
         )
-        
-        df_reservatorios_filtrado = df_reservatorios.copy()
 
-        df_reservatorios_filtrado = df_reservatorios_filtrado[
-            (df_reservatorios_filtrado['Data de Coleta'].dt.date >= start_date) & 
-            (df_reservatorios_filtrado['Data de Coleta'].dt.date <= end_date)
-        ]
-        
-        if reservatorio_filtro:
-            df_reservatorios_filtrado = df_reservatorios_filtrado[df_reservatorios_filtrado['Reservatório'].isin(reservatorio_filtro)]
-
-        if municipio_filtro != 'Todos':
-            df_reservatorios_filtrado = df_reservatorios_filtrado[df_reservatorios_filtrado['Município'] == municipio_filtro]
-
-        df_reservatorios_filtrado = df_reservatorios_filtrado[
-            (df_reservatorios_filtrado['Percentual'] >= min_percentual) &
-            (df_reservatorios_filtrado['Percentual'] <= max_percentual)
-        ]
-
-        df_mapa = df_reservatorios_filtrado.sort_values('Data de Coleta', ascending=False).drop_duplicates(subset=['Reservatório'], keep='first')
-        
-    else:
-        st.warning("Não foi possível carregar os dados dos reservatórios.")
-        df_mapa = pd.DataFrame()
-
-    # --- Visualização do Mapa ---
-    with st.expander("☰ Estilo do Mapa", expanded=False):
-        tile_option = st.selectbox(
-            "Selecione o estilo:",
-            ["OpenStreetMap", "Stamen Terrain", "Stamen Toner", "CartoDB positron", "CartoDB dark_matter", "Esri Satellite"],
-            key="acudes_map_tile",
-            label_visibility="collapsed"
-        )
-    
-    tile_urls = {
-        "OpenStreetMap": None,
-        "Stamen Terrain": "https://stamen-tiles.a.ssl.fastly.net/terrain/{z}/{x}/{y}.png",
-        "Stamen Toner": "https://stamen-tiles.a.ssl.fastly.net/toner/{z}/{x}/{y}.png",
-        "CartoDB positron": "https://cartodb-basemaps-a.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png",
-        "CartoDB dark_matter": "https://cartodb-basemaps-a.global.ssl.fastly.net/dark_all/{z}/{x}/{y}.png",
-        "Esri Satellite": "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
-    }
-
-    tile_attr = {
-        "OpenStreetMap": '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-        "Stamen Terrain": 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, under <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>. Data by <a href="http://openstreetmap.org">OpenStreetMap</a>, under a href="http://www.openstreetmap.org/copyright">ODbL</a>.',
-        "Stamen Toner": 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, under a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>. Data by <a href="http://openstreetmap.org">OpenStreetMap</a>, under a href="http://www.openstreetmap.org/copyright">ODbL</a>.',
-        "CartoDB positron": '&copy; <a href="https://carto.com/attributions">CARTO</a>',
-        "CartoDB dark_matter": '&copy; <a href="https://carto.com/attributions">CARTO</a>',
-        "Esri Satellite": "Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community"
-    }
-
-    if 'map_rendered' not in st.session_state:
-        st.session_state.map_rendered = False
-        
-    m2 = folium.Map(location=[-5.2, -39.2], zoom_start=9, tiles=None)
-    bacia_layer = folium.GeoJson(geojson_bacia,
-                                 name="Bacia do Banabuiu",
-                                 tooltip=folium.GeoJsonTooltip(fields=["DESCRICA1"], aliases=["Bacia:"]),
-                                 style_function=lambda x: {"color": "darkblue", "weight": 2})
-    bacia_layer.add_to(m2)
-
-    if not st.session_state.map_rendered:
-        m2.fit_bounds(bacia_layer.get_bounds(), padding=(0, 0))
-        st.session_state.map_rendered = True
-
-    reservatorios_layer = folium.FeatureGroup(name="Açudes Monitorados", show=True)
-
-    if not df_mapa.empty:
-        for _, row in df_mapa.iterrows():
-            try:
-                if 'Latitude' in row and 'Longitude' in row and pd.notna(row['Latitude']) and pd.notna(row['Longitude']):
-                    data_coleta = row['Data de Coleta'].strftime('%d/%m/%Y') if pd.notna(row['Data de Coleta']) else 'N/A'
-                        
-                    popup_info = f"""
-        <div style='
-            font-family: "Segoe UI", Arial, sans-serif;
-            padding: 14px;
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.15);
-            border-left: 5px solid #228B22;
-            max-width: 90vw;
-        '>
-            <div style='
-                font-size: 17px; 
-                font-weight: 700; 
-                color: #006400;
-                margin-bottom: 10px;
-                border-bottom: 1px solid #eee;
-                padding-bottom: 8px;
-            '>
-                {row.get('Reservatório', 'N/A')}
-            </div>
-            <div style='margin: 8px 0;'><div style='font-weight: 600; color: #555;'>Data de Coleta:</div><div style='color: #333;'>{data_coleta}</div></div>
-            <div style='margin: 8px 0;'><div style='font-weight: 600; color: #555;'>Município:</div><div style='color: #333;'>{row.get('Município', 'N/A')}</div></div>
-            <div style='margin: 8px 0;'><div style='font-weight: 600; color: #555;'>Cota Sangria:</div><div style='color: #333;'>{row.get('Cota Sangria', 'N/A')}</div></div>
-            <div style='margin: 8px 0;'><div style='font-weight: 600; color: #555;'>Volume (hm³):</div><div style='color: #333;'>{row.get('Volume', 'N/A')}</div></div>
-            <div style='margin: 8px 0;'><div style='font-weight: 600; color: #555;'>Percentual:</div><div style='color: #228B22; font-weight: 700;'>{row.get('Percentual', 'N/A')}%</div></div>
-        </div>
-        """
-                    folium.Marker(
-                        [row['Latitude'], row['Longitude']],
-                        icon=folium.CustomIcon("https://i.ibb.co/C3mYx7dn/icone-barragem.png", icon_size=(35, 35)),
-                        tooltip=f"{row.get('Reservatório', 'Reservatório')} - {data_coleta}",
-                        popup=folium.Popup(popup_info, max_width=300)
-                    ).add_to(reservatorios_layer)
-                    
-            except Exception as e:
-                st.sidebar.error(f"Erro ao plotar reservatório {row.get('Reservatório', '')}: {str(e)}")
-                continue
-
-    reservatorios_layer.add_to(m2)
-
-    gestoras_layer = folium.FeatureGroup(name="Comissões Gestoras", show=False)
-    for feature in geojson_c_gestoras["features"]:
-        props = feature["properties"]; coords = feature["geometry"]["coordinates"]
-        nome_g = props.get("SISTEMAH3","Sem nome")
-        popup_info_gestoras = f"""
-    <div style='
-        font-family: "Segoe UI", Arial, sans-serif;
-        padding: 12px;
-        background: white;
-        border-radius: 8px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        border-top: 4px solid #228B22;
-        max-width: 90vw;
-    '>
-        <div style='
-            font-size: 16px; 
-            font-weight: 600; 
-            color: #2c3e50;
-            margin-bottom: 8px;
-        '>
-            {nome_g}
-        </div>
-        
-        <div style='margin: 6px 0;'>
-            <div style='font-weight: 500; color: #7f8c8d;'>Ano de Formação</div>
-            <div style='color: #2c3e50;'>{props.get("ANOFORMA1","N/A")}</div>
-        </div>
-        
-        <div style='margin: 6px 0;'>
-            <div style='font-weight: 500; color: #7f8c8d;'>Sistema</div>
-            <div style='color: #2c3e50;'>{props.get("SISTEMAH3","N/A")}</div>
-        </div>
-        
-        <div style='margin: 6px 0;'>
-            <div style='font-weight: 500; color: #7f8c8d;'>Município</div>
-            <div style='color: #228B22; font-weight: 500;'>{props.get("MUNICIPI6","N/A")}</div>
-        </div>
-    </div>
-    """
-        folium.Marker(
-            coords[::-1],
-            icon=folium.CustomIcon("https://cdn-icons-png.flaticon.com/512/4144/4144517.png", icon_size=(30,30)),
-            tooltip=nome_g,
-            popup=folium.Popup(popup_info_gestoras, max_width=300)
-        ).add_to(gestoras_layer)
-    gestoras_layer.add_to(m2)
-
-    sedes_layer = folium.FeatureGroup(name="Sedes Municipais", show=False)
-    for feature in geojson_sedes["features"]:
-        props = feature["properties"]; coords = feature["geometry"]["coordinates"]
-        nome = props.get("NOME_MUNIC","Sem nome")
-        folium.Marker([coords[1], coords[0]],
-                      icon=folium.CustomIcon("https://cdn-icons-png.flaticon.com/512/854/854878.png", icon_size=(28,28)),
-                      tooltip=nome).add_to(sedes_layer)
-    sedes_layer.add_to(m2)
-
-    if tile_option == "OpenStreetMap":
-        folium.TileLayer(tiles='OpenStreetMap').add_to(m2)
-    else:
-        folium.TileLayer(
-            tiles=tile_urls.get(tile_option),
-            attr=tile_attr.get(tile_option),
-            name=tile_option
-        ).add_to(m2)
-
-    Fullscreen(position='topleft').add_to(m2)
-    MiniMap(toggle_display=True, minimized=True).add_to(m2)
-    MousePosition(position='bottomleft', separator=' | ', prefix='Coords').add_to(m2)
-    MeasureControl(primary_length_unit='meters').add_to(m2)
-
-    folium.GeoJson(geojson_acudes, name="Açudes", tooltip=folium.GeoJsonTooltip(fields=["Name"], aliases=["Açude:"])).add_to(m2)
-    
-    folium.LayerControl(collapsed=True, position='topright').add_to(m2)
-    
-    folium_static(m2, width=1200)
-
-    # --- Tabela VISÍVEL na parte inferior do mapa ---
-    st.markdown("---")
-    st.subheader("📊 Tabela de Dados dos Açudes")
-    
-    colunas_tabela = [
-        'Data de Coleta',
-        'Reservatório',
-        'Município',
-        'Cota Sangria',
-        'Volume',
-        'Percentual',
-        'Nivel',
-        'Sangria'
+    # Aplicar filtros
+    df_filtrado = df_full[
+        (df_full['Data de Coleta'].dt.date >= start_date) & 
+        (df_full['Data de Coleta'].dt.date <= end_date) &
+        (df_full['Reservatório'].isin(reservatorio_filtro)) &
+        (df_full['Percentual'] >= perc_range[0]) &
+        (df_full['Percentual'] <= perc_range[1])
     ]
 
-    if not df_reservatorios_filtrado.empty:
-        df_display = df_reservatorios_filtrado[colunas_tabela].copy()
-        
-        for col in ['Percentual', 'Volume', 'Cota Sangria']:
-            df_display[col] = pd.to_numeric(df_display[col], errors='coerce')
-        
-        df_display['Data de Coleta'] = df_display['Data de Coleta'].dt.strftime('%d/%m/%Y')
+    if municipio_filtro != 'Todos':
+        df_filtrado = df_filtrado[df_filtrado['Município'] == municipio_filtro]
 
-        st.dataframe(df_display.style.format({
-            'Percentual': '{:.2f}%'.format,
-            'Volume': '{:.2f}'.format,
-            'Cota Sangria': '{:.2f}'.format
-        }))
+    # Obter última medição por reservatório para o mapa
+    df_mapa = df_filtrado.sort_values('Data de Coleta', ascending=False).drop_duplicates(subset=['Reservatório'])
+
+    # --- Mapa Interativo ---
+    st.subheader("🌍 Mapa dos Açudes")
+    
+    with st.expander("Configurações do Mapa", expanded=False):
+        tile_option = st.selectbox(
+            "Estilo do Mapa:",
+            ["OpenStreetMap", "Stamen Terrain", "Stamen Toner", 
+             "CartoDB positron", "CartoDB dark_matter", "Esri Satellite"],
+            index=0
+        )
+
+    # Configurações do mapa
+    tile_config = {
+        "OpenStreetMap": {
+            "tiles": "OpenStreetMap",
+            "attr": '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+        },
+        "Stamen Terrain": {
+            "tiles": "https://stamen-tiles.a.ssl.fastly.net/terrain/{z}/{x}/{y}.png",
+            "attr": 'Map tiles by <a href="http://stamen.com">Stamen Design</a>'
+        },
+        # Adicione outros estilos conforme necessário
+    }
+
+    # Criar mapa
+    if not df_mapa.empty:
+        mapa_center = [df_mapa['Latitude'].mean(), df_mapa['Longitude'].mean()]
+        m = folium.Map(location=mapa_center, zoom_start=9, tiles=None)
+        
+        # Adicionar camada base
+        folium.TileLayer(
+            tiles=tile_config[tile_option]["tiles"],
+            attr=tile_config[tile_option]["attr"],
+            name="Base"
+        ).add_to(m)
+
+        # Adicionar camada da bacia
+        folium.GeoJson(
+            geojson_bacia,
+            name="Bacia do Banabuiú",
+            style_function=lambda x: {"color": "blue", "weight": 2, "fillOpacity": 0.1},
+            tooltip=folium.GeoJsonTooltip(fields=["DESCRICA1"], aliases=["Bacia:"])
+        ).add_to(m)
+
+        # Adicionar marcadores dos reservatórios
+        for _, row in df_mapa.iterrows():
+            popup_content = f"""
+            <div style='font-family: Arial; width: 250px;'>
+                <h4 style='color: #006400;'>{row['Reservatório']}</h4>
+                <p><b>Data:</b> {row['Data de Coleta'].strftime('%d/%m/%Y')}</p>
+                <p><b>Município:</b> {row.get('Município', 'N/A')}</p>
+                <p><b>Volume:</b> {row.get('Volume', 'N/A')} hm³</p>
+                <p><b>Percentual:</b> {row.get('Percentual', 'N/A')}%</p>
+                <p><b>Cota Sangria:</b> {row.get('Cota Sangria', 'N/A')}</p>
+            </div>
+            """
+            
+            folium.Marker(
+                location=[row['Latitude'], row['Longitude']],
+                popup=folium.Popup(popup_content, max_width=300),
+                icon=folium.CustomIcon(
+                    "https://i.ibb.co/C3mYx7dn/icone-barragem.png",
+                    icon_size=(35, 35)
+                ),
+                tooltip=row['Reservatório']
+            ).add_to(m)
+
+        # Adicionar controles
+        folium.LayerControl().add_to(m)
+        Fullscreen(position='topleft').add_to(m)
+        MousePosition(position='bottomleft').add_to(m)
+
+        # Exibir mapa
+        folium_static(m, width=1200)
     else:
-        st.info("Nenhum dado encontrado com os filtros aplicados.")
+        st.warning("Nenhum reservatório encontrado com os filtros aplicados.")
+
+    # --- Tabela de Dados ---
+    st.subheader("📊 Dados Detalhados")
+    
+    if not df_filtrado.empty:
+        # Selecionar e ordenar colunas
+        colunas = [
+            'Data de Coleta', 'Reservatório', 'Município', 
+            'Cota Sangria', 'Volume', 'Percentual', 'Nivel'
+        ]
+        
+        # Criar DataFrame para exibição
+        df_display = df_filtrado[colunas].copy()
+        
+        # Formatar colunas
+        df_display['Data de Coleta'] = df_display['Data de Coleta'].dt.strftime('%d/%m/%Y')
+        df_display['Percentual'] = df_display['Percentual'].apply(lambda x: f"{x:.1f}%" if pd.notnull(x) else "")
+        
+        # Exibir tabela com configurações
+        st.dataframe(
+            df_display,
+            column_config={
+                "Percentual": st.column_config.ProgressColumn(
+                    "Percentual",
+                    format="%.1f%%",
+                    min_value=0,
+                    max_value=100,
+                )
+            },
+            use_container_width=True,
+            hide_index=True,
+            height=400
+        )
+        
+        # Botão para download
+        csv = df_filtrado.to_csv(index=False, encoding='utf-8-sig')
+        st.download_button(
+            label="📥 Baixar dados como CSV",
+            data=csv,
+            file_name='acudes_monitorados.csv',
+            mime='text/csv',
+        )
+    else:
+        st.info("Nenhum dado disponível para exibição com os filtros atuais.")
 
 #================PÁGINA > DOCUMENTOS OFICIAS==================
 
