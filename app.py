@@ -775,50 +775,62 @@ with tab2:
         st.session_state.map_rendered = True
 
     # Carregar dados da planilha Google
-    @st.cache_data(ttl=3600)
-    def load_reservatorios_data():
+@st.cache_data(ttl=3600)
+def load_reservatorios_data():
+    try:
+        url = "https://docs.google.com/spreadsheets/d/1zZ0RCyYj-AzA_dhWzxRziDWjgforbaH7WIoSEd2EKdk/export?format=csv"
+        df = pd.read_csv(url)
+        
+        # Verificar e corrigir formato das coordenadas
+        df['Latitude'] = pd.to_numeric(df['Latitude'].str.replace(',', '.'), errors='coerce')
+        df['Longitude'] = pd.to_numeric(df['Longitude'].str.replace(',', '.'), errors='coerce')
+        
+        # Filtrar apenas linhas com coordenadas válidas
+        df = df.dropna(subset=['Latitude', 'Longitude'])
+        return df
+    except Exception as e:
+        st.error(f"Erro ao carregar dados dos reservatórios: {str(e)}")
+        return pd.DataFrame()
+
+# --- Aqui inserimos o botão de atualização ---
+cA1, cA2, cA3 = st.columns([1,1,1])
+with cA1:
+    if st.button("🔄 Atualizar dados"):
+        # Limpa o cache da função que carrega a planilha
+        load_reservatorios_data.clear()
+        # Apaga a variável de estado para forçar o recálculo do zoom do mapa
+        if 'map_rendered' in st.session_state:
+            del st.session_state.map_rendered
+        # Força o recarregamento completo do script
+        st.rerun()
+
+df_reservatorios = load_reservatorios_data()
+
+# Adicionar camada de reservatórios
+reservatorios_layer = folium.FeatureGroup(name="Açudes Monitorados", show=True)
+
+if not df_reservatorios.empty:
+    # Primeiro verifique se a coluna de data existe e converta para datetime
+    if 'Data de Coleta' in df_reservatorios.columns:
+        df_reservatorios['Data_Formatada'] = pd.to_datetime(df_reservatorios['Data de Coleta'], errors='coerce', dayfirst=True)
+        
+        # Ordena por data decrescente para pegar a mais recente para cada reservatório
+        df_reservatorios.sort_values('Data_Formatada', ascending=False, inplace=True)
+        
+        # Remove duplicados, mantendo apenas o mais recente
+        df_reservatorios = df_reservatorios.drop_duplicates(subset=['Reservatório'], keep='first')
+
+    for _, row in df_reservatorios.iterrows():
         try:
-            url = "https://docs.google.com/spreadsheets/d/1zZ0RCyYj-AzA_dhWzxRziDWjgforbaH7WIoSEd2EKdk/export?format=csv"
-            df = pd.read_csv(url)
-            
-            # Verificar e corrigir formato das coordenadas
-            df['Latitude'] = pd.to_numeric(df['Latitude'].str.replace(',', '.'), errors='coerce')
-            df['Longitude'] = pd.to_numeric(df['Longitude'].str.replace(',', '.'), errors='coerce')
-            
-            # Filtrar apenas linhas com coordenadas válidas
-            df = df.dropna(subset=['Latitude', 'Longitude'])
-            return df
-        except Exception as e:
-            st.error(f"Erro ao carregar dados dos reservatórios: {str(e)}")
-            return pd.DataFrame()
-
-    df_reservatorios = load_reservatorios_data()
-
-    # Adicionar camada de reservatórios
-    reservatorios_layer = folium.FeatureGroup(name="Açudes Monitorados", show=True)
-
-    if not df_reservatorios.empty:
-        # Primeiro verifique se a coluna de data existe e converta para datetime
-        if 'Data de Coleta' in df_reservatorios.columns:
-            df_reservatorios['Data_Formatada'] = pd.to_datetime(df_reservatorios['Data de Coleta'], errors='coerce', dayfirst=True)
-            
-            # Ordena por data decrescente para pegar a mais recente para cada reservatório
-            df_reservatorios.sort_values('Data_Formatada', ascending=False, inplace=True)
-            
-            # 📌 A CORREÇÃO É AQUI: Remove duplicados, mantendo apenas o mais recente
-            df_reservatorios = df_reservatorios.drop_duplicates(subset=['Reservatório'], keep='first')
-
-        for _, row in df_reservatorios.iterrows():
-            try:
-                if not (-90 <= row['Latitude'] <= 90) or not (-180 <= row['Longitude'] <= 180):
-                    continue
-                    
-                # Formata a data para exibição (se existir)
-                data_coleta = ''
-                if 'Data_Formatada' in df_reservatorios.columns and pd.notna(row['Data_Formatada']):
-                    data_coleta = row['Data_Formatada'].strftime('%d/%m/%Y')
-                    
-                popup_info = f"""
+            if not (-90 <= row['Latitude'] <= 90) or not (-180 <= row['Longitude'] <= 180):
+                continue
+                
+            # Formata a data para exibição (se existir)
+            data_coleta = ''
+            if 'Data_Formatada' in df_reservatorios.columns and pd.notna(row['Data_Formatada']):
+                data_coleta = row['Data_Formatada'].strftime('%d/%m/%Y')
+                
+            popup_info = f"""
 <div style='
     font-family: "Segoe UI", Arial, sans-serif;
     padding: 14px;
@@ -845,18 +857,18 @@ with tab2:
     <div style='margin: 8px 0;'><div style='font-weight: 600; color: #555;'>Percentual:</div><div style='color: #228B22; font-weight: 700;'>{row.get('Percentual', 'N/A')}%</div></div>
 </div>
 """
-                folium.Marker(
-                    row[['Latitude', 'Longitude']].tolist(),
-                    icon=folium.CustomIcon("https://i.ibb.co/C3mYx7dn/icone-barragem.png", icon_size=(35, 35)),
-                    tooltip=f"{row.get('Reservatório', 'Reservatório')} - {data_coleta}" if data_coleta else row.get('Reservatório', 'Reservatório'),
-                    popup=folium.Popup(popup_info, max_width=300)
-                ).add_to(reservatorios_layer)
-                
-            except Exception as e:
-                st.sidebar.error(f"Erro ao plotar reservatório {row.get('Reservatório', '')}: {str(e)}")
-                continue
+            folium.Marker(
+                row[['Latitude', 'Longitude']].tolist(),
+                icon=folium.CustomIcon("https://i.ibb.co/C3mYx7dn/icone-barragem.png", icon_size=(35, 35)),
+                tooltip=f"{row.get('Reservatório', 'Reservatório')} - {data_coleta}" if data_coleta else row.get('Reservatório', 'Reservatório'),
+                popup=folium.Popup(popup_info, max_width=300)
+            ).add_to(reservatorios_layer)
+            
+        except Exception as e:
+            st.sidebar.error(f"Erro ao plotar reservatório {row.get('Reservatório', '')}: {str(e)}")
+            continue
 
-    reservatorios_layer.add_to(m2)
+reservatorios_layer.add_to(m2)
 
     # Demais camadas (Comissões Gestoras, Açudes, etc.)
     gestoras_layer = folium.FeatureGroup(name="Comissões Gestoras", show=False)
