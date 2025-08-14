@@ -754,7 +754,6 @@ with tab2:
     if not df_reservatorios.empty:
         col1, col2, col3 = st.columns(3)
         with col1:
-            # --- ATUALIZAÇÃO PARA SELEÇÃO DE INTERVALO DE DATA ---
             today = datetime.date.today()
             min_date = df_reservatorios['Data de Coleta'].min().date()
             date_range = st.date_input(
@@ -763,7 +762,6 @@ with tab2:
                 min_value=min_date,
                 max_value=today
             )
-            # Garante que date_range é uma tupla
             if len(date_range) != 2:
                 st.warning("Por favor, selecione um intervalo de duas datas.")
                 st.stop()
@@ -771,12 +769,11 @@ with tab2:
             start_date, end_date = date_range
 
         with col2:
-            # --- ATUALIZAÇÃO PARA MULTI-SELEÇÃO DE RESERVATÓRIOS ---
             reservatorios_disponiveis = sorted(df_reservatorios['Reservatório'].unique())
             reservatorio_filtro = st.multiselect(
                 "Selecione o(s) Reservatório(s):",
                 options=reservatorios_disponiveis,
-                default=reservatorios_disponiveis # Seleciona todos por padrão
+                default=reservatorios_disponiveis
             )
 
         with col3:
@@ -795,13 +792,11 @@ with tab2:
         
         df_reservatorios_filtrado = df_reservatorios.copy()
 
-        # Aplica o filtro de data
         df_reservatorios_filtrado = df_reservatorios_filtrado[
             (df_reservatorios_filtrado['Data de Coleta'].dt.date >= start_date) & 
             (df_reservatorios_filtrado['Data de Coleta'].dt.date <= end_date)
         ]
         
-        # Aplica o filtro de reservatório (agora com multi-seleção)
         if reservatorio_filtro:
             df_reservatorios_filtrado = df_reservatorios_filtrado[df_reservatorios_filtrado['Reservatório'].isin(reservatorio_filtro)]
 
