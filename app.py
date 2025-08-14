@@ -893,7 +893,7 @@ with tab2:
         props = feature["properties"]; coords = feature["geometry"]["coordinates"]
         nome = props.get("NOME_MUNIC","Sem nome")
         folium.Marker([coords[1], coords[0]],
-                     icon=folium.CustomIcon("https://cdn-icons-png.flaticon.com/512/854/854878.png", icon_size=(22,22)),
+                     icon=folium.CustomIcon("https://cdn-icons-png.flaticon.com/512/854/854878.png", icon_size=(28,28)),
                      tooltip=nome).add_to(sedes_layer)
     sedes_layer.add_to(m2)
 
