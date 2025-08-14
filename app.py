@@ -980,70 +980,68 @@ with tab2:
     st.subheader("📊 Dados Detalhados")
 
 if not df_filtrado.empty:
-    # Definir a ordem das colunas com 'Sangria' no final
+    # Verificar se a coluna 'Sangria' já existe, se não, criar com base em 'Cota Sangria'
+    if 'Sangria' not in df_filtrado.columns:
+        df_filtrado['Sangria'] = df_filtrado['Cota Sangria']
+    
+    # Ordem das colunas com 'Sangria' no final
     colunas_exibir = [
         'Data de Coleta', 
         'Reservatório', 
         'Município',
+        'Cota Sangria',  # Mantém a coluna original
         'Volume', 
         'Percentual', 
         'Nivel',
-        'Sangria'  # Agora está na última posição
+        'Sangria'  # Nova coluna formatada
     ]
 
-    # Criar cópia do DataFrame para manipulação
-    df_display = df_filtrado.copy()
+    # Criar cópia para exibição
+    df_display = df_filtrado[colunas_exibir].copy()
     
-    # Formatar a data
+    # Formatar colunas
     df_display['Data de Coleta'] = df_display['Data de Coleta'].dt.strftime('%d/%m/%Y')
-    
-    # Criar coluna Sangria formatada (mantendo a original para download)
-    df_display['Sangria'] = df_display['Cota Sangria'].apply(
+    df_display['Sangria'] = df_display['Sangria'].apply(
         lambda x: f"{x:.2f} m" if pd.notna(x) else "N/A"
     )
 
-    # Configurações avançadas das colunas
+    # Configurações das colunas
     column_config = {
         "Percentual": st.column_config.ProgressColumn(
             "Percentual",
             format="%.2f%%",
             min_value=0,
-            max_value=100,
-            help="Percentual de volume armazenado"
+            max_value=100
         ),
         "Volume": st.column_config.NumberColumn(
             "Volume (hm³)",
-            format="%.2f",
-            help="Volume em hectômetros cúbicos"
+            format="%.2f"
         ),
-        "Nivel": st.column_config.NumberColumn(
-            "Nível (m)",
-            format="%.2f",
-            help="Nível atual do reservatório"
+        "Cota Sangria": st.column_config.NumberColumn(
+            "Cota Sangria",
+            format="%.2f"
         ),
         "Sangria": st.column_config.TextColumn(
-            "Cota de Sangria",
-            help="Altura da cota de sangria em metros"
+            "Sangria (m)"
         )
     }
 
     # Exibir tabela
     st.dataframe(
-        df_display[colunas_exibir],
+        df_display,
         column_config=column_config,
         use_container_width=True,
         hide_index=True,
         height=400
     )
 
-    # Preparar dados para download (mantendo todas as colunas originais)
+    # Botão de download mantendo todas colunas originais
     csv = df_filtrado.to_csv(index=False, encoding='utf-8-sig')
     st.download_button(
         label="📥 Baixar dados como CSV",
         data=csv,
         file_name='acudes_monitorados.csv',
-        mime='text/csv',
-        help="Download de todos os dados com colunas originais"
+        mime='text/csv'
     )
 else:
     st.info("Nenhum dado disponível para exibição com os filtros atuais.")
