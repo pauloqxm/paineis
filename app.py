@@ -1,6 +1,4 @@
 
-
-
 import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
@@ -125,7 +123,7 @@ def carregar_dados():
 
 # ---------------- TABS ----------------
 # Adicionando a nova aba aqui
-tab1, tab2, tab3 = st.tabs(["Vazões - GRBANABUIU", "🗺️ Açudes Monitorados", "📜 Documentos Oficiais"])
+tab1, tab2, tab3 = st.tabs(["🏠 Pagina Iicial", "🗺️ Açudes Monitorados", "📜 Documentos Oficiais"])
 
 with tab1:
     # dados
