@@ -780,7 +780,7 @@ with tab2:
     df_reservatorios = load_reservatorios_data()
 
     # Adicionar camada de reservatórios
-    reservatorios_layer = folium.FeatureGroup(name="Reservatórios (Dados Atualizados)", show=True)
+    reservatorios_layer = folium.FeatureGroup(name="Açudes Monitorados", show=True)
     
     if not df_reservatorios.empty:
         # Primeiro verifique se a coluna de data existe e converta para datetime
@@ -886,6 +886,16 @@ with tab2:
             popup=folium.Popup(popup_info_gestoras, max_width=300)
         ).add_to(gestoras_layer)
     gestoras_layer.add_to(m2)
+
+    # A identação da seção "Sedes Municipais" estava incorreta
+    sedes_layer = folium.FeatureGroup(name="Sedes Municipais", show=False)
+    for feature in geojson_sedes["features"]:
+        props = feature["properties"]; coords = feature["geometry"]["coordinates"]
+        nome = props.get("NOME_MUNIC","Sem nome")
+        folium.Marker([coords[1], coords[0]],
+                     icon=folium.CustomIcon("https://cdn-icons-png.flaticon.com/512/854/854878.png", icon_size=(22,22)),
+                     tooltip=nome).add_to(sedes_layer)
+    sedes_layer.add_to(m2)
 
     # Configurações base do mapa
     if tile_option == "OpenStreetMap":
