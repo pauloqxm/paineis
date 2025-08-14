@@ -781,29 +781,29 @@ with tab2:
 
     # Adicionar camada de reservatórios
     reservatorios_layer = folium.FeatureGroup(name="Açudes Monitorados", show=True)
- 
-if not df_reservatorios.empty:
-    # Primeiro verifique se a coluna de data existe e converta para datetime
-    if 'Data de Coleta' in df_reservatorios.columns:
-        df_reservatorios['Data_Formatada'] = pd.to_datetime(df_reservatorios['Data de Coleta'], errors='coerce', dayfirst=True)
-        
-        # Ordena por data decrescente para pegar a mais recente para cada reservatório
-        df_reservatorios.sort_values('Data_Formatada', ascending=False, inplace=True)
-        
-        # 📌 A CORREÇÃO É AQUI: Remove duplicados, mantendo apenas o mais recente
-        df_reservatorios = df_reservatorios.drop_duplicates(subset=['Reservatório'], keep='first')
 
-    for _, row in df_reservatorios.iterrows():
-        try:
-            if not (-90 <= row['Latitude'] <= 90) or not (-180 <= row['Longitude'] <= 180):
-                continue
-                
-            # Formata a data para exibição (se existir)
-            data_coleta = ''
-            if 'Data_Formatada' in df_reservatorios.columns and pd.notna(row['Data_Formatada']):
-                data_coleta = row['Data_Formatada'].strftime('%d/%m/%Y')
-                
-            popup_info = f"""
+    if not df_reservatorios.empty:
+        # Primeiro verifique se a coluna de data existe e converta para datetime
+        if 'Data de Coleta' in df_reservatorios.columns:
+            df_reservatorios['Data_Formatada'] = pd.to_datetime(df_reservatorios['Data de Coleta'], errors='coerce', dayfirst=True)
+            
+            # Ordena por data decrescente para pegar a mais recente para cada reservatório
+            df_reservatorios.sort_values('Data_Formatada', ascending=False, inplace=True)
+            
+            # 📌 A CORREÇÃO É AQUI: Remove duplicados, mantendo apenas o mais recente
+            df_reservatorios = df_reservatorios.drop_duplicates(subset=['Reservatório'], keep='first')
+
+        for _, row in df_reservatorios.iterrows():
+            try:
+                if not (-90 <= row['Latitude'] <= 90) or not (-180 <= row['Longitude'] <= 180):
+                    continue
+                    
+                # Formata a data para exibição (se existir)
+                data_coleta = ''
+                if 'Data_Formatada' in df_reservatorios.columns and pd.notna(row['Data_Formatada']):
+                    data_coleta = row['Data_Formatada'].strftime('%d/%m/%Y')
+                    
+                popup_info = f"""
 <div style='
     font-family: "Segoe UI", Arial, sans-serif;
     padding: 14px;
@@ -837,11 +837,11 @@ if not df_reservatorios.empty:
                     popup=folium.Popup(popup_info, max_width=300)
                 ).add_to(reservatorios_layer)
                 
-        except Exception as e:
-            st.sidebar.error(f"Erro ao plotar reservatório {row.get('Reservatório', '')}: {str(e)}")
-            continue
+            except Exception as e:
+                st.sidebar.error(f"Erro ao plotar reservatório {row.get('Reservatório', '')}: {str(e)}")
+                continue
 
-reservatorios_layer.add_to(m2)
+    reservatorios_layer.add_to(m2)
 
     # Demais camadas (Comissões Gestoras, Açudes, etc.)
     gestoras_layer = folium.FeatureGroup(name="Comissões Gestoras", show=False)
@@ -891,7 +891,6 @@ reservatorios_layer.add_to(m2)
         ).add_to(gestoras_layer)
     gestoras_layer.add_to(m2)
 
-    # A identação da seção "Sedes Municipais" estava incorreta
     sedes_layer = folium.FeatureGroup(name="Sedes Municipais", show=False)
     for feature in geojson_sedes["features"]:
         props = feature["properties"]; coords = feature["geometry"]["coordinates"]
