@@ -686,7 +686,7 @@ with tab1:
 
 #================PÁGINA > AÇUDES MONITORADOS==================
 
-with st.expander("Açudes Monitorados"):
+with tab2:
     st.title("🗺️ Açudes Monitorados")
 
     st.markdown("""
@@ -719,7 +719,7 @@ with st.expander("Açudes Monitorados"):
             url = "https://docs.google.com/spreadsheets/d/1zZ0RCyYj-AzA_dhWzxRziDWjgforbaH7WIoSEd2EKdk/export?format=csv"
             df = pd.read_csv(url)
             
-            # --- CORREÇÃO: Garante que as colunas existem antes de tentar acessá-las ---
+            # Garante que as colunas existem antes de tentar acessá-las
             if 'Latitude' in df.columns and 'Longitude' in df.columns:
                 df['Latitude'] = pd.to_numeric(df['Latitude'].astype(str).str.replace(',', '.'), errors='coerce')
                 df['Longitude'] = pd.to_numeric(df['Longitude'].astype(str).str.replace(',', '.'), errors='coerce')
@@ -757,15 +757,16 @@ with st.expander("Açudes Monitorados"):
             )
         
         with col2:
+            reservatorios_disponiveis = ['Todos'] + sorted(df_reservatorios['Reservatório'].unique())
             reservatorio_filtro = st.selectbox(
                 "Selecione o Reservatório:",
-                options=df_reservatorios['Reservatório'].unique()
+                options=reservatorios_disponiveis
             )
 
         with col3:
             municipio_filtro = st.selectbox(
                 "Selecione o Município:",
-                options=['Todos'] + list(df_reservatorios['Município'].unique())
+                options=['Todos'] + sorted(df_reservatorios['Município'].unique())
             )
 
         min_percentual, max_percentual = st.slider(
@@ -776,18 +777,25 @@ with st.expander("Açudes Monitorados"):
             step=0.1
         )
         
-        # Filtra por data e reservatório, e depois por município
-        df_reservatorios_filtrado = df_reservatorios[
-            (df_reservatorios['Data de Coleta'].dt.strftime('%d/%m/%Y') == data_filtro) &
-            (df_reservatorios['Reservatório'] == reservatorio_filtro)
-        ]
+        df_reservatorios_filtrado = df_reservatorios.copy()
+
+        # Aplica os filtros de forma condicional
+        if data_filtro != 'Todos':
+            df_reservatorios_filtrado = df_reservatorios_filtrado[df_reservatorios_filtrado['Data de Coleta'].dt.strftime('%d/%m/%Y') == data_filtro]
+        
+        if reservatorio_filtro != 'Todos':
+            df_reservatorios_filtrado = df_reservatorios_filtrado[df_reservatorios_filtrado['Reservatório'] == reservatorio_filtro]
 
         if municipio_filtro != 'Todos':
-            df_reservatorios_filtrado = df_reservatorios_filtrado[
-                df_reservatorios_filtrado['Município'] == municipio_filtro
-            ]
+            df_reservatorios_filtrado = df_reservatorios_filtrado[df_reservatorios_filtrado['Município'] == municipio_filtro]
 
-        # Garantir que apenas o registro mais recente para cada reservatório seja exibido no mapa
+        # Filtra por percentual
+        df_reservatorios_filtrado = df_reservatorios_filtrado[
+            (df_reservatorios_filtrado['Percentual'] >= min_percentual) &
+            (df_reservatorios_filtrado['Percentual'] <= max_percentual)
+        ]
+
+        # Garante que apenas o registro mais recente para cada reservatório seja exibido no mapa
         df_mapa = df_reservatorios_filtrado.sort_values('Data de Coleta', ascending=False).drop_duplicates(subset=['Reservatório'], keep='first')
         
     else:
@@ -837,11 +845,9 @@ with st.expander("Açudes Monitorados"):
 
     reservatorios_layer = folium.FeatureGroup(name="Açudes Monitorados", show=True)
 
-    # --- CORREÇÃO AQUI: Garante que o DataFrame `df_mapa` existe antes de iterar ---
     if not df_mapa.empty:
         for _, row in df_mapa.iterrows():
             try:
-                # CORREÇÃO: Garante que as colunas de coordenadas existem na linha
                 if 'Latitude' in row and 'Longitude' in row and pd.notna(row['Latitude']) and pd.notna(row['Longitude']):
                     data_coleta = row['Data de Coleta'].strftime('%d/%m/%Y') if pd.notna(row['Data de Coleta']) else 'N/A'
                         
@@ -977,8 +983,10 @@ with st.expander("Açudes Monitorados"):
     ]
 
     if not df_reservatorios_filtrado.empty:
-        st.dataframe(df_reservatorios_filtrado[colunas_tabela].style.format({
-            'Data de Coleta': lambda t: t.strftime('%d/%m/%Y'),
+        df_display = df_reservatorios_filtrado[colunas_tabela].copy()
+        df_display['Data de Coleta'] = df_display['Data de Coleta'].dt.strftime('%d/%m/%Y')
+
+        st.dataframe(df_display.style.format({
             'Percentual': '{:.2f}%'.format,
             'Volume': '{:.2f}'.format,
             'Cota Sangria': '{:.2f}'.format
