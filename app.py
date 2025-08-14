@@ -764,7 +764,7 @@ with tab2:
             max_date = df_full['Data de Coleta'].max().date()
             date_range = st.date_input(
                 "Período:",
-                value=(min_date, max_date),
+                value=(max_date, max_date), # <--- ALTERAÇÃO AQUI
                 min_value=min_date,
                 max_value=max_date
             )
@@ -1123,7 +1123,29 @@ if not df_filtrado.empty:
         </div>
     </div>
     """, unsafe_allow_html=True)
+    
+    # ----------------------------------------------------------------------------------------------------------------------
+    # 📊 GRÁFICO DE LINHA DO VOLUME POR RESERVATÓRIO
+    # ----------------------------------------------------------------------------------------------------------------------
+    st.markdown("---")
+    st.subheader("📈 Volume dos Reservatórios ao Longo do Tempo")
+    
+    # Seleção de reservatório para o gráfico
+    reservatorio_selecionado = st.selectbox(
+        "Selecione um reservatório para visualizar a evolução do volume:",
+        options=sorted(df_filtrado['Reservatório'].unique())
+    )
+    
+    df_reservatorio = df_filtrado[df_filtrado['Reservatório'] == reservatorio_selecionado].sort_values('Data de Coleta')
+    
+    if not df_reservatorio.empty:
+        df_reservatorio['Data de Coleta'] = df_reservatorio['Data de Coleta'].dt.date
+        st.line_chart(df_reservatorio.set_index('Data de Coleta')['Volume'])
+    else:
+        st.warning(f"Não há dados de volume para o reservatório '{reservatorio_selecionado}' no período selecionado.")
 
+    st.markdown("---")
+    
     # Botão de download
     with st.expander("📥 Opções de Download", expanded=False):
         st.download_button(
