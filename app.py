@@ -279,44 +279,52 @@ def render_home():
             
 #=====================ABA  
     with gtab2:
-        if not df_filtrado.empty and df_filtrado['Reservatório Monitorado'].nunique() > 0:
-            yconv, sufx = convert_vazao(df_filtrado['Vazão Operada'], unidade_sel)
-            df_box = df_filtrado.copy()
-            df_box['Vazão (conv)'] = yconv
-            
-            volumes = []
-            for reservatorio in df_box['Reservatório Monitorado'].unique():
-                df_res = df_box[df_box['Reservatório Monitorado'] == reservatorio].sort_values('Data')
-                df_res['dias_entre_medicoes'] = df_res['Data'].diff().dt.days.fillna(0)
-                ultima_data_res = df_res['Data'].iloc[-1]
-                fim_periodo = df_box['Data'].max() if pd.notna(df_box['Data'].max()) else ultima_data_res
-                df_res.loc[df_res.index[-1], 'dias_entre_medicoes'] = (fim_periodo - ultima_data_res).days + 1
-                segundos_por_dia = 86400
-                df_res['volume_periodo'] = df_res['Vazão (conv)'] * segundos_por_dia * df_res['dias_entre_medicoes']
-                volume_total = df_res['volume_periodo'].sum()
-                volume_formatado = f"{volume_total/1e6:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".") + " milhões m³"
-                volumes.append({'Reservatório Monitorado': reservatorio, 'Volume Acumulado': volume_total, 'Volume Formatado': volume_formatado})
-            
-            df_volumes = pd.DataFrame(volumes)
-    
-            # ----------------------------------------------------
-            # 📊 GRÁFICO DE BARRAS (Altair)
-            # ----------------------------------------------------
-            chart = alt.Chart(df_volumes).mark_bar(color='#2ca02c').encode(
-                x=alt.X('Reservatório Monitorado:N', title='Reservatório'),
-                y=alt.Y('Volume Acumulado', title='Volume Acumulado (m³)', axis=alt.Axis(format='~s')),
-                tooltip=[
-                    alt.Tooltip('Reservatório Monitorado', title='Reservatório'),
-                    alt.Tooltip('Volume Formatado', title='Volume Total')
-                ]
-            ).properties(
-                title='Volume Acumulado por Reservatório'
-            ).interactive()
-    
-            st.altair_chart(chart, use_container_width=True)
-            # ----------------------------------------------------
-        else:
-            st.info("Sem dados suficientes para o gráfico de volume.")
+    if not df_filtrado.empty and df_filtrado['Reservatório Monitorado'].nunique() > 0:
+        yconv, sufx = convert_vazao(df_filtrado['Vazão Operada'], unidade_sel)
+        df_box = df_filtrado.copy()
+        df_box['Vazão (conv)'] = yconv
+        
+        volumes = []
+        for reservatorio in df_box['Reservatório Monitorado'].unique():
+            df_res = df_box[df_box['Reservatório Monitorado'] == reservatorio].sort_values('Data')
+            df_res['dias_entre_medicoes'] = df_res['Data'].diff().dt.days.fillna(0)
+            ultima_data_res = df_res['Data'].iloc[-1]
+            fim_periodo = df_box['Data'].max() if pd.notna(df_box['Data'].max()) else ultima_data_res
+            df_res.loc[df_res.index[-1], 'dias_entre_medicoes'] = (fim_periodo - ultima_data_res).days + 1
+            segundos_por_dia = 86400
+            df_res['volume_periodo'] = df_res['Vazão (conv)'] * segundos_por_dia * df_res['dias_entre_medicoes']
+            volume_total = df_res['volume_periodo'].sum()
+            volume_formatado = f"{volume_total/1e6:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".") + " milhões m³"
+            volumes.append({'Reservatório Monitorado': reservatorio, 'Volume Acumulado': volume_total, 'Volume Formatado': volume_formatado})
+        
+        df_volumes = pd.DataFrame(volumes)
+
+        # ----------------------------------------------------
+        # 💧 GRÁFICO DE GOTAS (Altair)
+        # ----------------------------------------------------
+        chart = alt.Chart(df_volumes).mark_text(
+            align='center',
+            baseline='bottom',
+            dx=0,  # Desloca a anotação para a direita
+            dy=10  # Desloca a anotação para cima
+        ).encode(
+            x=alt.X('Reservatório Monitorado:N', title='Reservatório'),
+            y=alt.Y('Volume Acumulado', title='Volume Acumulado (m³)', axis=alt.Axis(format='~s')),
+            text=alt.value('💧'), # Usa o emoji de gota como marca
+            size=alt.Size('Volume Acumulado', scale=alt.Scale(range=[100, 500]), legend=None), # O tamanho da gota varia com o volume
+            color=alt.value('steelblue'),
+            tooltip=[
+                alt.Tooltip('Reservatório Monitorado', title='Reservatório'),
+                alt.Tooltip('Volume Formatado', title='Volume Total')
+            ]
+        ).properties(
+            title='Volume Acumulado por Reservatório'
+        ).interactive()
+
+        st.altair_chart(chart, use_container_width=True)
+        # ----------------------------------------------------
+    else:
+        st.info("Sem dados suficientes para o gráfico de volume.")
 
     # ------------- Mapa com camadas -------------
     st.subheader("🗺️ Mapa dos Reservatórios com Camadas")
