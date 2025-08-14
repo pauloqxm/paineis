@@ -929,6 +929,63 @@ if not df_filtrado.empty:
         st.error("Erro: A variável 'geojson_bacia_banabuiu' não foi definida.")
 # --- FIM da nova camada ---
 
+# -------------------CAMADA COMISSÃO GESTORA-------------------------
+
+        gestoras_layer = folium.FeatureGroup(name="Comissões Gestoras", show=False)
+        for feature in geojson_c_gestoras["features"]:
+            props = feature["properties"]; coords = feature["geometry"]["coordinates"]
+            nome_g = props.get("SISTEMAH3","Sem nome")
+            popup_info = f"""
+<div style='
+    font-family: "Segoe UI", Arial, sans-serif;
+    padding: 12px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    border-top: 4px solid #228B22;
+    min-width: 200px;
+'>
+    <div style='
+        font-size: 16px; 
+        font-weight: 600; 
+        color: #2c3e50;
+        margin-bottom: 8px;
+    '>
+        {nome_g}
+    </div>
+    
+    <div style='margin: 6px 0;'>
+        <div style='font-weight: 500; color: #7f8c8d;'>Ano de Formação</div>
+        <div style='color: #2c3e50;'>{props.get("ANOFORMA1","N/A")}</div>
+    </div>
+    
+    <div style='margin: 6px 0;'>
+        <div style='font-weight: 500; color: #7f8c8d;'>Sistema</div>
+        <div style='color: #2c3e50;'>{props.get("SISTEMAH3","N/A")}</div>
+    </div>
+    
+    <div style='margin: 6px 0;'>
+        <div style='font-weight: 500; color: #7f8c8d;'>Município</div>
+        <div style='color: #228B22; font-weight: 500;'>{props.get("MUNICIPI6","N/A")}</div>
+    </div>
+</div>
+"""
+            
+            folium.Marker([coords[1], coords[0]],
+                          icon=folium.CustomIcon("https://cdn-icons-png.flaticon.com/512/4144/4144517.png", icon_size=(30,30)),
+                          tooltip=nome_g,
+                          popup=folium.Popup(popup_info, max_width=300)).add_to(gestoras_layer)
+        gestoras_layer.add_to(m)
+
+# -------------------CAMADA MUNICÍPIO-------------------------
+
+        municipios_layer = folium.FeatureGroup(name="Polígonos Municipais", show=False)
+        folium.GeoJson(geojson_poligno,
+                       tooltip=folium.GeoJsonTooltip(fields=["DESCRICA1"], aliases=["Município:"]),
+                       style_function=lambda x: {"fillOpacity":0,"color":"blue","weight":1}).add_to(municipios_layer)
+        municipios_layer.add_to(m)
+# -------------------FIM CAMADA MUNICÍPIO-------------------------
+
     # Adiciona os marcadores ao mapa
     for _, row in df_mapa.iterrows():
         try:
