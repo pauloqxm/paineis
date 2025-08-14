@@ -713,26 +713,26 @@ with st.expander("Açudes Monitorados"):
 </div>
 """, unsafe_allow_html=True)
 
-    # Função para carregar dados
     @st.cache_data(ttl=3600)
     def load_reservatorios_data():
         try:
             url = "https://docs.google.com/spreadsheets/d/1zZ0RCyYj-AzA_dhWzxRziDWjgforbaH7WIoSEd2EKdk/export?format=csv"
             df = pd.read_csv(url)
             
-            # Verificar e corrigir formato das coordenadas
-            df['Latitude'] = pd.to_numeric(df['Latitude'].str.replace(',', '.'), errors='coerce')
-            df['Longitude'] = pd.to_numeric(df['Longitude'].str.replace(',', '.'), errors='coerce')
+            # --- CORREÇÃO: Garante que as colunas existem antes de tentar acessá-las ---
+            if 'Latitude' in df.columns and 'Longitude' in df.columns:
+                df['Latitude'] = pd.to_numeric(df['Latitude'].astype(str).str.replace(',', '.'), errors='coerce')
+                df['Longitude'] = pd.to_numeric(df['Longitude'].astype(str).str.replace(',', '.'), errors='coerce')
+            else:
+                st.error("As colunas 'Latitude' ou 'Longitude' não foram encontradas no arquivo.")
+                return pd.DataFrame()
             
-            # Filtrar apenas linhas com coordenadas válidas
             df = df.dropna(subset=['Latitude', 'Longitude'])
 
-            # Adicionar uma coluna de data formatada para filtros
-            df['Data_Formatada'] = pd.to_datetime(df['Data de Coleta'], errors='coerce', dayfirst=True)
-            df = df.dropna(subset=['Data_Formatada'])
+            if 'Data de Coleta' in df.columns:
+                df['Data de Coleta'] = pd.to_datetime(df['Data de Coleta'], errors='coerce', dayfirst=True)
+                df = df.dropna(subset=['Data de Coleta'])
 
-            # --- CORREÇÃO DO ERRO AQUI ---
-            # Converte a coluna 'Percentual' para numérica
             if 'Percentual' in df.columns:
                 df['Percentual'] = df['Percentual'].astype(str).str.replace(',', '.').str.replace('%', '').str.strip()
                 df['Percentual'] = pd.to_numeric(df['Percentual'], errors='coerce')
@@ -746,26 +746,27 @@ with st.expander("Açudes Monitorados"):
     df_full = load_reservatorios_data()
     df_reservatorios = df_full.copy()
 
-    # --- Filtros na parte superior do mapa ---
+    # --- Filtros VISÍVEIS na parte superior do mapa ---
     if not df_reservatorios.empty:
-        col1, col2 = st.columns(2)
+        col1, col2, col3 = st.columns(3)
         with col1:
-            data_coleta_unica = sorted(df_reservatorios['Data de Coleta'].unique(), reverse=True)
+            data_coleta_unica = sorted(df_reservatorios['Data de Coleta'].dt.strftime('%d/%m/%Y').unique(), reverse=True)
             data_filtro = st.selectbox(
                 "Selecione a Data de Coleta:",
                 options=data_coleta_unica
             )
-
+        
         with col2:
             reservatorio_filtro = st.selectbox(
                 "Selecione o Reservatório:",
                 options=df_reservatorios['Reservatório'].unique()
             )
 
-        municipio_filtro = st.selectbox(
-            "Selecione o Município:",
-            options=['Todos'] + list(df_reservatorios['Município'].unique())
-        )
+        with col3:
+            municipio_filtro = st.selectbox(
+                "Selecione o Município:",
+                options=['Todos'] + list(df_reservatorios['Município'].unique())
+            )
 
         min_percentual, max_percentual = st.slider(
             'Selecione o Percentual de Volume (%):',
@@ -774,13 +775,11 @@ with st.expander("Açudes Monitorados"):
             value=(float(df_reservatorios['Percentual'].min()), float(df_reservatorios['Percentual'].max())),
             step=0.1
         )
-
-        # Aplicar filtros
+        
+        # Filtra por data e reservatório, e depois por município
         df_reservatorios_filtrado = df_reservatorios[
-            (df_reservatorios['Data de Coleta'] == data_filtro) &
-            (df_reservatorios['Reservatório'] == reservatorio_filtro) &
-            (df_reservatorios['Percentual'] >= min_percentual) &
-            (df_reservatorios['Percentual'] <= max_percentual)
+            (df_reservatorios['Data de Coleta'].dt.strftime('%d/%m/%Y') == data_filtro) &
+            (df_reservatorios['Reservatório'] == reservatorio_filtro)
         ]
 
         if municipio_filtro != 'Todos':
@@ -790,11 +789,12 @@ with st.expander("Açudes Monitorados"):
 
         # Garantir que apenas o registro mais recente para cada reservatório seja exibido no mapa
         df_mapa = df_reservatorios_filtrado.sort_values('Data de Coleta', ascending=False).drop_duplicates(subset=['Reservatório'], keep='first')
-
+        
     else:
         st.warning("Não foi possível carregar os dados dos reservatórios.")
         df_mapa = pd.DataFrame()
 
+    # --- Visualização do Mapa ---
     with st.expander("☰ Estilo do Mapa", expanded=False):
         tile_option = st.selectbox(
             "Selecione o estilo:",
@@ -821,78 +821,70 @@ with st.expander("Açudes Monitorados"):
         "Esri Satellite": "Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community"
     }
 
-    # Inicializa o mapa
     if 'map_rendered' not in st.session_state:
         st.session_state.map_rendered = False
         
     m2 = folium.Map(location=[-5.2, -39.2], zoom_start=9, tiles=None)
-
-    # Adiciona a camada da bacia e ajusta o zoom apenas na primeira renderização
     bacia_layer = folium.GeoJson(geojson_bacia,
                                  name="Bacia do Banabuiu",
                                  tooltip=folium.GeoJsonTooltip(fields=["DESCRICA1"], aliases=["Bacia:"]),
                                  style_function=lambda x: {"color": "darkblue", "weight": 2})
     bacia_layer.add_to(m2)
 
-    # Ajusta o zoom para focar na bacia apenas na primeira execução
     if not st.session_state.map_rendered:
         m2.fit_bounds(bacia_layer.get_bounds(), padding=(0, 0))
         st.session_state.map_rendered = True
 
-    # Adicionar camada de reservatórios (usando o DataFrame filtrado)
     reservatorios_layer = folium.FeatureGroup(name="Açudes Monitorados", show=True)
 
+    # --- CORREÇÃO AQUI: Garante que o DataFrame `df_mapa` existe antes de iterar ---
     if not df_mapa.empty:
         for _, row in df_mapa.iterrows():
             try:
-                if not (-90 <= row['Latitude'] <= 90) or not (-180 <= row['Longitude'] <= 180):
-                    continue
-                
-                data_coleta = ''
-                if 'Data_Formatada' in df_reservatorios.columns and pd.notna(row['Data_Formatada']):
-                    data_coleta = row['Data_Formatada'].strftime('%d/%m/%Y')
-                    
-                popup_info = f"""
-    <div style='
-        font-family: "Segoe UI", Arial, sans-serif;
-        padding: 14px;
-        background: white;
-        border-radius: 10px;
-        box-shadow: 0 3px 10px rgba(0,0,0,0.15);
-        border-left: 5px solid #228B22;
-        max-width: 90vw;
-    '>
+                # CORREÇÃO: Garante que as colunas de coordenadas existem na linha
+                if 'Latitude' in row and 'Longitude' in row and pd.notna(row['Latitude']) and pd.notna(row['Longitude']):
+                    data_coleta = row['Data de Coleta'].strftime('%d/%m/%Y') if pd.notna(row['Data de Coleta']) else 'N/A'
+                        
+                    popup_info = f"""
         <div style='
-            font-size: 17px; 
-            font-weight: 700; 
-            color: #006400;
-            margin-bottom: 10px;
-            border-bottom: 1px solid #eee;
-            padding-bottom: 8px;
+            font-family: "Segoe UI", Arial, sans-serif;
+            padding: 14px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.15);
+            border-left: 5px solid #228B22;
+            max-width: 90vw;
         '>
-            {row.get('Reservatório', 'N/A')}
+            <div style='
+                font-size: 17px; 
+                font-weight: 700; 
+                color: #006400;
+                margin-bottom: 10px;
+                border-bottom: 1px solid #eee;
+                padding-bottom: 8px;
+            '>
+                {row.get('Reservatório', 'N/A')}
+            </div>
+            <div style='margin: 8px 0;'><div style='font-weight: 600; color: #555;'>Data de Coleta:</div><div style='color: #333;'>{data_coleta}</div></div>
+            <div style='margin: 8px 0;'><div style='font-weight: 600; color: #555;'>Município:</div><div style='color: #333;'>{row.get('Município', 'N/A')}</div></div>
+            <div style='margin: 8px 0;'><div style='font-weight: 600; color: #555;'>Cota Sangria:</div><div style='color: #333;'>{row.get('Cota Sangria', 'N/A')}</div></div>
+            <div style='margin: 8px 0;'><div style='font-weight: 600; color: #555;'>Volume (hm³):</div><div style='color: #333;'>{row.get('Volume', 'N/A')}</div></div>
+            <div style='margin: 8px 0;'><div style='font-weight: 600; color: #555;'>Percentual:</div><div style='color: #228B22; font-weight: 700;'>{row.get('Percentual', 'N/A')}%</div></div>
         </div>
-        <div style='margin: 8px 0;'><div style='font-weight: 600; color: #555;'>Data de Coleta:</div><div style='color: #333;'>{data_coleta if data_coleta else 'N/A'}</div></div>
-        <div style='margin: 8px 0;'><div style='font-weight: 600; color: #555;'>Município:</div><div style='color: #333;'>{row.get('Município', 'N/A')}</div></div>
-        <div style='margin: 8px 0;'><div style='font-weight: 600; color: #555;'>Cota Sangria:</div><div style='color: #333;'>{row.get('Cota Sangria', 'N/A')}</div></div>
-        <div style='margin: 8px 0;'><div style='font-weight: 600; color: #555;'>Volume (hm³):</div><div style='color: #333;'>{row.get('Volume', 'N/A')}</div></div>
-        <div style='margin: 8px 0;'><div style='font-weight: 600; color: #555;'>Percentual:</div><div style='color: #228B22; font-weight: 700;'>{row.get('Percentual', 'N/A')}%</div></div>
-    </div>
-    """
-                folium.Marker(
-                    row[['Latitude', 'Longitude']].tolist(),
-                    icon=folium.CustomIcon("https://i.ibb.co/C3mYx7dn/icone-barragem.png", icon_size=(35, 35)),
-                    tooltip=f"{row.get('Reservatório', 'Reservatório')} - {data_coleta}" if data_coleta else row.get('Reservatório', 'Reservatório'),
-                    popup=folium.Popup(popup_info, max_width=300)
-                ).add_to(reservatorios_layer)
-                
+        """
+                    folium.Marker(
+                        [row['Latitude'], row['Longitude']],
+                        icon=folium.CustomIcon("https://i.ibb.co/C3mYx7dn/icone-barragem.png", icon_size=(35, 35)),
+                        tooltip=f"{row.get('Reservatório', 'Reservatório')} - {data_coleta}",
+                        popup=folium.Popup(popup_info, max_width=300)
+                    ).add_to(reservatorios_layer)
+                    
             except Exception as e:
                 st.sidebar.error(f"Erro ao plotar reservatório {row.get('Reservatório', '')}: {str(e)}")
                 continue
 
     reservatorios_layer.add_to(m2)
 
-    # Demais camadas (Comissões Gestoras, Açudes, etc.)
     gestoras_layer = folium.FeatureGroup(name="Comissões Gestoras", show=False)
     for feature in geojson_c_gestoras["features"]:
         props = feature["properties"]; coords = feature["geometry"]["coordinates"]
@@ -949,7 +941,6 @@ with st.expander("Açudes Monitorados"):
                       tooltip=nome).add_to(sedes_layer)
     sedes_layer.add_to(m2)
 
-    # Configurações base do mapa
     if tile_option == "OpenStreetMap":
         folium.TileLayer(tiles='OpenStreetMap').add_to(m2)
     else:
@@ -959,22 +950,18 @@ with st.expander("Açudes Monitorados"):
             name=tile_option
         ).add_to(m2)
 
-    # Controles do mapa
     Fullscreen(position='topleft').add_to(m2)
     MiniMap(toggle_display=True, minimized=True).add_to(m2)
     MousePosition(position='bottomleft', separator=' | ', prefix='Coords').add_to(m2)
     MeasureControl(primary_length_unit='meters').add_to(m2)
 
-    # Camada de Açudes
     folium.GeoJson(geojson_acudes, name="Açudes", tooltip=folium.GeoJsonTooltip(fields=["Name"], aliases=["Açude:"])).add_to(m2)
     
-    # Controle de camadas
     folium.LayerControl(collapsed=True, position='topright').add_to(m2)
     
-    # Exibir mapa
     folium_static(m2, width=1200)
 
-    # --- Tabela na parte inferior do mapa ---
+    # --- Tabela VISÍVEL na parte inferior do mapa ---
     st.markdown("---")
     st.subheader("📊 Tabela de Dados dos Açudes")
     
@@ -989,7 +976,6 @@ with st.expander("Açudes Monitorados"):
         'Sangria'
     ]
 
-    # Exibe a tabela com os dados filtrados
     if not df_reservatorios_filtrado.empty:
         st.dataframe(df_reservatorios_filtrado[colunas_tabela].style.format({
             'Data de Coleta': lambda t: t.strftime('%d/%m/%Y'),
