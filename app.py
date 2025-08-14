@@ -737,7 +737,6 @@ with tab2:
                 df['Percentual'] = pd.to_numeric(df['Percentual'], errors='coerce')
                 df['Percentual'] = df['Percentual'].fillna(0)
             
-            # Converte as colunas de volume e cota para numérico
             for col in ['Volume', 'Cota Sangria']:
                 if col in df.columns:
                     df[col] = df[col].astype(str).str.replace(',', '.').str.strip()
@@ -755,17 +754,29 @@ with tab2:
     if not df_reservatorios.empty:
         col1, col2, col3 = st.columns(3)
         with col1:
-            data_coleta_unica = sorted(df_reservatorios['Data de Coleta'].dt.strftime('%d/%m/%Y').unique(), reverse=True)
-            data_filtro = st.selectbox(
-                "Selecione a Data de Coleta:",
-                options=data_coleta_unica
+            # --- ATUALIZAÇÃO PARA SELEÇÃO DE INTERVALO DE DATA ---
+            today = datetime.date.today()
+            min_date = df_reservatorios['Data de Coleta'].min().date()
+            date_range = st.date_input(
+                "Selecione o intervalo de datas:",
+                value=(min_date, today),
+                min_value=min_date,
+                max_value=today
             )
-        
+            # Garante que date_range é uma tupla
+            if len(date_range) != 2:
+                st.warning("Por favor, selecione um intervalo de duas datas.")
+                st.stop()
+            
+            start_date, end_date = date_range
+
         with col2:
-            reservatorios_disponiveis = ['Todos'] + sorted(df_reservatorios['Reservatório'].unique())
-            reservatorio_filtro = st.selectbox(
-                "Selecione o Reservatório:",
-                options=reservatorios_disponiveis
+            # --- ATUALIZAÇÃO PARA MULTI-SELEÇÃO DE RESERVATÓRIOS ---
+            reservatorios_disponiveis = sorted(df_reservatorios['Reservatório'].unique())
+            reservatorio_filtro = st.multiselect(
+                "Selecione o(s) Reservatório(s):",
+                options=reservatorios_disponiveis,
+                default=reservatorios_disponiveis # Seleciona todos por padrão
             )
 
         with col3:
@@ -784,11 +795,15 @@ with tab2:
         
         df_reservatorios_filtrado = df_reservatorios.copy()
 
-        if data_filtro != 'Todos':
-            df_reservatorios_filtrado = df_reservatorios_filtrado[df_reservatorios_filtrado['Data de Coleta'].dt.strftime('%d/%m/%Y') == data_filtro]
+        # Aplica o filtro de data
+        df_reservatorios_filtrado = df_reservatorios_filtrado[
+            (df_reservatorios_filtrado['Data de Coleta'].dt.date >= start_date) & 
+            (df_reservatorios_filtrado['Data de Coleta'].dt.date <= end_date)
+        ]
         
-        if reservatorio_filtro != 'Todos':
-            df_reservatorios_filtrado = df_reservatorios_filtrado[df_reservatorios_filtrado['Reservatório'] == reservatorio_filtro]
+        # Aplica o filtro de reservatório (agora com multi-seleção)
+        if reservatorio_filtro:
+            df_reservatorios_filtrado = df_reservatorios_filtrado[df_reservatorios_filtrado['Reservatório'].isin(reservatorio_filtro)]
 
         if municipio_filtro != 'Todos':
             df_reservatorios_filtrado = df_reservatorios_filtrado[df_reservatorios_filtrado['Município'] == municipio_filtro]
@@ -987,7 +1002,6 @@ with tab2:
     if not df_reservatorios_filtrado.empty:
         df_display = df_reservatorios_filtrado[colunas_tabela].copy()
         
-        # --- CORREÇÃO AQUI: Garante que as colunas são numéricas antes de formatar ---
         for col in ['Percentual', 'Volume', 'Cota Sangria']:
             df_display[col] = pd.to_numeric(df_display[col], errors='coerce')
         
