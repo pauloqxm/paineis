@@ -890,8 +890,8 @@ with tab2:
                 cota_sangria_str = 'N/A'
 
             # Obter a data mais recente para este reservatório
-            ultima_data = df_full[df_full['Reservatório'] == row['Reservatório']]['Data de Coleta'].max()
-            data_formatada = ultima_data.strftime('%d/%m/%Y') if pd.notnull(ultima_data) else 'N/A'
+            ultima_data_filtrada = df_filtrado[df_filtrado['Reservatório'] == row['Reservatório']]['Data de Coleta'].max()
+            data_formatada = ultima_data_filtrada.strftime('%d/%m/%Y') if pd.notnull(ultima_data_filtrada) else 'N/A'
 
             popup_content = f"""
             <div style='
