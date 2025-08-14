@@ -7,6 +7,7 @@ import folium
 import json
 import base64
 import unicodedata2
+import altair as alt
 from datetime import datetime, timedelta, timezone
 from streamlit_folium import folium_static
 from folium.plugins import Fullscreen, MiniMap, MousePosition, MeasureControl, MarkerCluster
