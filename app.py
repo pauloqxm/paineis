@@ -1124,31 +1124,50 @@ if not df_filtrado.empty:
     </div>
     """, unsafe_allow_html=True)
     
-    # ----------------------------------------------------------------------------------------------------------------------
-    # 📊 GRÁFICO DE LINHA DO VOLUME POR RESERVATÓRIO
-    # ----------------------------------------------------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
+# 📊 GRÁFICO DE LINHA DO VOLUME POR RESERVATÓRIO
+# ----------------------------------------------------------------------------------------------------------------------
     st.markdown("---")
     st.subheader("📈 Volume dos Reservatórios ao Longo do Tempo")
     
-    # Prepara os dados para o gráfico usando o filtro principal
     df_reservatorio = df_filtrado[df_filtrado['Reservatório'].isin(reservatorio_filtro)].sort_values('Data de Coleta')
     
     if not df_reservatorio.empty:
-        # Cria o gráfico de linha para todos os reservatórios selecionados
         df_reservatorio['Data de Coleta'] = df_reservatorio['Data de Coleta'].dt.date
         
-        # Usa o 'melt' para reestruturar os dados para o gráfico
-        df_plot = df_reservatorio.pivot_table(
-            index='Data de Coleta',
-            columns='Reservatório',
-            values='Volume',
-            aggfunc='mean'
+        # --- Alterações para usar Altair ---
+        # Definir a seleção para o scroll
+        brush = alt.selection_interval(encodings=['x'])
+        
+        # Gráfico principal (com zoom)
+        main_chart = alt.Chart(df_reservatorio).mark_line().encode(
+            x=alt.X('Data de Coleta', axis=alt.Axis(title='Data')),
+            y=alt.Y('Volume', axis=alt.Axis(title='Volume (hm³)')), # <-- Eixo Y com a unidade
+            color='Reservatório:N',
+            tooltip=['Data de Coleta', 'Reservatório', 'Volume']
+        ).properties(
+            title='Evolução do Volume',
+            height=300
+        ).add_selection(
+            brush
+        )
+    
+        # Gráfico de visão geral (o scrollbar)
+        overview_chart = alt.Chart(df_reservatorio).mark_line().encode(
+            x=alt.X('Data de Coleta', axis=None),
+            y=alt.Y('Volume', title='Volume (hm³)', axis=None),
+            color='Reservatório:N'
+        ).properties(
+            height=50
+        ).add_selection(
+            brush
         )
         
-        st.line_chart(df_plot)
+        # Combina os dois gráficos
+        st.altair_chart(main_chart & overview_chart, use_container_width=True)
     else:
         st.warning(f"Não há dados de volume para o(s) reservatório(s) selecionado(s) no período.")
-
+    
     st.markdown("---")
     
     # Botão de download
@@ -1160,9 +1179,9 @@ if not df_filtrado.empty:
             mime='text/csv',
             help="Download com todos os dados numéricos originais"
         )
-
-else:
-    st.warning("⚠️ Nenhum dado encontrado com os filtros aplicados.", icon="⚠️")
+    
+    else:
+        st.warning("⚠️ Nenhum dado encontrado com os filtros aplicados.", icon="⚠️")
 
 #================PÁGINA > DOCUMENTOS OFICIAS==================
 
