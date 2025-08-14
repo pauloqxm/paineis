@@ -881,7 +881,7 @@ with tab2:
 """
         folium.Marker(
             coords[::-1],
-            icon=folium.CustomIcon("https://i.ibb.co/C3mYx7dn/icone-barragem.png", icon_size=(30,30)),
+            icon=folium.CustomIcon("https://cdn-icons-png.flaticon.com/512/4144/4144517.png", icon_size=(30,30)),
             tooltip=nome_g,
             popup=folium.Popup(popup_info_gestoras, max_width=300)
         ).add_to(gestoras_layer)
