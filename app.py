@@ -718,7 +718,7 @@ with tab2:
         try:
             url = "https://docs.google.com/spreadsheets/d/1zZ0RCyYj-AzA_dhWzxRziDWjgforbaH7WIoSEd2EKdk/export?format=csv"
             df = pd.read_csv(url)
-            
+
             if 'Latitude' in df.columns and 'Longitude' in df.columns:
                 df['Latitude'] = pd.to_numeric(df['Latitude'].astype(str).str.replace(',', '.'), errors='coerce')
                 df['Longitude'] = pd.to_numeric(df['Longitude'].astype(str).str.replace(',', '.'), errors='coerce')
@@ -737,7 +737,7 @@ with tab2:
                 'Cota Sangria': lambda x: pd.to_numeric(x.astype(str).str.replace(',', '.').str.strip(), errors='coerce'),
                 'Nivel': lambda x: pd.to_numeric(x.astype(str).str.replace(',', '.').str.strip(), errors='coerce')
             }
-            
+
             for col, converter in numeric_cols.items():
                 if col in df.columns:
                     df[col] = converter(df[col])
@@ -749,7 +749,7 @@ with tab2:
             return pd.DataFrame()
 
     df_full = load_reservatorios_data()
-    
+
     if df_full.empty:
         st.warning("Não foi possível carregar os dados dos reservatórios.")
         st.stop()
@@ -757,7 +757,7 @@ with tab2:
     # --- Filtros Interativos ---
     with st.expander("🔍 Filtros", expanded=True):
         col1, col2, col3 = st.columns(3)
-        
+
         with col1:
             min_date = df_full['Data de Coleta'].min().date()
             max_date = df_full['Data de Coleta'].max().date()
@@ -767,7 +767,7 @@ with tab2:
                 min_value=min_date,
                 max_value=max_date
             )
-            
+
             if len(date_range) == 2:
                 start_date, end_date = date_range
             else:
@@ -803,7 +803,7 @@ with tab2:
 
     # Aplicar filtros
     df_filtrado = df_full[
-        (df_full['Data de Coleta'].dt.date >= start_date) & 
+        (df_full['Data de Coleta'].dt.date >= start_date) &
         (df_full['Data de Coleta'].dt.date <= end_date) &
         (df_full['Reservatório'].isin(reservatorio_filtro)) &
         (df_full['Percentual'] >= perc_range[0]) &
@@ -818,11 +818,11 @@ with tab2:
 
     # --- Mapa Interativo ---
     st.subheader("🌍 Mapa dos Açudes")
-    
+
     with st.expander("Configurações do Mapa", expanded=False):
         tile_option = st.selectbox(
             "Estilo do Mapa:",
-            ["OpenStreetMap", "Stamen Terrain", "Stamen Toner", 
+            ["OpenStreetMap", "Stamen Terrain", "Stamen Toner",
              "CartoDB positron", "CartoDB dark_matter", "Esri Satellite"],
             index=0
         )
@@ -857,7 +857,7 @@ with tab2:
     if not df_mapa.empty:
         mapa_center = [df_mapa['Latitude'].mean(), df_mapa['Longitude'].mean()]
         m = folium.Map(location=mapa_center, zoom_start=9, tiles=None)
-        
+
         folium.TileLayer(
             tiles=tile_config.get(tile_option, {}).get("tiles", "OpenStreetMap"),
             attr=tile_config.get(tile_option, {}).get("attr", ''),
@@ -871,103 +871,102 @@ with tab2:
             tooltip=folium.GeoJsonTooltip(fields=["DESCRICA1"], aliases=["Bacia:"])
         ).add_to(m)
 
-#======================CAMADA AÇUDES============================
-
+        #======================CAMADA AÇUDES============================
         for _, row in df_mapa.iterrows():
-    # --- Correção na formatação do popup com bloco try-except para segurança ---
-    try:
-        percentual_str = f"{float(row['Percentual']):.2f}%"
-    except (ValueError, TypeError):
-        percentual_str = 'N/A'
-    
-    try:
-        volume_str = f"{float(row['Volume']):,.2f} hm³".replace(",", "X").replace(".", ",").replace("X", ".")
-    except (ValueError, TypeError):
-        volume_str = 'N/A'
-    
-    try:
-        cota_sangria_str = f"{float(row['Cota Sangria']):,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
-    except (ValueError, TypeError):
-        cota_sangria_str = 'N/A'
+            # --- Correção na formatação do popup com bloco try-except para segurança ---
+            try:
+                percentual_str = f"{float(row['Percentual']):.2f}%"
+            except (ValueError, TypeError):
+                percentual_str = 'N/A'
 
-    # Obter a data mais recente para este reservatório
-    ultima_data = df_full[df_full['Reservatório'] == row['Reservatório']]['Data de Coleta'].max()
-    data_formatada = ultima_data.strftime('%d/%m/%Y') if pd.notnull(ultima_data) else 'N/A'
+            try:
+                volume_str = f"{float(row['Volume']):,.2f} hm³".replace(",", "X").replace(".", ",").replace("X", ".")
+            except (ValueError, TypeError):
+                volume_str = 'N/A'
 
-    popup_content = f"""
-    <div style='
-        font-family: "Segoe UI", sans-serif;
-        width: 280px;
-        background: linear-gradient(to bottom, #f9f9f9, #ffffff);
-        border-radius: 8px;
-        border-left: 5px solid #228B22;
-        padding: 12px;
-        box-shadow: 0 3px 10px rgba(0,0,0,0.2);
-    '>
-        <div style='
-            color: #006400;
-            font-size: 18px;
-            font-weight: 700;
-            margin-bottom: 10px;
-            border-bottom: 1px solid #e0e0e0;
-            padding-bottom: 8px;
-        '>
-            <i class="fas fa-water" style="margin-right: 8px;"></i>
-            {row['Reservatório']}
-        </div>
-        
-        <div style='margin-bottom: 8px;'>
-            <span style='display: inline-block; width: 100px; font-weight: 600; color: #555;'>
-                <i class="fas fa-calendar-alt" style="margin-right: 5px;"></i>Data:
-            </span>
-            <span style='color: #333;'>{data_formatada}</span>
-        </div>
-        
-        <div style='margin-bottom: 8px;'>
-            <span style='display: inline-block; width: 100px; font-weight: 600; color: #555;'>
-                <i class="fas fa-city" style="margin-right: 5px;"></i>Município:
-            </span>
-            <span style='color: #333;'>{row.get('Município', 'N/A')}</span>
-        </div>
-        
-        <div style='margin-bottom: 8px;'>
-            <span style='display: inline-block; width: 100px; font-weight: 600; color: #555;'>
-                <i class="fas fa-chart-bar" style="margin-right: 5px;"></i>Volume:
-            </span>
-            <span style='color: #1a5276; font-weight: 500;'>{volume_str}</span>
-        </div>
-        
-        <div style='margin-bottom: 8px;'>
-            <span style='display: inline-block; width: 100px; font-weight: 600; color: #555;'>
-                <i class="fas fa-percentage" style="margin-right: 5px;"></i>Percentual:
-            </span>
-            <span style='color: #27ae60; font-weight: 600;'>{percentual_str}</span>
-        </div>
-        
-        <div style='margin-bottom: 8px;'>
-            <span style='display: inline-block; width: 100px; font-weight: 600; color: #555;'>
-                <i class="fas fa-ruler" style="margin-right: 5px;"></i>Cota Sangria:
-            </span>
-            <span style='color: #7d3c98; font-weight: 500;'>{cota_sangria_str}</span>
-        </div>
-    </div>
-    """
-    
-    # Adicionar Font Awesome para os ícones
-    popup_content = f"""
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
-    {popup_content}
-    """
-    
-    folium.Marker(
-        location=[row['Latitude'], row['Longitude']],
-        popup=folium.Popup(popup_content, max_width=300),
-        icon=folium.CustomIcon(
-            "https://i.ibb.co/C3mYx7dn/icone-barragem.png",
-            icon_size=(35, 35)
-        ),
-        tooltip=f"{row['Reservatório']} - {data_formatada}"
-    ).add_to(m)
+            try:
+                cota_sangria_str = f"{float(row['Cota Sangria']):,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+            except (ValueError, TypeError):
+                cota_sangria_str = 'N/A'
+
+            # Obter a data mais recente para este reservatório
+            ultima_data = df_full[df_full['Reservatório'] == row['Reservatório']]['Data de Coleta'].max()
+            data_formatada = ultima_data.strftime('%d/%m/%Y') if pd.notnull(ultima_data) else 'N/A'
+
+            popup_content = f"""
+            <div style='
+                font-family: "Segoe UI", sans-serif;
+                width: 280px;
+                background: linear-gradient(to bottom, #f9f9f9, #ffffff);
+                border-radius: 8px;
+                border-left: 5px solid #228B22;
+                padding: 12px;
+                box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+            '>
+                <div style='
+                    color: #006400;
+                    font-size: 18px;
+                    font-weight: 700;
+                    margin-bottom: 10px;
+                    border-bottom: 1px solid #e0e0e0;
+                    padding-bottom: 8px;
+                '>
+                    <i class="fas fa-water" style="margin-right: 8px;"></i>
+                    {row['Reservatório']}
+                </div>
+
+                <div style='margin-bottom: 8px;'>
+                    <span style='display: inline-block; width: 100px; font-weight: 600; color: #555;'>
+                        <i class="fas fa-calendar-alt" style="margin-right: 5px;"></i>Data:
+                    </span>
+                    <span style='color: #333;'>{data_formatada}</span>
+                </div>
+
+                <div style='margin-bottom: 8px;'>
+                    <span style='display: inline-block; width: 100px; font-weight: 600; color: #555;'>
+                        <i class="fas fa-city" style="margin-right: 5px;"></i>Município:
+                    </span>
+                    <span style='color: #333;'>{row.get('Município', 'N/A')}</span>
+                </div>
+
+                <div style='margin-bottom: 8px;'>
+                    <span style='display: inline-block; width: 100px; font-weight: 600; color: #555;'>
+                        <i class="fas fa-chart-bar" style="margin-right: 5px;"></i>Volume:
+                    </span>
+                    <span style='color: #1a5276; font-weight: 500;'>{volume_str}</span>
+                </div>
+
+                <div style='margin-bottom: 8px;'>
+                    <span style='display: inline-block; width: 100px; font-weight: 600; color: #555;'>
+                        <i class="fas fa-percentage" style="margin-right: 5px;"></i>Percentual:
+                    </span>
+                    <span style='color: #27ae60; font-weight: 600;'>{percentual_str}</span>
+                </div>
+
+                <div style='margin-bottom: 8px;'>
+                    <span style='display: inline-block; width: 100px; font-weight: 600; color: #555;'>
+                        <i class="fas fa-ruler" style="margin-right: 5px;"></i>Cota Sangria:
+                    </span>
+                    <span style='color: #7d3c98; font-weight: 500;'>{cota_sangria_str}</span>
+                </div>
+            </div>
+            """
+
+            # Adicionar Font Awesome para os ícones
+            popup_content = f"""
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+            {popup_content}
+            """
+
+            folium.Marker(
+                location=[row['Latitude'], row['Longitude']],
+                popup=folium.Popup(popup_content, max_width=300),
+                icon=folium.CustomIcon(
+                    "https://i.ibb.co/C3mYx7dn/icone-barragem.png",
+                    icon_size=(35, 35)
+                ),
+                tooltip=f"{row['Reservatório']} - {data_formatada}"
+            ).add_to(m)
 
         folium.LayerControl().add_to(m)
         Fullscreen(position='topleft').add_to(m)
