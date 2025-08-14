@@ -980,88 +980,95 @@ with tab2:
     st.subheader("📊 Dados Detalhados")
 
 if not df_filtrado.empty:
-    # Calcular a coluna Sangria como Cota Sangria - Nivel
-    df_filtrado['Sangria'] = df_filtrado['Cota Sangria'] - df_filtrado['Nivel']
-    
-    # Ordem das colunas com 'Sangria' no final
+    # Verificar se as colunas necessárias existem
+    colunas_necessarias = ['Cota Sangria', 'Nivel']
+    if not all(col in df_filtrado.columns for col in colunas_necessarias):
+        st.error("Colunas 'Cota Sangria' e 'Nivel' são necessárias para os cálculos")
+        st.stop()
+
+    # Calcular a coluna Sangria com tratamento de erros
+    try:
+        df_filtrado['Sangria'] = df_filtrado['Cota Sangria'] - df_filtrado['Nivel']
+    except Exception as e:
+        st.error(f"Erro ao calcular a coluna Sangria: {str(e)}")
+        st.stop()
+
+    # Ordem e seleção das colunas
     colunas_exibir = [
         'Data de Coleta', 
         'Reservatório', 
         'Município',
-        'Cota Sangria',
         'Volume', 
-        'Percentual', 
+        'Percentual',
+        'Cota Sangria',
         'Nivel',
-        'Sangria'  # Nova coluna calculada
+        'Sangria'
     ]
 
-    # Criar cópia para exibição
+    # Criar DataFrame para exibição
     df_display = df_filtrado[colunas_exibir].copy()
     
-    # Formatar colunas
-    df_display['Data de Coleta'] = df_display['Data de Coleta'].dt.strftime('%d/%m/%Y')
+    # Formatação das colunas
+    formatacoes = {
+        'Data de Coleta': lambda x: x.strftime('%d/%m/%Y') if pd.notna(x) else "N/A",
+        'Cota Sangria': lambda x: f"{x:.2f} m" if pd.notna(x) else "N/A",
+        'Nivel': lambda x: f"{x:.2f} m" if pd.notna(x) else "N/A",
+        'Sangria': lambda x: f"{x:.2f} m" if pd.notna(x) else "N/A",
+        'Volume': lambda x: f"{x:,.2f} hm³" if pd.notna(x) else "N/A"
+    }
     
-    # Função segura para formatar Sangria
-    def formatar_sangria(x):
-        try:
-            if pd.isna(x):
-                return "N/A"
-            return f"{float(x):.2f} m"
-        except (TypeError, ValueError):
-            return "N/A"
-    
-    df_display['Sangria'] = df_display['Sangria'].apply(formatar_sangria)
-    df_display['Cota Sangria'] = df_display['Cota Sangria'].apply(lambda x: f"{x:.2f} m" if pd.notna(x) else "N/A")
-    df_display['Nivel'] = df_display['Nivel'].apply(lambda x: f"{x:.2f} m" if pd.notna(x) else "N/A")
+    for col, fmt in formatacoes.items():
+        df_display[col] = df_display[col].apply(fmt)
 
-    # Configurações das colunas
+    # Configuração avançada das colunas
     column_config = {
         "Percentual": st.column_config.ProgressColumn(
             "Percentual",
             format="%.2f%%",
             min_value=0,
             max_value=100,
-            help="Percentual de volume armazenado"
+            help="Percentual de volume armazenado em relação à capacidade total"
         ),
-        "Volume": st.column_config.NumberColumn(
-            "Volume (hm³)",
-            format="%.2f",
-            help="Volume em hectômetros cúbicos"
+        "Volume": st.column_config.TextColumn(
+            "Volume",
+            help="Volume armazenado em hectômetros cúbicos (hm³)"
         ),
         "Cota Sangria": st.column_config.TextColumn(
-            "Cota Sangria (m)",
-            help="Altura da cota de sangria"
+            "Cota de Sangria",
+            help="Altura (em metros) do nível de sangria do reservatório"
         ),
         "Nivel": st.column_config.TextColumn(
-            "Nível atual (m)",
-            help="Nível atual do reservatório"
+            "Nível Atual",
+            help="Altura atual (em metros) da lâmina d'água no reservatório"
         ),
         "Sangria": st.column_config.TextColumn(
-            "Diferença (m)",
-            help="Diferença entre Cota Sangria e Nível atual"
+            "Margem de Sangria",
+            help="Diferença (em metros) entre a cota de sangria e o nível atual"
         )
     }
 
-    # Exibir tabela
+    # Exibição da tabela
     st.dataframe(
         df_display,
         column_config=column_config,
         use_container_width=True,
         hide_index=True,
-        height=400
+        height=500,
+        column_order=colunas_exibir
     )
 
-    # Preparar dados para download (com todas colunas originais + calculadas)
-    csv = df_filtrado.to_csv(index=False, encoding='utf-8-sig')
-    st.download_button(
-        label="📥 Baixar dados como CSV",
-        data=csv,
-        file_name='acudes_monitorados.csv',
-        mime='text/csv',
-        help="Inclui todas as colunas de dados, incluindo cálculos"
-    )
+    # Botão de download com ícone e tooltip
+    with st.expander("Opções de Download", expanded=False):
+        st.download_button(
+            label="⬇️ Baixar Dados Completos (CSV)",
+            data=df_filtrado.to_csv(index=False, encoding='utf-8-sig'),
+            file_name=f"acudes_monitorados_{datetime.now().strftime('%Y%m%d')}.csv",
+            mime='text/csv',
+            help="Download de todos os dados com colunas originais e calculadas"
+        )
+
 else:
-    st.info("Nenhum dado disponível para exibição com os filtros atuais.")
+    st.warning("Nenhum dado encontrado com os filtros aplicados.", icon="⚠️")
 
 #================PÁGINA > DOCUMENTOS OFICIAS==================
 
