@@ -1058,8 +1058,10 @@ if not df_filtrado.empty:
     # Aplica as funções de cor e legenda usando o objeto Styler
     styler = df_display_styled[colunas_exibir].style \
         .apply(color_rows, axis=1) \
-        .set_tooltips(df_display_styled[colunas_exibir].apply(get_legend, axis=1),
-                      props=[('white-space', 'pre-wrap'), ('max-width', '200px')])
+        .set_tooltips(
+            df_display_styled[colunas_exibir].apply(get_legend, axis=1),
+            props=[('white-space', 'pre-wrap'), ('max-width', '200px')]
+        )
 
     # Exibição da tabela estilizada
     st.dataframe(
