@@ -1134,8 +1134,7 @@ if not df_filtrado.empty:
     df_reservatorio = df_filtrado[df_filtrado['Reservatório'].isin(reservatorio_filtro)].sort_values('Data de Coleta')
     
     if not df_reservatorio.empty:
-        df_reservatorio['Data de Coleta'] = df_reservatorio['Data de Coleta'].dt.date
-        
+                
         # --- Alterações para usar Altair ---
         # Definir a seleção para o scroll
         brush = alt.selection_interval(encodings=['x'])
