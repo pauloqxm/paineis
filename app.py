@@ -1,3 +1,4 @@
+
 import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
@@ -816,10 +817,63 @@ with tab2:
     # Obter última medição por reservatório para o mapa
     df_mapa = df_filtrado.sort_values('Data de Coleta', ascending=False).drop_duplicates(subset=['Reservatório']).copy()
 
-# ================================================================
-# 🗺️ MAPA INTERATIVO COM ÍCONES DINÂMICOS
-# ================================================================
-st.header("🗺️ Mapa Interativo")
+    # --- Mapa Interativo ---
+    st.subheader("🌍 Mapa dos Açudes")
+
+    with st.expander("Configurações do Mapa", expanded=False):
+        tile_option = st.selectbox(
+            "Estilo do Mapa:",
+            ["OpenStreetMap", "Stamen Terrain", "Stamen Toner",
+             "CartoDB positron", "CartoDB dark_matter", "Esri Satellite"],
+            index=0
+        )
+
+    tile_config = {
+        "OpenStreetMap": {
+            "tiles": "OpenStreetMap",
+            "attr": '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+        },
+        "Stamen Terrain": {
+            "tiles": "https://stamen-tiles.a.ssl.fastly.net/terrain/{z}/{x}/{y}.png",
+            "attr": 'Map tiles by <a href="http://stamen.com">Stamen Design</a>'
+        },
+        "CartoDB positron": {
+            "tiles": "https://cartodb-basemaps-a.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png",
+            "attr": '&copy; <a href="https://carto.com/attributions">CARTO</a>'
+        },
+        "CartoDB dark_matter": {
+            "tiles": "https://cartodb-basemaps-a.global.ssl.fastly.net/dark_all/{z}/{x}/{y}.png",
+            "attr": '&copy; <a href="https://carto.com/attributions">CARTO</a>'
+        },
+        "Esri Satellite": {
+            "tiles": "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+            "attr": "Tiles &copy; Esri &mdash; Source: Esri"
+        },
+        "Stamen Toner": {
+            "tiles": "https://stamen-tiles.a.ssl.fastly.net/toner/{z}/{x}/{y}.png",
+            "attr": 'Map tiles by <a href="http://stamen.com">Stamen Design</a>'
+        }
+    }
+
+    if not df_mapa.empty:
+        mapa_center = [df_mapa['Latitude'].mean(), df_mapa['Longitude'].mean()]
+        m = folium.Map(location=mapa_center, zoom_start=9, tiles=None)
+
+        folium.TileLayer(
+            tiles=tile_config.get(tile_option, {}).get("tiles", "OpenStreetMap"),
+            attr=tile_config.get(tile_option, {}).get("attr", ''),
+            name=tile_option
+        ).add_to(m)
+
+        folium.GeoJson(
+            geojson_bacia,
+            name="Bacia do Banabuiú",
+            style_function=lambda x: {"color": "blue", "weight": 2, "fillOpacity": 0.1},
+            tooltip=folium.GeoJsonTooltip(fields=["DESCRICA1"], aliases=["Bacia:"])
+        ).add_to(m)
+
+        #======================CAMADA AÇUDES============================
+        st.header("🗺️ Mapa Interativo")
 
 if not df_filtrado.empty:
     # --- Funções de estilização para o mapa ---
@@ -855,24 +909,6 @@ if not df_filtrado.empty:
     map_center = [df_mapa.iloc[0]['Latitude'], df_mapa.iloc[0]['Longitude']] if not df_mapa.empty else [-5.5, -39.5]
     m = folium.Map(location=map_center, zoom_start=8)
 
-    # --- NOVO: ADICIONA A CAMADA DA BACIA DO BANABUIÚ ---
-    # Nota: Assumindo que a variável `geojson_bacia_banabuiu` contém os dados da bacia
-    try:
-        folium.GeoJson(
-            geojson_bacia_banabuiu,
-            name="Bacia do Banabuiú",
-            style_function=lambda x: {
-                'fillColor': 'transparent',
-                'color': '#800080',  # Roxo
-                'weight': 3,
-                'dashArray': '5, 5'
-            },
-            tooltip="Limite da Bacia do Banabuiú"
-        ).add_to(m)
-    except NameError:
-        st.error("Erro: A variável 'geojson_bacia_banabuiu' não foi definida.")
-    # --- FIM da nova camada ---
-
     # Adiciona os marcadores ao mapa
     for _, row in df_mapa.iterrows():
         try:
@@ -895,6 +931,7 @@ if not df_filtrado.empty:
         ultima_data_filtrada = df_filtrado[df_filtrado['Reservatório'] == row['Reservatório']]['Data de Coleta'].max()
         data_formatada = ultima_data_filtrada.strftime('%d/%m/%Y') if pd.notnull(ultima_data_filtrada) else 'N/A'
         
+        # Obter a cor do marcador e da borda do popup
         icon_color = get_marker_color(percentual_val)
 
         popup_content = f"""
