@@ -988,8 +988,16 @@ if not df_filtrado.empty:
     df_display = df_filtrado[colunas].copy()
     df_display['Data de Coleta'] = df_display['Data de Coleta'].dt.strftime('%d/%m/%Y')
 
+    # Passo 1: Criar a nova coluna "Sangria" com a unidade de medida "m"
+    df_display['Sangria'] = df_display['Cota Sangria'].apply(lambda x: f"{x:.2f} m" if pd.notna(x) else "N/A")
+    
+    # Passo 2: Atualizar a lista de colunas a serem exibidas para incluir a nova coluna
+    # A coluna original 'Cota Sangria' foi removida para evitar redundância
+    colunas_exibir = ['Data de Coleta', 'Reservatório', 'Município',
+                      'Sangria', 'Volume', 'Percentual', 'Nivel']
+
     st.dataframe(
-        df_display,
+        df_display[colunas_exibir],
         column_config={
             "Percentual": st.column_config.ProgressColumn(
                 "Percentual de Volume",
@@ -997,14 +1005,12 @@ if not df_filtrado.empty:
                 min_value=0,
                 max_value=100,
             ),
-            "Cota Sangria": st.column_config.NumberColumn(
-                "Cota Sangria",
-                # Adiciona " m" ao final da string de formatação
+            "Sangria": st.column_config.NumberColumn(
+                "Sangria",
                 format="%.2f m",
             ),
             "Volume": st.column_config.NumberColumn(
                 "Volume",
-                # Adiciona " hm³" ao final da string de formatação
                 format="%.2f hm³",
             )
         },
