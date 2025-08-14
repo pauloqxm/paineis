@@ -828,7 +828,7 @@ with tab2:
 """
                 folium.Marker(
                     row[['Latitude', 'Longitude']].tolist(),
-                    icon=folium.CustomIcon("https://cdn-icons-png.flaticon.com/512/3059/3059518.png", icon_size=(28, 28)),
+                    icon=folium.CustomIcon("https://i.ibb.co/C3mYx7dn/icone-barragem.png", icon_size=(28, 28)),
                     tooltip=f"{row.get('Reservatório', 'Reservatório')} - {data_coleta}" if data_coleta else row.get('Reservatório', 'Reservatório'),
                     popup=folium.Popup(popup_info, max_width=300)
                 ).add_to(reservatorios_layer)
