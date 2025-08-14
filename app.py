@@ -691,6 +691,20 @@ with tab1:
 with tab2:
     st.title("🗺️ Açudes Monitorados")
 
+    # --- Início do bloco de código corrigido ---
+    # Adicionando o botão para forçar o carregamento dos dados
+    cA1, cA2, cA3 = st.columns([1,1,1])
+    with cA1:
+        if st.button("🔄 Atualizar dados"):
+            # Limpa o cache da função que carrega a planilha
+            load_reservatorios_data.clear()
+            # Apaga a variável de estado para forçar o recálculo do zoom do mapa
+            if 'map_rendered' in st.session_state:
+                del st.session_state.map_rendered
+            # Força o recarregamento completo do script
+            st.rerun()
+    # --- Fim do bloco de código corrigido ---
+
     st.markdown("""
 <div style="
     background: linear-gradient(135deg, #f5f7fa 0%, #e4e8eb 100%);
