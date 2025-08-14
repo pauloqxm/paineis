@@ -818,83 +818,66 @@ with tab2:
     df_mapa = df_filtrado.sort_values('Data de Coleta', ascending=False).drop_duplicates(subset=['Reservatório']).copy()
 
 # ================================================================
-# 🗺️ MAPA INTERATIVO COM ÍCONES DINÂMICOS
+# 🗺️ MAPA INTERATIVO
 # ================================================================
-    st.subheader("🌍 Mapa dos Açudes")
+st.subheader("🌍 Mapa dos Açudes")
 
-    with st.expander("Configurações do Mapa", expanded=False):
-        tile_option = st.selectbox(
-            "Estilo do Mapa:",
-            ["OpenStreetMap", "Stamen Terrain", "Stamen Toner",
-             "CartoDB positron", "CartoDB dark_matter", "Esri Satellite"],
-            index=0
-        )
+# Container para as configurações do mapa
+with st.expander("Configurações do Mapa", expanded=False):
+    tile_option = st.selectbox(
+        "Estilo do Mapa:",
+        ["OpenStreetMap", "Stamen Terrain", "Stamen Toner",
+         "CartoDB positron", "CartoDB dark_matter", "Esri Satellite"],
+        index=0
+    )
 
-    tile_config = {
-        "OpenStreetMap": {
-            "tiles": "OpenStreetMap",
-            "attr": '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-        },
-        "Stamen Terrain": {
-            "tiles": "https://stamen-tiles.a.ssl.fastly.net/terrain/{z}/{x}/{y}.png",
-            "attr": 'Map tiles by <a href="http://stamen.com">Stamen Design</a>'
-        },
-        "CartoDB positron": {
-            "tiles": "https://cartodb-basemaps-a.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png",
-            "attr": '&copy; <a href="https://carto.com/attributions">CARTO</a>'
-        },
-        "CartoDB dark_matter": {
-            "tiles": "https://cartodb-basemaps-a.global.ssl.fastly.net/dark_all/{z}/{x}/{y}.png",
-            "attr": '&copy; <a href="https://carto.com/attributions">CARTO</a>'
-        },
-        "Esri Satellite": {
-            "tiles": "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
-            "attr": "Tiles &copy; Esri &mdash; Source: Esri"
-        },
-        "Stamen Toner": {
-            "tiles": "https://stamen-tiles.a.ssl.fastly.net/toner/{z}/{x}/{y}.png",
-            "attr": 'Map tiles by <a href="http://stamen.com">Stamen Design</a>'
-        }
+# Mapeamento dos estilos de mapa
+tile_config = {
+    "OpenStreetMap": {
+        "tiles": "OpenStreetMap",
+        "attr": '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+    },
+    "Stamen Terrain": {
+        "tiles": "https://stamen-tiles.a.ssl.fastly.net/terrain/{z}/{x}/{y}.png",
+        "attr": 'Map tiles by <a href="http://stamen.com">Stamen Design</a>'
+    },
+    "CartoDB positron": {
+        "tiles": "https://cartodb-basemaps-a.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png",
+        "attr": '&copy; <a href="https://carto.com/attributions">CARTO</a>'
+    },
+    "CartoDB dark_matter": {
+        "tiles": "https://cartodb-basemaps-a.global.ssl.fastly.net/dark_all/{z}/{x}/{y}.png",
+        "attr": '&copy; <a href="https://carto.com/attributions">CARTO</a>'
+    },
+    "Esri Satellite": {
+        "tiles": "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+        "attr": "Tiles &copy; Esri &mdash; Source: Esri"
+    },
+    "Stamen Toner": {
+        "tiles": "https://stamen-tiles.a.ssl.fastly.net/toner/{z}/{x}/{y}.png",
+        "attr": 'Map tiles by <a href="http://stamen.com">Stamen Design</a>'
     }
+}
 
-    if not df_mapa.empty:
-        mapa_center = [df_mapa['Latitude'].mean(), df_mapa['Longitude'].mean()]
-        m = folium.Map(location=mapa_center, zoom_start=9, tiles=None)
-
-        folium.TileLayer(
-            tiles=tile_config.get(tile_option, {}).get("tiles", "OpenStreetMap"),
-            attr=tile_config.get(tile_option, {}).get("attr", ''),
-            name=tile_option
-        ).add_to(m)
-
-        folium.GeoJson(
-            geojson_bacia,
-            name="Bacia do Banabuiú",
-            style_function=lambda x: {"color": "blue", "weight": 2, "fillOpacity": 0.1},
-            tooltip=folium.GeoJsonTooltip(fields=["DESCRICA1"], aliases=["Bacia:"])
-        ).add_to(m)
-
-        #======================CAMADA AÇUDES============================
-        st.header("🗺️ Mapa Interativo")
-
+# Inicia o mapa se houver dados filtrados
 if not df_filtrado.empty:
-    # --- Funções de estilização para o mapa ---
+    # --- Funções de estilização para os marcadores ---
     def get_marker_color(percentual):
         """Retorna a cor do marcador com base no percentual de volume."""
         if pd.isna(percentual):
-            return '#808080' # Cinza para dados ausentes
+            return '#808080'
         if 0 <= percentual <= 10:
-            return '#808080' # Cinza - (muito crítica)
+            return '#808080'
         elif 10.1 <= percentual <= 30:
-            return '#FF0000' # Vermelho - (crítica)
+            return '#FF0000'
         elif 30.1 <= percentual <= 50:
-            return '#FFFF00' # Amarelo - (alerta)
+            return '#FFFF00'
         elif 50.1 <= percentual <= 70:
-            return '#008000' # Verde - (confortável)
+            return '#008000'
         elif 70.1 <= percentual <= 100:
-            return '#0000FF' # Azul - (muito confortável)
-        else: # > 100
-            return '#800080' # Roxo - (Vertendo)
+            return '#0000FF'
+        else:
+            return '#800080'
 
     def create_svg_icon(color, size=15):
         """Cria um ícone SVG de triângulo em base64."""
@@ -907,86 +890,66 @@ if not df_filtrado.empty:
         svg_base64 = base64.b64encode(svg_bytes).decode('utf-8')
         return f"data:image/svg+xml;base64,{svg_base64}"
 
-    # Iniciliza o mapa com as coordenadas do primeiro reservatório ou um valor padrão
-    map_center = [df_mapa.iloc[0]['Latitude'], df_mapa.iloc[0]['Longitude']] if not df_mapa.empty else [-5.5, -39.5]
-    m = folium.Map(location=map_center, zoom_start=8)
+    # Calcula o centro do mapa
+    mapa_center = [df_mapa['Latitude'].mean(), df_mapa['Longitude'].mean()]
+    m = folium.Map(location=mapa_center, zoom_start=9, tiles=None)
 
-    # --- NOVO: ADICIONA A CAMADA DA BACIA DO BANABUIÚ ---
-    # Nota: Assumindo que a variável `geojson_bacia_banabuiu` contém os dados da bacia
+    # Adiciona a camada de base selecionada
+    folium.TileLayer(
+        tiles=tile_config.get(tile_option, {}).get("tiles", "OpenStreetMap"),
+        attr=tile_config.get(tile_option, {}).get("attr", ''),
+        name=tile_option
+    ).add_to(m)
+
+    # --- CAMADA BACIA DO BANABUIÚ ---
     try:
         folium.GeoJson(
             geojson_bacia,
             name="Bacia do Banabuiú",
-            style_function=lambda x: {
-                'fillColor': 'transparent',
-                'color': '#800080',  # Roxo
-                'weight': 3,
-                'dashArray': '5, 5'
-            },
-            tooltip="Limite da Bacia do Banabuiú"
+            style_function=lambda x: {"color": "blue", "weight": 2, "fillOpacity": 0.1},
+            tooltip=folium.GeoJsonTooltip(fields=["DESCRICA1"], aliases=["Bacia:"])
         ).add_to(m)
     except NameError:
-        st.error("Erro: A variável 'geojson_bacia_banabuiu' não foi definida.")
-# --- FIM da nova camada ---
+        st.warning("A variável 'geojson_bacia' não foi encontrada. Camada da bacia não adicionada.")
 
-# -------------------CAMADA COMISSÃO GESTORA-------------------------
-
-        gestoras_layer = folium.FeatureGroup(name="Comissões Gestoras", show=False)
+    # --- CAMADA COMISSÕES GESTORAS ---
+    gestoras_layer = folium.FeatureGroup(name="Comissões Gestoras", show=False)
+    try:
         for feature in geojson_c_gestoras["features"]:
-            props = feature["properties"]; coords = feature["geometry"]["coordinates"]
-            nome_g = props.get("SISTEMAH3","Sem nome")
+            props = feature["properties"]
+            coords = feature["geometry"]["coordinates"]
+            nome_g = props.get("SISTEMAH3", "Sem nome")
             popup_info = f"""
-<div style='
-    font-family: "Segoe UI", Arial, sans-serif;
-    padding: 12px;
-    background: white;
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    border-top: 4px solid #228B22;
-    min-width: 200px;
-'>
-    <div style='
-        font-size: 16px; 
-        font-weight: 600; 
-        color: #2c3e50;
-        margin-bottom: 8px;
-    '>
-        {nome_g}
-    </div>
-    
-    <div style='margin: 6px 0;'>
-        <div style='font-weight: 500; color: #7f8c8d;'>Ano de Formação</div>
-        <div style='color: #2c3e50;'>{props.get("ANOFORMA1","N/A")}</div>
-    </div>
-    
-    <div style='margin: 6px 0;'>
-        <div style='font-weight: 500; color: #7f8c8d;'>Sistema</div>
-        <div style='color: #2c3e50;'>{props.get("SISTEMAH3","N/A")}</div>
-    </div>
-    
-    <div style='margin: 6px 0;'>
-        <div style='font-weight: 500; color: #7f8c8d;'>Município</div>
-        <div style='color: #228B22; font-weight: 500;'>{props.get("MUNICIPI6","N/A")}</div>
-    </div>
+<div style='font-family: "Segoe UI", Arial, sans-serif; padding: 12px; background: white; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); border-top: 4px solid #228B22; min-width: 200px;'>
+    <div style='font-size: 16px; font-weight: 600; color: #2c3e50; margin-bottom: 8px;'>{nome_g}</div>
+    <div style='margin: 6px 0;'><div style='font-weight: 500; color: #7f8c8d;'>Ano de Formação</div><div style='color: #2c3e50;'>{props.get("ANOFORMA1","N/A")}</div></div>
+    <div style='margin: 6px 0;'><div style='font-weight: 500; color: #7f8c8d;'>Sistema</div><div style='color: #2c3e50;'>{props.get("SISTEMAH3","N/A")}</div></div>
+    <div style='margin: 6px 0;'><div style='font-weight: 500; color: #7f8c8d;'>Município</div><div style='color: #228B22; font-weight: 500;'>{props.get("MUNICIPI6","N/A")}</div></div>
 </div>
 """
-            
-            folium.Marker([coords[1], coords[0]],
-                          icon=folium.CustomIcon("https://cdn-icons-png.flaticon.com/512/4144/4144517.png", icon_size=(30,30)),
-                          tooltip=nome_g,
-                          popup=folium.Popup(popup_info, max_width=300)).add_to(gestoras_layer)
+            folium.Marker(
+                [coords[1], coords[0]],
+                icon=folium.CustomIcon("https://cdn-icons-png.flaticon.com/512/4144/4144517.png", icon_size=(30, 30)),
+                tooltip=nome_g,
+                popup=folium.Popup(popup_info, max_width=300)
+            ).add_to(gestoras_layer)
         gestoras_layer.add_to(m)
+    except NameError:
+        st.warning("A variável 'geojson_c_gestoras' não foi encontrada. Camada de comissões gestoras não adicionada.")
 
-# -------------------CAMADA MUNICÍPIO-------------------------
-
-        municipios_layer = folium.FeatureGroup(name="Polígonos Municipais", show=False)
-        folium.GeoJson(geojson_poligno,
-                       tooltip=folium.GeoJsonTooltip(fields=["DESCRICA1"], aliases=["Município:"]),
-                       style_function=lambda x: {"fillOpacity":0,"color":"blue","weight":1}).add_to(municipios_layer)
+    # --- CAMADA MUNICÍPIOS ---
+    municipios_layer = folium.FeatureGroup(name="Polígonos Municipais", show=False)
+    try:
+        folium.GeoJson(
+            geojson_poligno,
+            tooltip=folium.GeoJsonTooltip(fields=["DESCRICA1"], aliases=["Município:"]),
+            style_function=lambda x: {"fillOpacity": 0, "color": "blue", "weight": 1}
+        ).add_to(municipios_layer)
         municipios_layer.add_to(m)
-# -------------------FIM CAMADA MUNICÍPIO-------------------------
+    except NameError:
+        st.warning("A variável 'geojson_poligno' não foi encontrada. Camada de municípios não adicionada.")
 
-    # Adiciona os marcadores ao mapa
+    # --- CAMADA AÇUDES (MARCADORES) ---
     for _, row in df_mapa.iterrows():
         try:
             percentual_str = f"{float(row['Percentual']):.2f}%"
@@ -1008,71 +971,18 @@ if not df_filtrado.empty:
         ultima_data_filtrada = df_filtrado[df_filtrado['Reservatório'] == row['Reservatório']]['Data de Coleta'].max()
         data_formatada = ultima_data_filtrada.strftime('%d/%m/%Y') if pd.notnull(ultima_data_filtrada) else 'N/A'
         
-        # Obter a cor do marcador e da borda do popup
         icon_color = get_marker_color(percentual_val)
 
         popup_content = f"""
-        <div style='
-            font-family: "Segoe UI", sans-serif;
-            width: 280px;
-            background: linear-gradient(to bottom, #f9f9f9, #ffffff);
-            border-radius: 8px;
-            border-left: 5px solid {icon_color};
-            padding: 12px;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.2);
-        '>
-            <div style='
-                color: #006400;
-                font-size: 18px;
-                font-weight: 700;
-                margin-bottom: 10px;
-                border-bottom: 1px solid #e0e0e0;
-                padding-bottom: 8px;
-            '>
-                <i class="fas fa-water" style="margin-right: 8px;"></i>
-                {row['Reservatório']}
-            </div>
-            
-            <div style='margin-bottom: 8px;'>
-                <span style='display: inline-block; width: 100px; font-weight: 600; color: #555;'>
-                    <i class="fas fa-calendar-alt" style="margin-right: 5px;"></i>Data:
-                </span>
-                <span style='color: #333;'>{data_formatada}</span>
-            </div>
-
-            <div style='margin-bottom: 8px;'>
-                <span style='display: inline-block; width: 100px; font-weight: 600; color: #555;'>
-                    <i class="fas fa-city" style="margin-right: 5px;"></i>Município:
-                </span>
-                <span style='color: #333;'>{row.get('Município', 'N/A')}</span>
-            </div>
-
-            <div style='margin-bottom: 8px;'>
-                <span style='display: inline-block; width: 100px; font-weight: 600; color: #555;'>
-                    <i class="fas fa-chart-bar" style="margin-right: 5px;"></i>Volume:
-                </span>
-                <span style='color: #1a5276; font-weight: 500;'>{volume_str}</span>
-            </div>
-
-            <div style='margin-bottom: 8px;'>
-                <span style='display: inline-block; width: 100px; font-weight: 600; color: #555;'>
-                    <i class="fas fa-percentage" style="margin-right: 5px;"></i>Percentual:
-                </span>
-                <span style='color: #27ae60; font-weight: 600;'>{percentual_str}</span>
-            </div>
-
-            <div style='margin-bottom: 8px;'>
-                <span style='display: inline-block; width: 100px; font-weight: 600; color: #555;'>
-                    <i class="fas fa-ruler" style="margin-right: 5px;"></i>Cota Sangria:
-                </span>
-                <span style='color: #7d3c98; font-weight: 500;'>{cota_sangria_str} m</span>
-            </div>
-        </div>
-        """
-        
-        popup_content = f"""
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
-        {popup_content}
+        <div style='font-family: "Segoe UI", sans-serif; width: 280px; background: linear-gradient(to bottom, #f9f9f9, #ffffff); border-radius: 8px; border-left: 5px solid {icon_color}; padding: 12px; box-shadow: 0 3px 10px rgba(0,0,0,0.2);'>
+            <div style='color: #006400; font-size: 18px; font-weight: 700; margin-bottom: 10px; border-bottom: 1px solid #e0e0e0; padding-bottom: 8px;'><i class="fas fa-water" style="margin-right: 8px;"></i>{row['Reservatório']}</div>
+            <div style='margin-bottom: 8px;'><span style='display: inline-block; width: 100px; font-weight: 600; color: #555;'><i class="fas fa-calendar-alt" style="margin-right: 5px;"></i>Data:</span><span style='color: #333;'>{data_formatada}</span></div>
+            <div style='margin-bottom: 8px;'><span style='display: inline-block; width: 100px; font-weight: 600; color: #555;'><i class="fas fa-city" style="margin-right: 5px;"></i>Município:</span><span style='color: #333;'>{row.get('Município', 'N/A')}</span></div>
+            <div style='margin-bottom: 8px;'><span style='display: inline-block; width: 100px; font-weight: 600; color: #555;'><i class="fas fa-chart-bar" style="margin-right: 5px;"></i>Volume:</span><span style='color: #1a5276; font-weight: 500;'>{volume_str}</span></div>
+            <div style='margin-bottom: 8px;'><span style='display: inline-block; width: 100px; font-weight: 600; color: #555;'><i class="fas fa-percentage" style="margin-right: 5px;"></i>Percentual:</span><span style='color: #27ae60; font-weight: 600;'>{percentual_str}</span></div>
+            <div style='margin-bottom: 8px;'><span style='display: inline-block; width: 100px; font-weight: 600; color: #555;'><i class="fas fa-ruler" style="margin-right: 5px;"></i>Cota Sangria:</span><span style='color: #7d3c98; font-weight: 500;'>{cota_sangria_str} m</span></div>
+        </div>
         """
 
         folium.Marker(
@@ -1086,6 +996,7 @@ if not df_filtrado.empty:
             tooltip=f"{row['Reservatório']} - {data_formatada}"
         ).add_to(m)
 
+    # Adiciona o controle de camadas e outros plugins
     folium.LayerControl().add_to(m)
     Fullscreen(position='topleft').add_to(m)
     MousePosition(position='bottomleft').add_to(m)
