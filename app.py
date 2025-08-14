@@ -985,17 +985,17 @@ if not df_filtrado.empty:
     def color_rows(row):
         percentual = row['Percentual']
         if 0 <= percentual <= 10:
-            color = '#808080' # Cinza
+            color = '#808080'  # Cinza - (muito crítica)
         elif 10.1 <= percentual <= 30:
-            color = '#FF0000' # Vermelho
+            color = '#FF0000'  # Vermelho - (crítica)
         elif 30.1 <= percentual <= 50:
-            color = '#FFFF00' # Amarelo
+            color = '#FFFF00'  # Amarelo - (alerta)
         elif 50.1 <= percentual <= 70:
-            color = '#008000' # Verde
+            color = '#008000'  # Verde - (confortável)
         elif 70.1 <= percentual <= 100:
-            color = '#0000FF' # Azul
+            color = '#0000FF'  # Azul - (muito confortável)
         elif percentual > 100:
-            color = '#800080' # Roxo
+            color = '#800080'  # Roxo - (Vertendo)
         else:
             color = None
         
@@ -1005,17 +1005,17 @@ if not df_filtrado.empty:
     def get_legend(row):
         percentual = row['Percentual']
         if 0 <= percentual <= 10:
-            return '(muito crítica)'
+            return 'Muito crítica'
         elif 10.1 <= percentual <= 30:
-            return '(crítica)'
+            return 'Crítica'
         elif 30.1 <= percentual <= 50:
-            return '(alerta)'
+            return 'Alerta'
         elif 50.1 <= percentual <= 70:
-            return '(confortável)'
+            return 'Confortável'
         elif 70.1 <= percentual <= 100:
-            return '(muito confortável)'
+            return 'Muito confortável'
         elif percentual > 100:
-            return '(Vertendo)'
+            return 'Vertendo'
         else:
             return ''
 
