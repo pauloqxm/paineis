@@ -742,7 +742,7 @@ with tab2:
     }
 
     # Inicializa o mapa com um zoom inicial para mostrar a área do Ceará
-    m2 = folium.Map(location=[-5.2, -39.2], zoom_start=9, tiles=None)
+    m2 = folium.Map(location=[-5.2, -39.2], zoom_start=9.3, tiles=None)
 
     # Adiciona a camada da bacia primeiro para calcular o bounds
     bacia_layer = folium.GeoJson(geojson_bacia,
