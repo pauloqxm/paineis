@@ -276,11 +276,14 @@ def render_home():
             st.plotly_chart(figm, use_container_width=True, config={"displaylogo": False})
         else:
             st.info("Sem dados para média mensal.")
+            
+#=====================ABA  
     with gtab2:
         if not df_filtrado.empty and df_filtrado['Reservatório Monitorado'].nunique() > 0:
             yconv, sufx = convert_vazao(df_filtrado['Vazão Operada'], unidade_sel)
             df_box = df_filtrado.copy()
             df_box['Vazão (conv)'] = yconv
+            
             volumes = []
             for reservatorio in df_box['Reservatório Monitorado'].unique():
                 df_res = df_box[df_box['Reservatório Monitorado'] == reservatorio].sort_values('Data')
@@ -293,30 +296,27 @@ def render_home():
                 volume_total = df_res['volume_periodo'].sum()
                 volume_formatado = f"{volume_total/1e6:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".") + " milhões m³"
                 volumes.append({'Reservatório Monitorado': reservatorio, 'Volume Acumulado': volume_total, 'Volume Formatado': volume_formatado})
+            
             df_volumes = pd.DataFrame(volumes)
-            figb = go.Figure()
-            for r in df_box['Reservatório Monitorado'].unique():
-                figb.add_trace(go.Box(y=df_box[df_box['Reservatório Monitorado'] == r]['Vazão (conv)'],
-                                      name=r, boxpoints='all', jitter=0.5, pointpos=0,
-                                      marker_color='#1f77b4', line_color='#1f77b4', hoverinfo='none'))
-            for _, row in df_volumes.iterrows():
-                figb.add_trace(go.Scatter(x=[row['Reservatório Monitorado']],
-                                          y=[df_box[df_box['Reservatório Monitorado'] == row['Reservatório Monitorado']]['Vazão (conv)'].max()],
-                                          mode='markers', marker=dict(opacity=0),
-                                          hoverinfo='text',
-                                          hovertext=f"Volume Acumulado: {row['Volume Formatado']}",
-                                          showlegend=False))
-            figb.update_layout(title='Distribuição de Vazões', xaxis_title='Reservatório',
-                               yaxis_title=f'Vazão Operada ({sufx})', showlegend=False, hovermode='closest')
-            for _, row in df_volumes.iterrows():
-                figb.add_annotation(x=row['Reservatório Monitorado'],
-                                    y=df_box[df_box['Reservatório Monitorado'] == row['Reservatório Monitorado']]['Vazão (conv)'].max(),
-                                    text=f"<b style='color:red;font-size:14px'>VOLUME: {row['Volume Formatado']}</b>",
-                                    showarrow=False, yshift=20, font=dict(size=12),
-                                    bordercolor="red", borderwidth=1, borderpad=4)
-            st.plotly_chart(figb, use_container_width=True, config={"displaylogo": False})
+    
+            # ----------------------------------------------------
+            # 📊 GRÁFICO DE BARRAS (Altair)
+            # ----------------------------------------------------
+            chart = alt.Chart(df_volumes).mark_bar(color='#2ca02c').encode(
+                x=alt.X('Reservatório Monitorado:N', title='Reservatório'),
+                y=alt.Y('Volume Acumulado', title='Volume Acumulado (m³)', axis=alt.Axis(format='~s')),
+                tooltip=[
+                    alt.Tooltip('Reservatório Monitorado', title='Reservatório'),
+                    alt.Tooltip('Volume Formatado', title='Volume Total')
+                ]
+            ).properties(
+                title='Volume Acumulado por Reservatório'
+            ).interactive()
+    
+            st.altair_chart(chart, use_container_width=True)
+            # ----------------------------------------------------
         else:
-            st.info("Sem dados suficientes para boxplot.")
+            st.info("Sem dados suficientes para o gráfico de volume.")
 
     # ------------- Mapa com camadas -------------
     st.subheader("🗺️ Mapa dos Reservatórios com Camadas")
