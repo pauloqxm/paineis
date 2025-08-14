@@ -741,18 +741,23 @@ with tab2:
         "Esri Satellite": "Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community"
     }
 
-    # Inicializa o mapa com um zoom inicial para mostrar a área do Ceará
+    # Inicializa o mapa
+    if 'map_rendered' not in st.session_state:
+        st.session_state.map_rendered = False
+        
     m2 = folium.Map(location=[-5.2, -39.2], zoom_start=9, tiles=None)
 
-    # Adiciona a camada da bacia primeiro para calcular o bounds
+    # Adiciona a camada da bacia e ajusta o zoom apenas na primeira renderização
     bacia_layer = folium.GeoJson(geojson_bacia,
                                  name="Bacia do Banabuiu",
                                  tooltip=folium.GeoJsonTooltip(fields=["DESCRICA1"], aliases=["Bacia:"]),
                                  style_function=lambda x: {"color": "darkblue", "weight": 2})
     bacia_layer.add_to(m2)
 
-    # Ajusta o zoom para focar na bacia com um padding
-    m2.fit_bounds(bacia_layer.get_bounds(), padding=(0, 0))
+    # Ajusta o zoom para focar na bacia apenas na primeira execução
+    if not st.session_state.map_rendered:
+        m2.fit_bounds(bacia_layer.get_bounds(), padding=(0, 0))
+        st.session_state.map_rendered = True
 
     # Carregar dados da planilha Google
     @st.cache_data(ttl=3600)
