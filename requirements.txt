@@ -8,3 +8,4 @@ openpyxl
 tabulate
 unicodedata2
 numpy
+altair
