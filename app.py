@@ -1096,14 +1096,19 @@ with tab3:
 st.markdown(f"""
 <style>
 .footer-mobile-full {{
-    width: 100%;
-    background: none; /* Remove o fundo */
-    color: #000000; /* Altera a cor do texto para preto */
-    padding: 10px 0; /* Ajusta o padding */
+    position: relative;
+    width: 100vw; /* Usa a largura total da viewport */
+    left: 50%; /* Posiciona a partir do meio */
+    right: 50%; /* Posiciona a partir do meio */
+    margin-left: -50vw; /* Compensa a posição */
+    margin-right: -50vw; /* Compensa a posição */
+    background: none;
+    color: #000000;
+    padding: 10px 0;
     font-family: 'Segoe UI', Roboto, sans-serif;
-    border-top: 3px solid #fad905; /* Mantém apenas a linha superior */
+    border-top: 3px solid #fad905;
     text-align: center;
-    box-shadow: none; /* Remove a sombra */
+    box-shadow: none;
 }}
 
 .footer-content {{
@@ -1130,7 +1135,7 @@ st.markdown(f"""
 }}
 
 .footer-divider {{
-    color: rgba(0,0,0,0.4); /* Ajusta a cor da barra para preto */
+    color: rgba(0,0,0,0.4);
     font-size: 14px;
 }}
 
