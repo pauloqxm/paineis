@@ -719,7 +719,6 @@ with tab2:
             url = "https://docs.google.com/spreadsheets/d/1zZ0RCyYj-AzA_dhWzxRziDWjgforbaH7WIoSEd2EKdk/export?format=csv"
             df = pd.read_csv(url)
             
-            # Verificar e converter coordenadas
             if 'Latitude' in df.columns and 'Longitude' in df.columns:
                 df['Latitude'] = pd.to_numeric(df['Latitude'].astype(str).str.replace(',', '.'), errors='coerce')
                 df['Longitude'] = pd.to_numeric(df['Longitude'].astype(str).str.replace(',', '.'), errors='coerce')
@@ -728,22 +727,22 @@ with tab2:
                 st.error("Colunas 'Latitude' e 'Longitude' são necessárias")
                 return pd.DataFrame()
 
-            # Converter data
             if 'Data de Coleta' in df.columns:
                 df['Data de Coleta'] = pd.to_datetime(df['Data de Coleta'], errors='coerce', dayfirst=True)
                 df = df.dropna(subset=['Data de Coleta'])
 
-            # Converter valores numéricos
             numeric_cols = {
-                'Percentual': lambda x: pd.to_numeric(x.astype(str).str.replace(',', '.').str.replace('%', ''), errors='coerce'),
-                'Volume': lambda x: pd.to_numeric(x.astype(str).str.replace(',', '.'), errors='coerce'),
-                'Cota Sangria': lambda x: pd.to_numeric(x.astype(str).str.replace(',', '.'), errors='coerce'),
-                'Nivel': lambda x: pd.to_numeric(x.astype(str).str.replace(',', '.'), errors='coerce')
+                'Percentual': lambda x: pd.to_numeric(x.astype(str).str.replace(',', '.').str.replace('%', '').str.strip(), errors='coerce'),
+                'Volume': lambda x: pd.to_numeric(x.astype(str).str.replace(',', '.').str.strip(), errors='coerce'),
+                'Cota Sangria': lambda x: pd.to_numeric(x.astype(str).str.replace(',', '.').str.strip(), errors='coerce'),
+                'Nivel': lambda x: pd.to_numeric(x.astype(str).str.replace(',', '.').str.strip(), errors='coerce')
             }
             
             for col, converter in numeric_cols.items():
                 if col in df.columns:
                     df[col] = converter(df[col])
+                    # Substitui NaN por 0 ou outro valor padrão
+                    df[col] = df[col].fillna(0)
 
             return df
         except Exception as e:
@@ -761,7 +760,6 @@ with tab2:
         col1, col2, col3 = st.columns(3)
         
         with col1:
-            # Filtro de data
             min_date = df_full['Data de Coleta'].min().date()
             max_date = df_full['Data de Coleta'].max().date()
             date_range = st.date_input(
@@ -778,7 +776,6 @@ with tab2:
                 st.stop()
 
         with col2:
-            # Filtro de reservatório
             reservatorios = sorted(df_full['Reservatório'].unique())
             reservatorio_filtro = st.multiselect(
                 "Reservatório(s):",
@@ -788,7 +785,6 @@ with tab2:
             )
 
         with col3:
-            # Filtro de município
             municipios = ['Todos'] + sorted(df_full['Município'].unique().tolist())
             municipio_filtro = st.selectbox(
                 "Município:",
@@ -796,7 +792,6 @@ with tab2:
                 index=0
             )
 
-        # Filtro de percentual
         min_perc = float(df_full['Percentual'].min()) if 'Percentual' in df_full.columns else 0
         max_perc = float(df_full['Percentual'].max()) if 'Percentual' in df_full.columns else 100
         perc_range = st.slider(
@@ -814,13 +809,13 @@ with tab2:
         (df_full['Reservatório'].isin(reservatorio_filtro)) &
         (df_full['Percentual'] >= perc_range[0]) &
         (df_full['Percentual'] <= perc_range[1])
-    ]
+    ].copy()
 
     if municipio_filtro != 'Todos':
-        df_filtrado = df_filtrado[df_filtrado['Município'] == municipio_filtro]
+        df_filtrado = df_filtrado[df_filtrado['Município'] == municipio_filtro].copy()
 
     # Obter última medição por reservatório para o mapa
-    df_mapa = df_filtrado.sort_values('Data de Coleta', ascending=False).drop_duplicates(subset=['Reservatório'])
+    df_mapa = df_filtrado.sort_values('Data de Coleta', ascending=False).drop_duplicates(subset=['Reservatório']).copy()
 
     # --- Mapa Interativo ---
     st.subheader("🌍 Mapa dos Açudes")
@@ -833,7 +828,6 @@ with tab2:
             index=0
         )
 
-    # Configurações do mapa
     tile_config = {
         "OpenStreetMap": {
             "tiles": "OpenStreetMap",
@@ -843,22 +837,34 @@ with tab2:
             "tiles": "https://stamen-tiles.a.ssl.fastly.net/terrain/{z}/{x}/{y}.png",
             "attr": 'Map tiles by <a href="http://stamen.com">Stamen Design</a>'
         },
-        # Adicione outros estilos conforme necessário
+        "CartoDB positron": {
+            "tiles": "https://cartodb-basemaps-a.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png",
+            "attr": '&copy; <a href="https://carto.com/attributions">CARTO</a>'
+        },
+        "CartoDB dark_matter": {
+            "tiles": "https://cartodb-basemaps-a.global.ssl.fastly.net/dark_all/{z}/{x}/{y}.png",
+            "attr": '&copy; <a href="https://carto.com/attributions">CARTO</a>'
+        },
+        "Esri Satellite": {
+            "tiles": "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+            "attr": "Tiles &copy; Esri &mdash; Source: Esri"
+        },
+        "Stamen Toner": {
+            "tiles": "https://stamen-tiles.a.ssl.fastly.net/toner/{z}/{x}/{y}.png",
+            "attr": 'Map tiles by <a href="http://stamen.com">Stamen Design</a>'
+        }
     }
 
-    # Criar mapa
     if not df_mapa.empty:
         mapa_center = [df_mapa['Latitude'].mean(), df_mapa['Longitude'].mean()]
         m = folium.Map(location=mapa_center, zoom_start=9, tiles=None)
         
-        # Adicionar camada base
         folium.TileLayer(
-            tiles=tile_config[tile_option]["tiles"],
-            attr=tile_config[tile_option]["attr"],
-            name="Base"
+            tiles=tile_config.get(tile_option, {}).get("tiles", "OpenStreetMap"),
+            attr=tile_config.get(tile_option, {}).get("attr", ''),
+            name=tile_option
         ).add_to(m)
 
-        # Adicionar camada da bacia
         folium.GeoJson(
             geojson_bacia,
             name="Bacia do Banabuiú",
@@ -866,16 +872,19 @@ with tab2:
             tooltip=folium.GeoJsonTooltip(fields=["DESCRICA1"], aliases=["Bacia:"])
         ).add_to(m)
 
-        # Adicionar marcadores dos reservatórios
         for _, row in df_mapa.iterrows():
+            percentual_str = f"{row.get('Percentual', np.nan):.2f}%" if pd.notnull(row.get('Percentual')) else 'N/A'
+            volume_str = f"{row.get('Volume', np.nan):.2f}" if pd.notnull(row.get('Volume')) else 'N/A'
+            cota_sangria_str = f"{row.get('Cota Sangria', np.nan):.2f}" if pd.notnull(row.get('Cota Sangria')) else 'N/A'
+
             popup_content = f"""
             <div style='font-family: Arial; width: 250px;'>
                 <h4 style='color: #006400;'>{row['Reservatório']}</h4>
                 <p><b>Data:</b> {row['Data de Coleta'].strftime('%d/%m/%Y')}</p>
                 <p><b>Município:</b> {row.get('Município', 'N/A')}</p>
-                <p><b>Volume:</b> {row.get('Volume', 'N/A')} hm³</p>
-                <p><b>Percentual:</b> {row.get('Percentual', 'N/A')}%</p>
-                <p><b>Cota Sangria:</b> {row.get('Cota Sangria', 'N/A')}</p>
+                <p><b>Volume:</b> {volume_str} hm³</p>
+                <p><b>Percentual:</b> {percentual_str}</p>
+                <p><b>Cota Sangria:</b> {cota_sangria_str}</p>
             </div>
             """
             
@@ -889,12 +898,10 @@ with tab2:
                 tooltip=row['Reservatório']
             ).add_to(m)
 
-        # Adicionar controles
         folium.LayerControl().add_to(m)
         Fullscreen(position='topleft').add_to(m)
         MousePosition(position='bottomleft').add_to(m)
 
-        # Exibir mapa
         folium_static(m, width=1200)
     else:
         st.warning("Nenhum reservatório encontrado com os filtros aplicados.")
@@ -903,28 +910,31 @@ with tab2:
     st.subheader("📊 Dados Detalhados")
     
     if not df_filtrado.empty:
-        # Selecionar e ordenar colunas
         colunas = [
             'Data de Coleta', 'Reservatório', 'Município', 
             'Cota Sangria', 'Volume', 'Percentual', 'Nivel'
         ]
         
-        # Criar DataFrame para exibição
         df_display = df_filtrado[colunas].copy()
-        
-        # Formatar colunas
         df_display['Data de Coleta'] = df_display['Data de Coleta'].dt.strftime('%d/%m/%Y')
-        df_display['Percentual'] = df_display['Percentual'].apply(lambda x: f"{x:.1f}%" if pd.notnull(x) else "")
         
-        # Exibir tabela com configurações
+        # Corrigindo a exibição do percentual para usar uma barra de progresso
         st.dataframe(
             df_display,
             column_config={
                 "Percentual": st.column_config.ProgressColumn(
-                    "Percentual",
-                    format="%.1f%%",
+                    "Percentual de Volume",
+                    format="%.2f%%",
                     min_value=0,
                     max_value=100,
+                ),
+                "Cota Sangria": st.column_config.NumberColumn(
+                    "Cota Sangria",
+                    format="%.2f",
+                ),
+                "Volume": st.column_config.NumberColumn(
+                    "Volume",
+                    format="%.2f",
                 )
             },
             use_container_width=True,
@@ -932,7 +942,6 @@ with tab2:
             height=400
         )
         
-        # Botão para download
         csv = df_filtrado.to_csv(index=False, encoding='utf-8-sig')
         st.download_button(
             label="📥 Baixar dados como CSV",
