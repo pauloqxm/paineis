@@ -175,37 +175,37 @@ def render_home():
 <h1 class="custom-title"><span>💧</span> Painel de Vazões </span></h1>
 """, unsafe_allow_html=True)
 
-    # ------------- Filtros -------------
+#======================MENU
     with st.expander("☰ Filtros", expanded=False):
-        st.markdown('<div class="filter-card"><div class="filter-title">Opções de Filtro</div>', unsafe_allow_html=True)
+        # ... código de estilos CSS
+        
         col1, col2 = st.columns(2)
         with col1:
-            estacoes = st.multiselect("🏞️ Reservatório", df['Reservatório Monitorado'].dropna().unique())
-            operacao = st.multiselect("🔧 Operação", df['Operação'].dropna().unique())
-        with col2:
-            meses = st.multiselect("📆 Mês", df['Mês'].dropna().unique())
-        col3, col4 = st.columns(2)
-        with col3:
             datas_disponiveis = df['Data'].dropna().sort_values()
             data_min = datas_disponiveis.min()
             data_max = datas_disponiveis.max()
+            # Aplique o filtro de data primeiro
             intervalo_data = st.date_input("📅 Intervalo", (data_min, data_max), format="DD/MM/YYYY")
-        with col4:
+    
+        with col2:
             unidade_sel = st.selectbox("🧪 Unidade", ["L/s", "m³/s"], index=0)
-        st.markdown('</div>', unsafe_allow_html=True)
-
-    # ------------- Filtragem -------------
-    df_filtrado = df.copy()
-    if estacoes:
-        df_filtrado = df_filtrado[df_filtrado['Reservatório Monitorado'].isin(estacoes)]
-    if operacao:
-        df_filtrado = df_filtrado[df_filtrado['Operação'].isin(operacao)]
-    if meses:
-        df_filtrado = df_filtrado[df_filtrado['Mês'].isin(meses)]
-    if isinstance(intervalo_data, tuple) and len(intervalo_data) == 2:
-        inicio, fim = intervalo_data
-        df_filtrado = df_filtrado[(df_filtrado['Data'] >= pd.to_datetime(inicio)) &
-                                  (df_filtrado['Data'] <= pd.to_datetime(fim))]
+    
+        # Crie uma tabela temporária já filtrada pela data
+        df_temp = df.copy()
+        if isinstance(intervalo_data, tuple) and len(intervalo_data) == 2:
+            inicio, fim = intervalo_data
+            df_temp = df_temp[(df_temp['Data'] >= pd.to_datetime(inicio)) &
+                               (df_temp['Data'] <= pd.to_datetime(fim))]
+    
+        # Agora, use a tabela filtrada para gerar as opções dos outros filtros
+        col3, col4 = st.columns(2)
+        with col3:
+            # As opções de reservatório agora são baseadas nos dados filtrados por data
+            estacoes = st.multiselect("🏞️ Reservatório", df_temp['Reservatório Monitorado'].dropna().unique())
+            
+        with col4:
+            # As opções de mês também são baseadas nos dados filtrados por data
+            meses = st.multiselect("📆 Mês", df_temp['Mês'].dropna().unique())
 
     # ------------- KPIs -------------
     st.markdown("""
