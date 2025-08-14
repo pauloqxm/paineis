@@ -982,25 +982,27 @@ with tab2:
 if not df_filtrado.empty:
     # Definir as faixas de percentual e cores
     faixas_percentual = [
-        (0, 10, '#808080', 'Muito Crítica'),
-        (10.1, 30, '#FF0000', 'Crítica'),
-        (30.1, 50, '#FFFF00', 'Alerta'),
-        (50.1, 70, '#008000', 'Confortável'),
-        (70.1, 100, '#0000FF', 'Muito Confortável'),
-        (100.1, float('inf'), '#800080', 'Vertendo')
+        (0, 10, '#808080', 'Muito Crítica'),          # Cinza
+        (10.1, 30, '#FF0000', 'Crítica'),             # Vermelho
+        (30.1, 50, '#FFFF00', 'Alerta'),              # Amarelo
+        (50.1, 70, '#008000', 'Confortável'),         # Verde
+        (70.1, 100, '#0000FF', 'Muito Confortável'),  # Azul
+        (100.1, float('inf'), '#800080', 'Vertendo')  # Roxo
     ]
 
-    # Função para determinar a cor e status
+    # Função para determinar cor e status com tratamento de NaN
     def get_status_color(percentual):
         if pd.isna(percentual):
-            return '#FFFFFF', 'N/A'
+            return '#FFFFFF', 'N/A', '#000000'  # Fundo branco, texto preto
         for min_val, max_val, color, status in faixas_percentual:
             if min_val <= percentual <= max_val:
-                return color, status
-        return '#FFFFFF', 'Não classificado'
+                # Usar texto branco para cores escuras, preto para claras
+                text_color = '#FFFFFF' if color in ['#808080', '#FF0000', '#0000FF', '#800080'] else '#000000'
+                return color, status, text_color
+        return '#FFFFFF', 'Não classificado', '#000000'
 
-    # Adicionar colunas de status e cor
-    df_filtrado[['Cor', 'Status']] = df_filtrado['Percentual'].apply(
+    # Aplicar cores e status
+    df_filtrado[['Cor', 'Status', 'TextColor']] = df_filtrado['Percentual'].apply(
         lambda x: pd.Series(get_status_color(x))
     )
 
@@ -1023,18 +1025,20 @@ if not df_filtrado.empty:
     # Criar DataFrame para exibição
     df_display = df_filtrado[colunas_exibir].copy()
     
-    # Formatação das colunas
-    def formatar_valor(x, sufixo=''):
-        if pd.isna(x):
+    # Formatação numérica correta
+    def formatar_valor(valor, sufixo='', decimais=2):
+        if pd.isna(valor):
             return "N/A"
         try:
-            return f"{float(x):.2f}{sufixo}"
+            valor_float = float(valor)
+            return f"{valor_float:,.{decimais}f}{sufixo}".replace(",", "X").replace(".", ",").replace("X", ".")
         except (ValueError, TypeError):
-            return str(x)
+            return str(valor)
     
+    # Aplicar formatação corrigida
     df_display['Data de Coleta'] = df_display['Data de Coleta'].dt.strftime('%d/%m/%Y')
     df_display['Volume'] = df_display['Volume'].apply(lambda x: formatar_valor(x, ' hm³'))
-    df_display['Percentual'] = df_display['Percentual'].apply(lambda x: formatar_valor(x, '%'))
+    df_display['Percentual'] = df_display['Percentual'].apply(lambda x: formatar_valor(x, '%', 1))
     df_display['Cota Sangria'] = df_display['Cota Sangria'].apply(lambda x: formatar_valor(x, ' m'))
     df_display['Nivel'] = df_display['Nivel'].apply(lambda x: formatar_valor(x, ' m'))
     df_display['Sangria'] = df_display['Sangria'].apply(lambda x: formatar_valor(x, ' m'))
@@ -1043,24 +1047,30 @@ if not df_filtrado.empty:
     column_config = {
         "Percentual": st.column_config.ProgressColumn(
             "Percentual",
-            format="%.2f%%",
+            format="%.1f%%",  # Uma casa decimal para percentual
             min_value=0,
             max_value=100,
-            help="Nível de armazenamento do reservatório"
+            help="Percentual de volume armazenado"
         ),
         "Status": st.column_config.TextColumn(
             "Status",
-            help="Classificação do volume armazenado"
+            help="Classificação conforme o percentual de armazenamento"
         )
     }
 
-    # Exibir tabela com estilo condicional
+    # Função para aplicar estilo condicional com cor de texto
     def colorize_row(row):
-        color = df_filtrado.loc[row.name, 'Cor']
-        return [f'background-color: {color}' for _ in row]
+        idx = row.name
+        bg_color = df_filtrado.loc[idx, 'Cor']
+        text_color = df_filtrado.loc[idx, 'TextColor']
+        return [f'background-color: {bg_color}; color: {text_color}; font-weight: bold;' for _ in row]
 
+    # Aplicar estilo
+    styled_df = df_display.style.apply(colorize_row, axis=1)
+
+    # Exibir tabela
     st.dataframe(
-        df_display.style.apply(colorize_row, axis=1),
+        styled_df,
         column_config=column_config,
         use_container_width=True,
         hide_index=True,
@@ -1068,16 +1078,17 @@ if not df_filtrado.empty:
         column_order=colunas_exibir
     )
 
-    # Adicionar legenda
+    # Legenda interativa
     st.markdown("""
-    <div style="margin: 20px 0; padding: 15px; background: #f5f5f5; border-radius: 8px;">
-        <h4 style="margin-bottom: 10px; color: #333;">Legenda de Status:</h4>
-        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;">
+    <div style="margin: 20px 0; padding: 15px; background: #f8f9fa; border-radius: 8px; border: 1px solid #ddd;">
+        <h4 style="margin-bottom: 12px; color: #333; font-size: 16px;">Legenda de Status:</h4>
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;">
     """ + 
     '\n'.join([
-        f"""<div style="display: flex; align-items: center;">
-            <div style="width: 20px; height: 20px; background: {color}; margin-right: 8px; border: 1px solid #ddd;"></div>
-            <span>{status} ({min_val}-{max_val if max_val != float('inf') else ''}%)</span>
+        f"""<div style="display: flex; align-items: center; padding: 4px;">
+            <div style="width: 24px; height: 24px; background: {color}; 
+                 margin-right: 10px; border: 1px solid #ccc; border-radius: 4px;"></div>
+            <span style="font-size: 14px;">{status} ({'≥' if min_val == 100.1 else ''}{min_val}-{'' if max_val == float('inf') else max_val}%)</span>
         </div>"""
         for min_val, max_val, color, status in faixas_percentual
     ]) +
@@ -1087,16 +1098,17 @@ if not df_filtrado.empty:
     """, unsafe_allow_html=True)
 
     # Botão de download
-    with st.expander("🔽 Download dos Dados", expanded=False):
+    with st.expander("📥 Opções de Download", expanded=False):
         st.download_button(
-            label="Baixar como CSV",
-            data=df_filtrado.drop(columns=['Cor']).to_csv(index=False, encoding='utf-8-sig'),
-            file_name=f"acudes_status_{datetime.now().strftime('%Y%m%d')}.csv",
-            mime='text/csv'
+            label="Baixar dados completos (CSV)",
+            data=df_filtrado.drop(columns=['Cor', 'TextColor']).to_csv(index=False, encoding='utf-8-sig', sep=';'),
+            file_name=f"reservatorios_{datetime.now().strftime('%Y%m%d')}.csv",
+            mime='text/csv',
+            help="Download com todos os dados numéricos originais"
         )
 
 else:
-    st.warning("Nenhum dado encontrado com os filtros aplicados.", icon="⚠️")
+    st.warning("⚠️ Nenhum dado encontrado com os filtros aplicados.", icon="⚠️")
 
 #================PÁGINA > DOCUMENTOS OFICIAS==================
 
