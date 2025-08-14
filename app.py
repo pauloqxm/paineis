@@ -719,7 +719,6 @@ with tab2:
             url = "https://docs.google.com/spreadsheets/d/1zZ0RCyYj-AzA_dhWzxRziDWjgforbaH7WIoSEd2EKdk/export?format=csv"
             df = pd.read_csv(url)
             
-            # Garante que as colunas existem antes de tentar acessá-las
             if 'Latitude' in df.columns and 'Longitude' in df.columns:
                 df['Latitude'] = pd.to_numeric(df['Latitude'].astype(str).str.replace(',', '.'), errors='coerce')
                 df['Longitude'] = pd.to_numeric(df['Longitude'].astype(str).str.replace(',', '.'), errors='coerce')
@@ -779,7 +778,6 @@ with tab2:
         
         df_reservatorios_filtrado = df_reservatorios.copy()
 
-        # Aplica os filtros de forma condicional
         if data_filtro != 'Todos':
             df_reservatorios_filtrado = df_reservatorios_filtrado[df_reservatorios_filtrado['Data de Coleta'].dt.strftime('%d/%m/%Y') == data_filtro]
         
@@ -789,13 +787,11 @@ with tab2:
         if municipio_filtro != 'Todos':
             df_reservatorios_filtrado = df_reservatorios_filtrado[df_reservatorios_filtrado['Município'] == municipio_filtro]
 
-        # Filtra por percentual
         df_reservatorios_filtrado = df_reservatorios_filtrado[
             (df_reservatorios_filtrado['Percentual'] >= min_percentual) &
             (df_reservatorios_filtrado['Percentual'] <= max_percentual)
         ]
 
-        # Garante que apenas o registro mais recente para cada reservatório seja exibido no mapa
         df_mapa = df_reservatorios_filtrado.sort_values('Data de Coleta', ascending=False).drop_duplicates(subset=['Reservatório'], keep='first')
         
     else:
@@ -984,6 +980,8 @@ with tab2:
 
     if not df_reservatorios_filtrado.empty:
         df_display = df_reservatorios_filtrado[colunas_tabela].copy()
+        
+        # Converte a coluna de data para string formatada ANTES de exibir
         df_display['Data de Coleta'] = df_display['Data de Coleta'].dt.strftime('%d/%m/%Y')
 
         st.dataframe(df_display.style.format({
