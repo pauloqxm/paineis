@@ -1134,6 +1134,7 @@ if not df_filtrado.empty:
     df_reservatorio = df_filtrado[df_filtrado['Reservatório'].isin(reservatorio_filtro)].sort_values('Data de Coleta')
     
     if not df_reservatorio.empty:
+                
         # --- Alterações para usar Altair ---
         # Definir a seleção para o scroll
         brush = alt.selection_interval(encodings=['x'])
@@ -1166,7 +1167,7 @@ if not df_filtrado.empty:
         st.altair_chart(main_chart & overview_chart, use_container_width=True)
     else:
         st.warning(f"Não há dados de volume para o(s) reservatório(s) selecionado(s) no período.")
-        
+    
     st.markdown("---")
     
     # Botão de download
