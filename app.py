@@ -817,7 +817,9 @@ with tab2:
     # Obter última medição por reservatório para o mapa
     df_mapa = df_filtrado.sort_values('Data de Coleta', ascending=False).drop_duplicates(subset=['Reservatório']).copy()
 
-    # --- Mapa Interativo ---
+# ================================================================
+# 🗺️ MAPA INTERATIVO COM ÍCONES DINÂMICOS
+# ================================================================
     st.subheader("🌍 Mapa dos Açudes")
 
     with st.expander("Configurações do Mapa", expanded=False):
