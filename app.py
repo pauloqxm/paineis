@@ -736,7 +736,13 @@ with tab2:
                 df['Percentual'] = df['Percentual'].astype(str).str.replace(',', '.').str.replace('%', '').str.strip()
                 df['Percentual'] = pd.to_numeric(df['Percentual'], errors='coerce')
                 df['Percentual'] = df['Percentual'].fillna(0)
-
+            
+            # Converte as colunas de volume e cota para numérico
+            for col in ['Volume', 'Cota Sangria']:
+                if col in df.columns:
+                    df[col] = df[col].astype(str).str.replace(',', '.').str.strip()
+                    df[col] = pd.to_numeric(df[col], errors='coerce')
+            
             return df
         except Exception as e:
             st.error(f"Erro ao carregar dados dos reservatórios: {str(e)}")
@@ -981,7 +987,10 @@ with tab2:
     if not df_reservatorios_filtrado.empty:
         df_display = df_reservatorios_filtrado[colunas_tabela].copy()
         
-        # Converte a coluna de data para string formatada ANTES de exibir
+        # --- CORREÇÃO AQUI: Garante que as colunas são numéricas antes de formatar ---
+        for col in ['Percentual', 'Volume', 'Cota Sangria']:
+            df_display[col] = pd.to_numeric(df_display[col], errors='coerce')
+        
         df_display['Data de Coleta'] = df_display['Data de Coleta'].dt.strftime('%d/%m/%Y')
 
         st.dataframe(df_display.style.format({
