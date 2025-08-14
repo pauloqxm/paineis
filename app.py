@@ -911,6 +911,24 @@ if not df_filtrado.empty:
     map_center = [df_mapa.iloc[0]['Latitude'], df_mapa.iloc[0]['Longitude']] if not df_mapa.empty else [-5.5, -39.5]
     m = folium.Map(location=map_center, zoom_start=8)
 
+    # --- NOVO: ADICIONA A CAMADA DA BACIA DO BANABUIÚ ---
+    # Nota: Assumindo que a variável `geojson_bacia_banabuiu` contém os dados da bacia
+    try:
+        folium.GeoJson(
+            geojson_bacia,
+            name="Bacia do Banabuiú",
+            style_function=lambda x: {
+                'fillColor': 'transparent',
+                'color': '#800080',  # Roxo
+                'weight': 3,
+                'dashArray': '5, 5'
+            },
+            tooltip="Limite da Bacia do Banabuiú"
+        ).add_to(m)
+    except NameError:
+        st.error("Erro: A variável 'geojson_bacia_banabuiu' não foi definida.")
+# --- FIM da nova camada ---
+
     # Adiciona os marcadores ao mapa
     for _, row in df_mapa.iterrows():
         try:
