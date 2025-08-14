@@ -910,7 +910,7 @@ with tab2:
     folium.LayerControl(collapsed=True, position='topright').add_to(m2)
     
     # Exibir mapa
-    folium_static(m2, width=1150)
+    folium_static(m2, width=1200)
 
 #================PÁGINA > DOCUMENTOS OFICIAS==================
 
