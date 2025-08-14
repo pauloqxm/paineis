@@ -980,51 +980,70 @@ with tab2:
     st.subheader("📊 Dados Detalhados")
 
 if not df_filtrado.empty:
-    colunas = [
-        'Data de Coleta', 'Reservatório', 'Município',
-        'Cota Sangria', 'Volume', 'Percentual', 'Nivel'
+    # Definir a ordem das colunas com 'Sangria' no final
+    colunas_exibir = [
+        'Data de Coleta', 
+        'Reservatório', 
+        'Município',
+        'Volume', 
+        'Percentual', 
+        'Nivel',
+        'Sangria'  # Agora está na última posição
     ]
 
-    df_display = df_filtrado[colunas].copy()
-    df_display['Data de Coleta'] = df_display['Data de Coleta'].dt.strftime('%d/%m/%Y')
-
-    # Passo 1: Criar a nova coluna "Sangria" com a unidade de medida "m"
-    df_display['Sangria'] = df_display['Cota Sangria'].apply(lambda x: f"{x:.2f} m" if pd.notna(x) else "N/A")
+    # Criar cópia do DataFrame para manipulação
+    df_display = df_filtrado.copy()
     
-    # Passo 2: Atualizar a lista de colunas a serem exibidas para incluir a nova coluna
-    # A coluna original 'Cota Sangria' foi removida para evitar redundância
-    colunas_exibir = ['Data de Coleta', 'Reservatório', 'Município',
-                      'Sangria', 'Volume', 'Percentual', 'Nivel']
+    # Formatar a data
+    df_display['Data de Coleta'] = df_display['Data de Coleta'].dt.strftime('%d/%m/%Y')
+    
+    # Criar coluna Sangria formatada (mantendo a original para download)
+    df_display['Sangria'] = df_display['Cota Sangria'].apply(
+        lambda x: f"{x:.2f} m" if pd.notna(x) else "N/A"
+    )
 
+    # Configurações avançadas das colunas
+    column_config = {
+        "Percentual": st.column_config.ProgressColumn(
+            "Percentual",
+            format="%.2f%%",
+            min_value=0,
+            max_value=100,
+            help="Percentual de volume armazenado"
+        ),
+        "Volume": st.column_config.NumberColumn(
+            "Volume (hm³)",
+            format="%.2f",
+            help="Volume em hectômetros cúbicos"
+        ),
+        "Nivel": st.column_config.NumberColumn(
+            "Nível (m)",
+            format="%.2f",
+            help="Nível atual do reservatório"
+        ),
+        "Sangria": st.column_config.TextColumn(
+            "Cota de Sangria",
+            help="Altura da cota de sangria em metros"
+        )
+    }
+
+    # Exibir tabela
     st.dataframe(
         df_display[colunas_exibir],
-        column_config={
-            "Percentual": st.column_config.ProgressColumn(
-                "Percentual de Volume",
-                format="%.2f%%",
-                min_value=0,
-                max_value=100,
-            ),
-            "Sangria": st.column_config.NumberColumn(
-                "Sangria",
-                format="%.2f m",
-            ),
-            "Volume": st.column_config.NumberColumn(
-                "Volume",
-                format="%.2f hm³",
-            )
-        },
+        column_config=column_config,
         use_container_width=True,
         hide_index=True,
         height=400
     )
 
+    # Preparar dados para download (mantendo todas as colunas originais)
     csv = df_filtrado.to_csv(index=False, encoding='utf-8-sig')
     st.download_button(
         label="📥 Baixar dados como CSV",
         data=csv,
         file_name='acudes_monitorados.csv',
         mime='text/csv',
+        help="Download de todos os dados com colunas originais"
     )
 else:
     st.info("Nenhum dado disponível para exibição com os filtros atuais.")
