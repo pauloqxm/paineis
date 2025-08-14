@@ -1128,13 +1128,13 @@ if not df_filtrado.empty:
 # ----------------------------------------------------------------------------------------------------------------------
 # 📊 GRÁFICO DE LINHA DO VOLUME POR RESERVATÓRIO
 # ----------------------------------------------------------------------------------------------------------------------
+
     st.markdown("---")
     st.subheader("📈 Volume dos Reservatórios ao Longo do Tempo")
     
     df_reservatorio = df_filtrado[df_filtrado['Reservatório'].isin(reservatorio_filtro)].sort_values('Data de Coleta')
     
     if not df_reservatorio.empty:
-                
         # --- Alterações para usar Altair ---
         # Definir a seleção para o scroll
         brush = alt.selection_interval(encodings=['x'])
@@ -1151,7 +1151,7 @@ if not df_filtrado.empty:
         ).add_selection(
             brush
         )
-    
+        
         # Gráfico de visão geral (o scrollbar)
         overview_chart = alt.Chart(df_reservatorio).mark_line().encode(
             x=alt.X('Data de Coleta', axis=None),
@@ -1165,9 +1165,14 @@ if not df_filtrado.empty:
         
         # Combina os dois gráficos
         st.altair_chart(main_chart & overview_chart, use_container_width=True)
+    
     else:
         st.warning(f"Não há dados de volume para o(s) reservatório(s) selecionado(s) no período.")
     
+    # ----------------------------------------------------------------------------------------------------------------------
+    # A Seção do botão de download deve estar no nível correto
+    # para evitar o erro de sintaxe.
+    # ----------------------------------------------------------------------------------------------------------------------
     st.markdown("---")
     
     # Botão de download
@@ -1179,9 +1184,6 @@ if not df_filtrado.empty:
             mime='text/csv',
             help="Download com todos os dados numéricos originais"
         )
-    
-    else:
-        st.warning("⚠️ Nenhum dado encontrado com os filtros aplicados.", icon="⚠️")
 
 #================PÁGINA > DOCUMENTOS OFICIAS==================
 
