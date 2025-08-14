@@ -978,48 +978,50 @@ with tab2:
 
     # --- Tabela de Dados ---
     st.subheader("📊 Dados Detalhados")
-    
-    if not df_filtrado.empty:
-        colunas = [
-            'Data de Coleta', 'Reservatório', 'Município', 
-            'Cota Sangria', 'Volume', 'Percentual', 'Nivel'
-        ]
-        
-        df_display = df_filtrado[colunas].copy()
-        df_display['Data de Coleta'] = df_display['Data de Coleta'].dt.strftime('%d/%m/%Y')
-        
-        st.dataframe(
-            df_display,
-            column_config={
-                "Percentual": st.column_config.ProgressColumn(
-                    "Percentual de Volume",
-                    format="%.2f%%",
-                    min_value=0,
-                    max_value=100,
-                ),
-                "Cota Sangria": st.column_config.NumberColumn(
-                    "Cota Sangria",
-                    format="%.2f",
-                ),
-                "Volume": st.column_config.NumberColumn(
-                    "Volume",
-                    format="%.2f",
-                )
-            },
-            use_container_width=True,
-            hide_index=True,
-            height=400
-        )
-        
-        csv = df_filtrado.to_csv(index=False, encoding='utf-8-sig')
-        st.download_button(
-            label="📥 Baixar dados como CSV",
-            data=csv,
-            file_name='acudes_monitorados.csv',
-            mime='text/csv',
-        )
-    else:
-        st.info("Nenhum dado disponível para exibição com os filtros atuais.")
+
+if not df_filtrado.empty:
+    colunas = [
+        'Data de Coleta', 'Reservatório', 'Município',
+        'Cota Sangria', 'Volume', 'Percentual', 'Nivel'
+    ]
+
+    df_display = df_filtrado[colunas].copy()
+    df_display['Data de Coleta'] = df_display['Data de Coleta'].dt.strftime('%d/%m/%Y')
+
+    st.dataframe(
+        df_display,
+        column_config={
+            "Percentual": st.column_config.ProgressColumn(
+                "Percentual de Volume",
+                format="%.2f%%",
+                min_value=0,
+                max_value=100,
+            ),
+            "Cota Sangria": st.column_config.NumberColumn(
+                "Cota Sangria",
+                # Adiciona " m" ao final da string de formatação
+                format="%.2f m",
+            ),
+            "Volume": st.column_config.NumberColumn(
+                "Volume",
+                # Adiciona " hm³" ao final da string de formatação
+                format="%.2f hm³",
+            )
+        },
+        use_container_width=True,
+        hide_index=True,
+        height=400
+    )
+
+    csv = df_filtrado.to_csv(index=False, encoding='utf-8-sig')
+    st.download_button(
+        label="📥 Baixar dados como CSV",
+        data=csv,
+        file_name='acudes_monitorados.csv',
+        mime='text/csv',
+    )
+else:
+    st.info("Nenhum dado disponível para exibição com os filtros atuais.")
 
 #================PÁGINA > DOCUMENTOS OFICIAS==================
 
