@@ -977,155 +977,123 @@ with tab2:
         st.warning("Nenhum reservatório encontrado com os filtros aplicados.")
 
     # --- Tabela de Dados ---
-    st.subheader("📊 Dados Detalhados Interativos")
+    st.subheader("📊 Dados Detalhados")
 
 if not df_filtrado.empty:
-    # Definir as faixas de percentual e cores
-    faixas_percentual = {
-        'Muito Crítica': (0, 10, '#808080'),
-        'Crítica': (10.1, 30, '#FF0000'),
-        'Alerta': (30.1, 50, '#FFFF00'),
-        'Confortável': (50.1, 70, '#008000'),
-        'Muito Confortável': (70.1, 100, '#0000FF'),
-        'Vertendo': (100.1, float('inf'), '#800080')
-    }
+    # --- Passo 1: Funções de Estilização ---
+    # Define a cor do fundo da linha com base no percentual
+    def color_rows(row):
+        percentual = row['Percentual']
+        if 0 <= percentual <= 10:
+            color = '#808080' # Cinza
+        elif 10.1 <= percentual <= 30:
+            color = '#FF0000' # Vermelho
+        elif 30.1 <= percentual <= 50:
+            color = '#FFFF00' # Amarelo
+        elif 50.1 <= percentual <= 70:
+            color = '#008000' # Verde
+        elif 70.1 <= percentual <= 100:
+            color = '#0000FF' # Azul
+        elif percentual > 100:
+            color = '#800080' # Roxo
+        else:
+            color = None
+        
+        return [f'background-color: {color}' for _ in row]
 
-    # Função para determinar a cor com base no percentual
-    def determinar_cor_percentual(percentual):
-        for categoria, (min_val, max_val, cor) in faixas_percentual.items():
-            if min_val <= percentual <= max_val:
-                return cor
-        return '#FFFFFF'  # Default
+    # Define a legenda que aparece ao passar o mouse
+    def get_legend(row):
+        percentual = row['Percentual']
+        if 0 <= percentual <= 10:
+            return '(muito crítica)'
+        elif 10.1 <= percentual <= 30:
+            return '(crítica)'
+        elif 30.1 <= percentual <= 50:
+            return '(alerta)'
+        elif 50.1 <= percentual <= 70:
+            return '(confortável)'
+        elif 70.1 <= percentual <= 100:
+            return '(muito confortável)'
+        elif percentual > 100:
+            return '(Vertendo)'
+        else:
+            return ''
 
-    # Função para determinar a legenda
-    def determinar_legenda(percentual):
-        for categoria, (min_val, max_val, _) in faixas_percentual.items():
-            if min_val <= percentual <= max_val:
-                return categoria
-        return 'Não classificado'
+    # --- Passo 2: Preparação dos Dados ---
+    # Verificar se as colunas necessárias existem
+    colunas_necessarias = ['Cota Sangria', 'Nivel', 'Percentual']
+    if not all(col in df_filtrado.columns for col in colunas_necessarias):
+        st.error("As colunas 'Cota Sangria', 'Nivel' e 'Percentual' são necessárias para os cálculos e estilização.")
+        st.stop()
 
-    # Adicionar coluna de legenda
-    df_filtrado['Status'] = df_filtrado['Percentual'].apply(determinar_legenda)
-
-    # Calcular a coluna Sangria
+    # Calcular a coluna Sangria com tratamento de erros
     df_filtrado['Sangria'] = df_filtrado['Cota Sangria'] - df_filtrado['Nivel']
 
-    # Ordem das colunas
-    colunas_exibir = [
-        'Data de Coleta', 
-        'Reservatório', 
-        'Município',
-        'Volume', 
-        'Percentual',
-        'Status',  # Nova coluna de status
-        'Cota Sangria',
-        'Nivel',
-        'Sangria'
-    ]
-
-    # Criar DataFrame para exibição
-    df_display = df_filtrado[colunas_exibir].copy()
+    # Criar um DataFrame para exibição, mantendo o tipo numérico para o estilismo
+    df_display_styled = df_filtrado.copy()
     
-    # Formatação das colunas
+    # Criar um DataFrame para exibir com as colunas formatadas como string
+    df_display = df_display_styled.copy()
+    
+    # Formatação das colunas para exibição
     formatacoes = {
         'Data de Coleta': lambda x: x.strftime('%d/%m/%Y') if pd.notna(x) else "N/A",
         'Cota Sangria': lambda x: f"{x:.2f} m" if pd.notna(x) else "N/A",
         'Nivel': lambda x: f"{x:.2f} m" if pd.notna(x) else "N/A",
         'Sangria': lambda x: f"{x:.2f} m" if pd.notna(x) else "N/A",
-        'Volume': lambda x: f"{x:,.2f} hm³" if pd.notna(x) else "N/A",
-        'Percentual': lambda x: f"{x:.2f}%" if pd.notna(x) else "N/A"
+        'Volume': lambda x: f"{x:,.2f} hm³".replace(",", "X").replace(".", ",").replace("X", ".") if pd.notna(x) else "N/A"
     }
-    
+
     for col, fmt in formatacoes.items():
-        df_display[col] = df_display[col].apply(fmt)
+        if col in df_display.columns:
+            df_display[col] = df_display[col].apply(fmt)
+            
+    # Ordem e seleção das colunas para o display final
+    colunas_exibir = [
+        'Data de Coleta', 'Reservatório', 'Município', 'Volume', 'Percentual',
+        'Cota Sangria', 'Nivel', 'Sangria'
+    ]
 
-    # Configuração avançada das colunas com estilização
-    column_config = {
-        "Percentual": st.column_config.ProgressColumn(
-            "Percentual",
-            format="%.2f%%",
-            min_value=0,
-            max_value=100,
-            help="Nível de armazenamento do reservatório"
-        ),
-        "Status": st.column_config.TextColumn(
-            "Status",
-            help="Classificação do volume armazenado"
-        ),
-        "Volume": st.column_config.TextColumn(
-            "Volume",
-            help="Volume armazenado em hectômetros cúbicos (hm³)"
-        ),
-        "Cota Sangria": st.column_config.TextColumn(
-            "Cota de Sangria",
-            help="Altura (em metros) do nível de sangria do reservatório"
-        ),
-        "Nivel": st.column_config.TextColumn(
-            "Nível Atual",
-            help="Altura atual (em metros) da lâmina d'água no reservatório"
-        ),
-        "Sangria": st.column_config.TextColumn(
-            "Margem de Sangria",
-            help="Diferença (em metros) entre a cota de sangria e o nível atual"
-        )
-    }
+    # --- Passo 3: Estilização do DataFrame ---
+    # Aplica as funções de cor e legenda usando o objeto Styler
+    styler = df_display_styled[colunas_exibir].style \
+        .apply(color_rows, axis=1) \
+        .set_tooltips(df_display_styled[colunas_exibir].apply(get_legend, axis=1),
+                      props=[('white-space', 'pre-wrap'), ('max-width', '200px')])
 
-    # Função para aplicar o estilo condicional
-    def estilo_linha(row):
-        cor = determinar_cor_percentual(row['Percentual'])
-        styles = []
-        for col in df_display.columns:
-            if col == 'Status':
-                styles.append(f'background-color: {cor}; color: white; font-weight: bold;')
-            else:
-                styles.append(f'background-color: {cor}; color: black;')
-        return styles
-
-    # Aplicar o estilo
-    styled_df = df_display.style.apply(estilo_linha, axis=1)
-    
     # Exibição da tabela estilizada
     st.dataframe(
-        styled_df,
-        column_config=column_config,
+        styler,
+        column_config={
+            "Percentual": st.column_config.ProgressColumn(
+                "Percentual",
+                format="%.2f%%",
+                min_value=0,
+                max_value=100,
+                help="Percentual de volume armazenado em relação à capacidade total"
+            ),
+            "Volume": st.column_config.TextColumn(
+                "Volume",
+                help="Volume armazenado em hectômetros cúbicos (hm³)"
+            ),
+            "Cota Sangria": st.column_config.TextColumn(
+                "Cota de Sangria",
+                help="Altura (em metros) do nível de sangria do reservatório"
+            ),
+            "Nivel": st.column_config.TextColumn(
+                "Nível Atual",
+                help="Altura atual (em metros) da lâmina d'água no reservatório"
+            ),
+            "Sangria": st.column_config.TextColumn(
+                "Margem de Sangria",
+                help="Diferença (em metros) entre a cota de sangria e o nível atual"
+            )
+        },
         use_container_width=True,
         hide_index=True,
-        height=600,
+        height=500,
         column_order=colunas_exibir
     )
-
-    # Adicionar legenda das cores
-    st.markdown("""
-    <div style="margin-top: 20px; padding: 10px; background: #f0f0f0; border-radius: 5px;">
-        <h4 style="color: #333;">Legenda de Status:</h4>
-        <div style="display: flex; flex-wrap: wrap; gap: 15px;">
-            <div style="display: flex; align-items: center;">
-                <div style="width: 20px; height: 20px; background-color: #808080; margin-right: 5px;"></div>
-                <span>Muito Crítica (0-10%)</span>
-            </div>
-            <div style="display: flex; align-items: center;">
-                <div style="width: 20px; height: 20px; background-color: #FF0000; margin-right: 5px;"></div>
-                <span>Crítica (10.1-30%)</span>
-            </div>
-            <div style="display: flex; align-items: center;">
-                <div style="width: 20px; height: 20px; background-color: #FFFF00; margin-right: 5px;"></div>
-                <span>Alerta (30.1-50%)</span>
-            </div>
-            <div style="display: flex; align-items: center;">
-                <div style="width: 20px; height: 20px; background-color: #008000; margin-right: 5px;"></div>
-                <span>Confortável (50.1-70%)</span>
-            </div>
-            <div style="display: flex; align-items: center;">
-                <div style="width: 20px; height: 20px; background-color: #0000FF; margin-right: 5px;"></div>
-                <span>Muito Confortável (70.1-100%)</span>
-            </div>
-            <div style="display: flex; align-items: center;">
-                <div style="width: 20px; height: 20px; background-color: #800080; margin-right: 5px;"></div>
-                <span>Vertendo (>100%)</span>
-            </div>
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
 
     # Botão de download
     with st.expander("Opções de Download", expanded=False):
@@ -1136,7 +1104,6 @@ if not df_filtrado.empty:
             mime='text/csv',
             help="Download de todos os dados com colunas originais e calculadas"
         )
-
 else:
     st.warning("Nenhum dado encontrado com os filtros aplicados.", icon="⚠️")
 
