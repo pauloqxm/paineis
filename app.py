@@ -1102,6 +1102,7 @@ st.markdown(f"""
     right: 50%; /* Posiciona a partir do meio */
     margin-left: -50vw; /* Compensa a posição */
     margin-right: -50vw; /* Compensa a posição */
+    margin-top: 40px;
     background: none;
     color: #000000;
     padding: 10px 0;
