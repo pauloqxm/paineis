@@ -980,11 +980,10 @@ with tab2:
     st.subheader("📊 Dados Detalhados")
 
 if not df_filtrado.empty:
-    # Verificar e criar coluna Sangria se necessário
-    if 'Sangria' not in df_filtrado.columns:
-        df_filtrado['Sangria'] = df_filtrado['Cota Sangria']
+    # Calcular a coluna Sangria como Cota Sangria - Nivel
+    df_filtrado['Sangria'] = df_filtrado['Cota Sangria'] - df_filtrado['Nivel']
     
-    # Ordem das colunas
+    # Ordem das colunas com 'Sangria' no final
     colunas_exibir = [
         'Data de Coleta', 
         'Reservatório', 
@@ -993,7 +992,7 @@ if not df_filtrado.empty:
         'Volume', 
         'Percentual', 
         'Nivel',
-        'Sangria'
+        'Sangria'  # Nova coluna calculada
     ]
 
     # Criar cópia para exibição
@@ -1002,7 +1001,7 @@ if not df_filtrado.empty:
     # Formatar colunas
     df_display['Data de Coleta'] = df_display['Data de Coleta'].dt.strftime('%d/%m/%Y')
     
-    # Formatar Sangria com tratamento seguro
+    # Função segura para formatar Sangria
     def formatar_sangria(x):
         try:
             if pd.isna(x):
@@ -1012,6 +1011,8 @@ if not df_filtrado.empty:
             return "N/A"
     
     df_display['Sangria'] = df_display['Sangria'].apply(formatar_sangria)
+    df_display['Cota Sangria'] = df_display['Cota Sangria'].apply(lambda x: f"{x:.2f} m" if pd.notna(x) else "N/A")
+    df_display['Nivel'] = df_display['Nivel'].apply(lambda x: f"{x:.2f} m" if pd.notna(x) else "N/A")
 
     # Configurações das colunas
     column_config = {
@@ -1019,18 +1020,25 @@ if not df_filtrado.empty:
             "Percentual",
             format="%.2f%%",
             min_value=0,
-            max_value=100
+            max_value=100,
+            help="Percentual de volume armazenado"
         ),
         "Volume": st.column_config.NumberColumn(
             "Volume (hm³)",
-            format="%.2f"
+            format="%.2f",
+            help="Volume em hectômetros cúbicos"
         ),
-        "Cota Sangria": st.column_config.NumberColumn(
-            "Cota Sangria",
-            format="%.2f"
+        "Cota Sangria": st.column_config.TextColumn(
+            "Cota Sangria (m)",
+            help="Altura da cota de sangria"
+        ),
+        "Nivel": st.column_config.TextColumn(
+            "Nível atual (m)",
+            help="Nível atual do reservatório"
         ),
         "Sangria": st.column_config.TextColumn(
-            "Sangria (m)"
+            "Diferença (m)",
+            help="Diferença entre Cota Sangria e Nível atual"
         )
     }
 
@@ -1043,13 +1051,14 @@ if not df_filtrado.empty:
         height=400
     )
 
-    # Botão de download
+    # Preparar dados para download (com todas colunas originais + calculadas)
     csv = df_filtrado.to_csv(index=False, encoding='utf-8-sig')
     st.download_button(
         label="📥 Baixar dados como CSV",
         data=csv,
         file_name='acudes_monitorados.csv',
-        mime='text/csv'
+        mime='text/csv',
+        help="Inclui todas as colunas de dados, incluindo cálculos"
     )
 else:
     st.info("Nenhum dado disponível para exibição com os filtros atuais.")
