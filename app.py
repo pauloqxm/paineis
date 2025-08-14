@@ -1,3 +1,7 @@
+
+
+
+
 import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
@@ -688,20 +692,6 @@ with tab1:
 
 with tab2:
     st.title("🗺️ Açudes Monitorados")
-    
-    # --- BOTÃO DE ATUALIZAÇÃO ---
-    # Cria três colunas para alinhar o botão à esquerda
-    cA1, cA2, cA3 = st.columns([1,1,1])
-    with cA1:
-        if st.button("🔄 Atualizar dados"):
-            # Limpa o cache da função que carrega a planilha
-            load_reservatorios_data.clear()
-            # Apaga a variável de estado para forçar o recálculo do zoom do mapa
-            if 'map_rendered' in st.session_state:
-                del st.session_state.map_rendered
-            # Força o recarregamento completo do script
-            st.rerun()
-    # -----------------------------
 
     st.markdown("""
 <div style="
