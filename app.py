@@ -1120,11 +1120,27 @@ def render_docs():
     table_html += "</tbody></table></div>"
     st.markdown(table_html, unsafe_allow_html=True)
 
+    def render_dados():
+# === CONTEÚDO DA ABA 4 (📈 Simulações) ===
+
+    st.title("📈 Simulações")
+
+    st.markdown("""
+<div style="background: linear-gradient(135deg, #f5f7fa 0%, #e4e8eb 100%); border-radius: 12px; padding: 20px; border-left: 4px solid #228B22; box-shadow: 0 4px 12px rgba(0,0,0,0.08); margin-bottom: 20px;">
+  <p style="font-family: 'Segoe UI', Roboto, sans-serif; color: #2c3e50; font-size: 16px; line-height: 1.6; margin: 0;">
+    <span style="font-weight: 600; color: #006400;">📌 Nesta página você encontra:</span><br>
+    • Atas e apresentações das reuniões da Bacia do Banabuiú<br>
+    • Organizadas por operação, reservatório e parâmetros<br>
+    • Dados de vazão média aprovados
+  </p>
+</div>
+""", unsafe_allow_html=True)
+
 
 # =========================
 # CRIAÇÃO DAS ABAS
 # =========================
-tab1, tab2, tab3 = st.tabs(["🏠 Página Inicial", "🗺️ Açudes Monitorados", "📜 Documentos Oficiais"])
+tab1, tab2, tab3, tab4 = st.tabs(["🏠 Página Inicial", "🗺️ Açudes Monitorados", "📜 Documentos Oficiais", "📈 Simulações"])
 
 with tab1:
     render_home()
@@ -1134,6 +1150,9 @@ with tab2:
 
 with tab3:
     render_docs()
+
+with tab4:
+    render_dados()
 
 #======================RODAPÉ
 
