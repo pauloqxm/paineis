@@ -35,13 +35,13 @@ with open("pontos_controle.geojson", "r", encoding="utf-8") as f:
 fuso_brasilia = timezone(timedelta(hours=-3))
 agora = datetime.now(fuso_brasilia)
 dias_semana = {
-    'Monday':'Segunda-feira','Tuesday':'Terça-feira','Wednesday':'Quarta-feira',
-    'Thursday':'Quinta-feira','Friday':'Sexta-feira','Saturday':'Sábado','Sunday':'Domingo'
+    'Monday': 'Segunda-feira', 'Tuesday': 'Terça-feira', 'Wednesday': 'Quarta-feira',
+    'Thursday': 'Quinta-feira', 'Friday': 'Sexta-feira', 'Saturday': 'Sábado', 'Sunday': 'Domingo'
 }
 meses = {
-    'January':'janeiro','February':'fevereiro','March':'março','April':'abril',
-    'May':'maio','June':'junho','July':'julho','August':'agosto','September':'setembro',
-    'October':'outubro','November':'novembro','December':'dezembro'
+    'January': 'janeiro', 'February': 'fevereiro', 'March': 'março', 'April': 'abril',
+    'May': 'maio', 'June': 'junho', 'July': 'julho', 'August': 'agosto', 'September': 'setembro',
+    'October': 'outubro', 'November': 'novembro', 'December': 'dezembro'
 }
 data_hoje = f"{dias_semana[agora.strftime('%A')]}, {agora.day:02d} de {meses[agora.strftime('%B')]} de {agora.year}"
 
@@ -128,7 +128,6 @@ def carregar_dados():
     df['Data'] = pd.to_datetime(df['Data'], format='%d/%m/%Y', errors='coerce')
     df['Mês'] = df['Data'].dt.to_period('M').astype(str)
     return df
-
 
 # =========================
 # FUNÇÕES DE CADA ABA
@@ -233,8 +232,7 @@ def render_home():
     </div>
     """, unsafe_allow_html=True)
 
-#======================GRÁFICO SÉRIE TEMPORAL
-
+    #======================GRÁFICO SÉRIE TEMPORAL
     st.subheader("📈 Evolução da Vazão Operada por Reservatório")
     fig = go.Figure()
     cores = ['#1f77b4','#ff7f0e','#2ca02c','#d62728','#9467bd','#8c564b','#17becf','#e377c2']
@@ -301,7 +299,7 @@ def render_home():
         else:
             st.info("Sem dados para média mensal.")
             
-#======================MENU
+    #======================MENU
     with gtab2:
         if not df_filtrado.empty and df_filtrado['Reservatório Monitorado'].nunique() > 0:
             # Sempre calcule volume em m³ (independente da unidade exibida no app)
@@ -379,7 +377,6 @@ def render_home():
             st.altair_chart(chart, use_container_width=True)
         else:
             st.info("Sem dados suficientes para o gráfico de volume.")
-
 
     # ------------- Mapa com camadas -------------
     st.subheader("🗺️ Mapa dos Reservatórios com Camadas")
@@ -538,8 +535,7 @@ def render_home():
     st.subheader("📋 Tabela Detalhada")
     st.dataframe(df_filtrado.sort_values(by="Data", ascending=False), use_container_width=True)
 
-#======================RODAPÉ
-
+    #======================RODAPÉ
     st.markdown(f"""
         <style>
         .footer-mobile-full {{
@@ -934,7 +930,7 @@ def render_acudes():
         MousePosition(position='bottomleft').add_to(m)
         folium_static(m, width=1200)
     else:
-        st.warning("Nenhum reservatório encontrado com os filtros aplicados.")
+        st.warning("Não há reservatórios com os filtros aplicados.")
 
     # ===================== Tabela Interativa =====================
     st.subheader("📊 Dados Detalhados Interativos")
@@ -1019,9 +1015,9 @@ def render_acudes():
     else:
         st.warning("⚠️ Nenhum dado encontrado com os filtros aplicados.", icon="⚠️")
 
-    def render_docs():
-    # === CONTEÚDO DA ABA 3 (📜 Documentos Oficiais) ===
 
+def render_docs():
+    # === CONTEÚDO DA ABA 3 (📜 Documentos Oficiais) ===
     st.title("📜 Documentos para Download")
 
     SHEET_ID = "1-Tn_ZDHH-mNgJAY1WtjWd_Pyd2f5kv_ZU8dhL0caGDI"
@@ -1119,9 +1115,9 @@ def render_acudes():
     table_html += "</tbody></table></div>"
     st.markdown(table_html, unsafe_allow_html=True)
 
-    def render_dados():
-# === CONTEÚDO DA ABA 4 (📈 Simulações) ===
 
+def render_dados():
+    # === CONTEÚDO DA ABA 4 (📈 Simulações) ===
     st.title("📈 Simulações")
 
     st.markdown("""
@@ -1153,170 +1149,169 @@ with tab3:
 with tab4:
     render_dados()
 
-#======================RODAPÉ
+#======================RODAPÉ (GLOBAL)
+st.markdown(f"""
+    <style>
+    .footer-mobile-full {{
+        position: relative;
+        width: 100vw;
+        left: 50%;
+        right: 50%;
+        margin-left: -50vw;
+        margin-right: -50vw;
+        margin-top: 40px;
+        background: none;
+        color: #000000;
+        padding: 10px 0;
+        font-family: 'Segoe UI', Roboto, sans-serif;
+        border-top: 3px solid #fad905;
+        text-align: center;
+        box-shadow: none;
+    }}
 
-    st.markdown(f"""
-        <style>
-        .footer-mobile-full {{
-            position: relative;
-            width: 100vw;
-            left: 50%;
-            right: 50%;
-            margin-left: -50vw;
-            margin-right: -50vw;
-            margin-top: 40px;
-            background: none;
-            color: #000000;
-            padding: 10px 0;
-            font-family: 'Segoe UI', Roboto, sans-serif;
-            border-top: 3px solid #fad905;
-            text-align: center;
-            box-shadow: none;
+    .footer-content {{
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        width: 90%;
+        margin: 0 auto;
+        position: relative;
+    }}
+
+    .footer-row {{
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        align-items: center;
+        gap: 12px;
+    }}
+
+    .footer-item {{
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 14px;
+    }}
+
+    .footer-divider {{
+        color: rgba(0,0,0,0.4);
+        font-size: 14px;
+    }}
+
+    .footer-address {{
+        font-size: 13px;
+        opacity: 0.9;
+        margin-top: 4px;
+    }}
+
+    .footer-logos {{
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 20px;
+        margin-top: 10px;
+    }}
+
+    .footer-logos img {{
+        height: 60px;
+    }}
+
+    /* Botão Voltar ao Topo */
+    .back-to-top {{
+        position: absolute;
+        right: 20px;
+        bottom: 20px;
+        background-color: #fad905;
+        color: #000;
+        border: none;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        font-size: 20px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        transition: all 0.3s ease;
+    }}
+
+    .back-to-top:hover {{
+        background-color: #e6c800;
+        transform: translateY(-2px);
+    }}
+
+    /* Mobile First */
+    @media (min-width: 481px) {{
+        .footer-row {{
+            gap: 16px;
         }}
+        .footer-item {{
+            font-size: 15px;
+        }}
+    }}
 
-        .footer-content {{
-            display: flex;
+    @media (max-width: 480px) {{
+        .footer-row {{
             flex-direction: column;
             gap: 8px;
-            width: 90%;
-            margin: 0 auto;
-            position: relative;
         }}
-
-        .footer-row {{
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            align-items: center;
-            gap: 12px;
-        }}
-
-        .footer-item {{
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 14px;
-        }}
-
         .footer-divider {{
-            color: rgba(0,0,0,0.4);
-            font-size: 14px;
+            display: none;
         }}
-
-        .footer-address {{
+        .footer-item {{
             font-size: 13px;
-            opacity: 0.9;
-            margin-top: 4px;
         }}
-
-        .footer-logos {{
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 20px;
-            margin-top: 10px;
+        .footer-address {{
+            font-size: 12px;
         }}
-
         .footer-logos img {{
-            height: 60px;
+            height: 50px;
         }}
-
-        /* Botão Voltar ao Topo */
         .back-to-top {{
-            position: absolute;
-            right: 20px;
-            bottom: 20px;
-            background-color: #fad905;
-            color: #000;
-            border: none;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            font-size: 20px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-            transition: all 0.3s ease;
+            right: 10px;
+            bottom: 10px;
+            width: 35px;
+            height: 35px;
+            font-size: 18px;
         }}
+    }}
+    </style>
 
-        .back-to-top:hover {{
-            background-color: #e6c800;
-            transform: translateY(-2px);
-        }}
-
-        /* Mobile First */
-        @media (min-width: 481px) {{
-            .footer-row {{
-                gap: 16px;
-            }}
-            .footer-item {{
-                font-size: 15px;
-            }}
-        }}
-
-        @media (max-width: 480px) {{
-            .footer-row {{
-                flex-direction: column;
-                gap: 8px;
-            }}
-            .footer-divider {{
-                display: none;
-            }}
-            .footer-item {{
-                font-size: 13px;
-            }}
-            .footer-address {{
-                font-size: 12px;
-            }}
-            .footer-logos img {{
-                height: 50px;
-            }}
-            .back-to-top {{
-                right: 10px;
-                bottom: 10px;
-                width: 35px;
-                height: 35px;
-                font-size: 18px;
-            }}
-        }}
-        </style>
-
-        <div class="footer-mobile-full">
-            <div class="footer-content">
-                <div class="footer-logos">
-                    <img src="https://i.ibb.co/r2FRGkmB/cogerh-logo.png" alt="COGERH Logo">
-                    <img src="https://i.ibb.co/tpQrmPb0/csbh.png" alt="CSBH Logo">
-                </div>
-                <div class="footer-row">
-                    <div class="footer-item">
-                        <b>Secretaria Executiva do CSBH Banabuiú: COGERH – Gerência da Bacia do Banabuiú</b>
-                    </div>
-                </div>
-                <div class="footer-row">
-                    <div class="footer-item">
-                        📧 comite.banabuiu@cogerh.com.br 
-                    </div>
-                    <span class="footer-divider">|</span>
-                    <div class="footer-item">
-                        📞 (85) 3513-9055
-                    </div>
-                </div>
-                <div class="footer-address">
-                    🏢 Rua Dona Francisca Santiago, 44 – Centro. CEP 63800-000 – Quixeramobim/CE
-                </div>
-                <button class="back-to-top" id="backToTopBtn">↑</button>
+    <div class="footer-mobile-full">
+        <div class="footer-content">
+            <div class="footer-logos">
+                <img src="https://i.ibb.co/r2FRGkmB/cogerh-logo.png" alt="COGERH Logo">
+                <img src="https://i.ibb.co/tpQrmPb0/csbh.png" alt="CSBH Logo">
             </div>
+            <div class="footer-row">
+                <div class="footer-item">
+                    <b>Secretaria Executiva do CSBH Banabuiú: COGERH – Gerência da Bacia do Banabuiú</b>
+                </div>
+            </div>
+            <div class="footer-row">
+                <div class="footer-item">
+                    📧 comite.banabuiu@cogerh.com.br 
+                </div>
+                <span class="footer-divider">|</span>
+                <div class="footer-item">
+                    📞 (85) 3513-9055
+                </div>
+            </div>
+            <div class="footer-address">
+                🏢 Rua Dona Francisca Santiago, 44 – Centro. CEP 63800-000 – Quixeramobim/CE
+            </div>
+            <button class="back-to-top" id="backToTopBtn2">↑</button>
         </div>
+    </div>
 
-        <script>
-        // Adiciona o event listener para o botão
-        document.getElementById("backToTopBtn").addEventListener("click", function() {{
-            window.scrollTo({{
-                top: 0,
-                behavior: 'smooth'
-            }});
+    <script>
+    // Adiciona o event listener para o botão
+    document.getElementById("backToTopBtn2").addEventListener("click", function() {{
+        window.scrollTo({{
+            top: 0,
+            behavior: 'smooth'
         }});
-        </script>
-        """, unsafe_allow_html=True)
+    }});
+    </script>
+    """, unsafe_allow_html=True)
