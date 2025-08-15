@@ -1,7 +1,4 @@
 
-
-
-
 import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
@@ -946,5 +943,105 @@ with tab2:
 with tab3:
     render_docs()
 
-# ---------------- (Opcional) Rodapé ----------------
-# st.markdown(""" ... seu rodapé aqui ... """, unsafe_allow_html=True)
+#======================RODAPÉ
+    st.markdown(f"""
+    <style>
+    .footer-mobile-full {{
+        position: relative;
+        width: 100vw; /* Usa a largura total da viewport */
+        left: 50%; /* Posiciona a partir do meio */
+        right: 50%; /* Posiciona a partir do meio */
+        margin-left: -50vw; /* Compensa a posição */
+        margin-right: -50vw; /* Compensa a posição */
+        margin-top: 40px;
+        background: none;
+        color: #000000;
+        padding: 10px 0;
+        font-family: 'Segoe UI', Roboto, sans-serif;
+        border-top: 3px solid #fad905;
+        text-align: center;
+        box-shadow: none;
+    }}
+    
+    .footer-content {{
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        width: 90%;
+        margin: 0 auto;
+    }}
+    
+    .footer-row {{
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        align-items: center;
+        gap: 12px;
+    }}
+    
+    .footer-item {{
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 14px;
+    }}
+    
+    .footer-divider {{
+        color: rgba(0,0,0,0.4);
+        font-size: 14px;
+    }}
+    
+    .footer-address {{
+        font-size: 13px;
+        opacity: 0.9;
+        margin-top: 4px;
+    }}
+    
+    /* Mobile First */
+    @media (min-width: 481px) {{
+        .footer-row {{
+            gap: 16px;
+        }}
+        .footer-item {{
+            font-size: 15px;
+        }}
+    }}
+    
+    @media (max-width: 480px) {{
+        .footer-row {{
+            flex-direction: column;
+            gap: 8px;
+        }}
+        .footer-divider {{
+            display: none;
+        }}
+        .footer-item {{
+            font-size: 13px;
+        }}
+        .footer-address {{
+            font-size: 12px;
+        }}
+    }}
+    </style>
+    
+    <div class="footer-mobile-full">
+        <div class="footer-content">
+            <div class="footer-row">
+                <div class="footer-item">
+                    📞 (88) 99999-9999
+                </div>
+                <span class="footer-divider">|</span>
+                <div class="footer-item">
+                    📧 vocedenuncia@qvocedenuncia
+                </div>
+                <span class="footer-divider">|</span>
+                <div class="footer-item">
+                    <b>Plataforma Você Denuncia</b>
+                </div>
+            </div>
+            <div class="footer-address">
+                🏢 R. 14 de Agosto, 123 - Centro, Quixeramobim - CE, 63800-000
+            </div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
