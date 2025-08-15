@@ -309,6 +309,37 @@ def render_home():
             
             # --- Adicione uma coluna para o volume em milhões de m³ ---
             df_volumes['Volume Acumulado (milhões)'] = df_volumes['Volume Acumulado'] / 1e6
+    
+            # ----------------------------------------------------
+            # 💧 GRÁFICO DE GOTAS (Altair)
+            # ----------------------------------------------------
+            chart = alt.Chart(df_volumes).mark_text(
+                align='center',
+                baseline='bottom',
+                dx=0, 
+                dy=10  
+            ).encode(
+                x=alt.X('Reservatório Monitorado:N', title='Reservatório'),
+                # --- NOVO: Defina o domínio do eixo Y para começar em 0 ---
+                y=alt.Y('Volume Acumulado (milhões)', title='Volume Acumulado (milhões m³)',
+                        scale=alt.Scale(domain=[0, df_volumes['Volume Acumulado (milhões)'].max()])),
+                text=alt.value('💧'),
+                size=alt.Size('Volume Acumulado (milhões)', scale=alt.Scale(range=[100, 500]), legend=None),
+                color=alt.value('steelblue'),
+                tooltip=[
+                    alt.Tooltip('Reservatório Monitorado', title='Reservatório'),
+                    # --- NOVO: Use a coluna já formatada para o tooltip ---
+                    alt.Tooltip('Volume Formatado', title='Volume Total')
+                ]
+            ).properties(
+                title='Volume Acumulado por Reservatório',
+                height=400 
+            ).interactive()
+    
+            st.altair_chart(chart, use_container_width=True)
+            # ----------------------------------------------------
+        else:
+            st.info("Sem dados suficientes para o gráfico de volume.")
 
             # ----------------------------------------------------
             # 💧 GRÁFICO DE GOTAS (Altair)
