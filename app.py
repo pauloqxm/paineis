@@ -46,7 +46,7 @@ meses = {
 data_hoje = f"{dias_semana[agora.strftime('%A')]}, {agora.day:02d} de {meses[agora.strftime('%B')]} de {agora.year}"
 
 #==============TOPO======================
-    st.markdown('<div id="topo"></div>', unsafe_allow_html=True)
+st.markdown('<div id="topo"></div>', unsafe_allow_html=True)
 #==============TOPO======================
 
 #----------------- BARRA FIXA (HEADER) ------------
