@@ -307,9 +307,20 @@ def render_home():
             
             df_volumes = pd.DataFrame(volumes)
             
-            # --- Adicione uma coluna para o volume em milhões de m³ ---
-            df_volumes['Volume Acumulado (milhões)'] = df_volumes['Volume Acumulado'] / 1e6
-    
+            # --- Adicione uma coluna para o volume formatado condicionalmente ---
+            df_volumes['Volume Display'] = df_volumes['Volume Acumulado'].apply(
+                lambda x: f"{x/1e6:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".") + " milhões m³" 
+                if x >= 1000000 else f"{x/1e3:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".") + " mil m³"
+            )
+            
+            # --- Crie uma coluna numérica para o eixo Y (em milhões ou mil conforme o valor) ---
+            df_volumes['Volume Eixo Y'] = df_volumes['Volume Acumulado'].apply(
+                lambda x: x/1e6 if x >= 1000000 else x/1e3
+            )
+            
+            # --- Determine o título do eixo Y dinamicamente ---
+            y_title = "Volume Acumulado (milhões m³)" if (df_volumes['Volume Acumulado'] >= 1000000).any() else "Volume Acumulado (mil m³)"
+            
             # ----------------------------------------------------
             # 💧 GRÁFICO DE GOTAS (Altair)
             # ----------------------------------------------------
@@ -320,10 +331,10 @@ def render_home():
                 dy=10  
             ).encode(
                 x=alt.X('Reservatório Monitorado:N', title='Reservatório'),
-                y=alt.Y('Volume Acumulado (milhões)', title='Volume Acumulado (milhões m³)',
-                        scale=alt.Scale(domain=[0, df_volumes['Volume Acumulado (milhões)'].max()])),
+                y=alt.Y('Volume Eixo Y:Q', title=y_title,
+                        scale=alt.Scale(domain=[0, df_volumes['Volume Eixo Y'].max() * 1.1]),  # Fixa no 0 e adiciona 10% de espaço
                 text=alt.value('💧'),
-                size=alt.Size('Volume Acumulado (milhões)', scale=alt.Scale(range=[10, 300]), legend=None),
+                size=alt.Size('Volume Eixo Y', scale=alt.Scale(range=[10, 300]), legend=None),
                 color=alt.value('steelblue'),
                 tooltip=[
                     alt.Tooltip('Reservatório Monitorado', title='Reservatório'),
