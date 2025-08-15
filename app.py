@@ -277,6 +277,174 @@ def render_home():
             st.plotly_chart(figm, use_container_width=True, config={"displaylogo": False})
         else:
             st.info("Sem dados para média mensal.")
+
+#======================RODAPÉ
+
+    st.markdown(f"""
+        <style>
+        .footer-mobile-full {{
+            position: relative;
+            width: 100vw;
+            left: 50%;
+            right: 50%;
+            margin-left: -50vw;
+            margin-right: -50vw;
+            margin-top: 40px;
+            background: none;
+            color: #000000;
+            padding: 10px 0;
+            font-family: 'Segoe UI', Roboto, sans-serif;
+            border-top: 3px solid #fad905;
+            text-align: center;
+            box-shadow: none;
+        }}
+
+        .footer-content {{
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            width: 90%;
+            margin: 0 auto;
+            position: relative;
+        }}
+
+        .footer-row {{
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 12px;
+        }}
+
+        .footer-item {{
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 14px;
+        }}
+
+        .footer-divider {{
+            color: rgba(0,0,0,0.4);
+            font-size: 14px;
+        }}
+
+        .footer-address {{
+            font-size: 13px;
+            opacity: 0.9;
+            margin-top: 4px;
+        }}
+
+        .footer-logos {{
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            margin-top: 10px;
+        }}
+
+        .footer-logos img {{
+            height: 60px;
+        }}
+
+        /* Botão Voltar ao Topo */
+        .back-to-top {{
+            position: absolute;
+            right: 20px;
+            bottom: 20px;
+            background-color: #fad905;
+            color: #000;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            font-size: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+        }}
+
+        .back-to-top:hover {{
+            background-color: #e6c800;
+            transform: translateY(-2px);
+        }}
+
+        /* Mobile First */
+        @media (min-width: 481px) {{
+            .footer-row {{
+                gap: 16px;
+            }}
+            .footer-item {{
+                font-size: 15px;
+            }}
+        }}
+
+        @media (max-width: 480px) {{
+            .footer-row {{
+                flex-direction: column;
+                gap: 8px;
+            }}
+            .footer-divider {{
+                display: none;
+            }}
+            .footer-item {{
+                font-size: 13px;
+            }}
+            .footer-address {{
+                font-size: 12px;
+            }}
+            .footer-logos img {{
+                height: 50px;
+            }}
+            .back-to-top {{
+                right: 10px;
+                bottom: 10px;
+                width: 35px;
+                height: 35px;
+                font-size: 18px;
+            }}
+        }}
+        </style>
+
+        <div class="footer-mobile-full">
+            <div class="footer-content">
+                <div class="footer-logos">
+                    <img src="https://i.ibb.co/r2FRGkmB/cogerh-logo.png" alt="COGERH Logo">
+                    <img src="https://i.ibb.co/tpQrmPb0/csbh.png" alt="CSBH Logo">
+                </div>
+                <div class="footer-row">
+                    <div class="footer-item">
+                        <b>Secretaria Executiva do CSBH Banabuiú: COGERH – Gerência da Bacia do Banabuiú</b>
+                    </div>
+                </div>
+                <div class="footer-row">
+                    <div class="footer-item">
+                        📧 comite.banabuiu@cogerh.com.br 
+                    </div>
+                    <span class="footer-divider">|</span>
+                    <div class="footer-item">
+                        📞 (85) 3513-9055
+                    </div>
+                </div>
+                <div class="footer-address">
+                    🏢 Rua Dona Francisca Santiago, 44 – Centro. CEP 63800-000 – Quixeramobim/CE
+                </div>
+                <button class="back-to-top" id="backToTopBtn">↑</button>
+            </div>
+        </div>
+
+        <script>
+        // Adiciona o event listener para o botão
+        document.getElementById("backToTopBtn").addEventListener("click", function() {{
+            window.scrollTo({{
+                top: 0,
+                behavior: 'smooth'
+            }});
+        }});
+        </script>
+        """, unsafe_allow_html=True)
             
 #======================MENU
     with gtab2:
