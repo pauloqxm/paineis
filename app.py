@@ -12,10 +12,6 @@ from datetime import datetime, timedelta, timezone
 from streamlit_folium import folium_static
 from folium.plugins import Fullscreen, MiniMap, MousePosition, MeasureControl, MarkerCluster
 
-#==================TOPO
-st.markdown("<a id='top'></a>", unsafe_allow_html=True)
-#==================TOPO
-
 # ---------------- CONFIG GERAL ----------------
 st.set_page_config(page_title="Dashboard Vazões", layout="wide")
 
@@ -1050,7 +1046,8 @@ with tab2:
 with tab3:
     render_docs()
 
-# ====================== RODAPÉ
+#======================RODAPÉ
+
     st.markdown(f"""
         <style>
         .footer-mobile-full {{
@@ -1069,7 +1066,7 @@ with tab3:
             text-align: center;
             box-shadow: none;
         }}
-
+        
         .footer-content {{
             display: flex;
             flex-direction: column;
@@ -1077,7 +1074,7 @@ with tab3:
             width: 90%;
             margin: 0 auto;
         }}
-
+        
         .footer-row {{
             display: flex;
             flex-wrap: wrap;
@@ -1085,25 +1082,25 @@ with tab3:
             align-items: center;
             gap: 12px;
         }}
-
+        
         .footer-item {{
             display: inline-flex;
             align-items: center;
             gap: 6px;
             font-size: 14px;
         }}
-
+        
         .footer-divider {{
             color: rgba(0,0,0,0.4);
             font-size: 14px;
         }}
-
+        
         .footer-address {{
             font-size: 13px;
             opacity: 0.9;
             margin-top: 4px;
         }}
-
+        
         .footer-logos {{
             display: flex;
             justify-content: center;
@@ -1111,28 +1108,11 @@ with tab3:
             gap: 20px;
             margin-top: 10px;
         }}
-
+    
         .footer-logos img {{
             height: 60px; /* Ajuste o tamanho das logos aqui */
         }}
-
-        .back-to-top-btn {{
-            margin-top: 15px; /* Adiciona espaçamento acima do botão */
-            display: inline-block;
-            padding: 8px 16px;
-            background-color: #265D7B; /* Cor de fundo do botão */
-            color: white; /* Cor do texto */
-            text-decoration: none; /* Remove sublinhado */
-            border-radius: 5px; /* Cantos arredondados */
-            font-size: 14px;
-            transition: background-color 0.3s;
-        }}
-
-        .back-to-top-btn:hover {{
-            background-color: #1a4258; /* Cor mais escura no hover */
-            text-decoration: none;
-        }}
-
+    
         /* Mobile First */
         @media (min-width: 481px) {{
             .footer-row {{
@@ -1142,7 +1122,7 @@ with tab3:
                 font-size: 15px;
             }}
         }}
-
+        
         @media (max-width: 480px) {{
             .footer-row {{
                 flex-direction: column;
@@ -1162,7 +1142,7 @@ with tab3:
             }}
         }}
         </style>
-
+        
         <div class="footer-mobile-full">
             <div class="footer-content">
                 <div class="footer-logos">
@@ -1186,8 +1166,6 @@ with tab3:
                 <div class="footer-address">
                     🏢 Rua Dona Francisca Santiago, 44 – Centro. CEP 63800-000 – Quixeramobim/CE
                 </div>
-
-                <a href="#top" class="back-to-top-btn">Voltar para o Início</a>
             </div>
         </div>
         """, unsafe_allow_html=True)
