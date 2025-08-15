@@ -373,7 +373,7 @@ def render_home():
                 ]
             ).properties(
                 title='Volume Acumulado por Reservatório',
-                height=400
+                height=600
             ).interactive()
     
             st.altair_chart(chart, use_container_width=True)
