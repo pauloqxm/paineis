@@ -1101,18 +1101,18 @@ with tab3:
             margin-top: 4px;
         }}
         
-        .logo-container {{
+        .footer-logos {{
             display: flex;
             justify-content: center;
-            gap: 30px;
-            margin: 15px 0;
+            align-items: center;
+            gap: 20px;
+            margin-top: 10px;
         }}
-        
-        .logo-img {{
-            height: 50px;
-            object-fit: contain;
+    
+        .footer-logos img {{
+            height: 60px; /* Ajuste o tamanho das logos aqui */
         }}
-        
+    
         /* Mobile First */
         @media (min-width: 481px) {{
             .footer-row {{
@@ -1120,9 +1120,6 @@ with tab3:
             }}
             .footer-item {{
                 font-size: 15px;
-            }}
-            .logo-img {{
-                height: 60px;
             }}
         }}
         
@@ -1140,10 +1137,8 @@ with tab3:
             .footer-address {{
                 font-size: 12px;
             }}
-            .logo-container {{
-                flex-direction: column;
-                align-items: center;
-                gap: 15px;
+            .footer-logos img {{
+                height: 50px; /* Ajuste o tamanho das logos para dispositivos móveis */
             }}
         }}
         </style>
@@ -1165,11 +1160,10 @@ with tab3:
                 </div>
                 <div class="footer-address">
                     🏢 Rua Dona Francisca Santiago, 44 – Centro. CEP 63800-000 – Quixeramobim/CE
-                </div>                
-#=================LOGOS
-                <div class="logo-container">
-                    <img src="https://i.ibb.co/r2FRGkmB/cogerh-logo.png" alt="COGERH Logo" class="logo-img">
-                    <img src="https://i.ibb.co/tpQrmPb0/csbh.png" alt="CSBH Logo" class="logo-img">
+                </div>
+                <div class="footer-logos">
+                    <img src="https://i.ibb.co/r2FRGkmB/cogerh-logo.png" alt="COGERH Logo">
+                    <img src="https://i.ibb.co/tpQrmPb0/csbh.png" alt="CSBH Logo">
                 </div>
             </div>
         </div>
