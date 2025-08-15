@@ -282,68 +282,72 @@ def render_home():
 #======================MENU
     with gtab2:
         if not df_filtrado.empty and df_filtrado['Reservatório Monitorado'].nunique() > 0:
-            yconv, sufx = convert_vazao(df_filtrado['Vazão Operada'], unidade_sel)
+            # Sempre calcule volume em m³ (independente da unidade exibida no app)
+            # A coluna 'Vazão Operada' está originalmente em L/s, então dividimos por 1000 para obter m³/s.
             df_box = df_filtrado.copy()
-            df_box['Vazão (conv)'] = yconv
-            
+    
             volumes = []
             for reservatorio in df_box['Reservatório Monitorado'].unique():
-                df_res = df_box[df_box['Reservatório Monitorado'] == reservatorio].sort_values('Data')
+                df_res = df_box[df_box['Reservatório Monitorado'] == reservatorio].sort_values('Data').copy()
+    
+                # Dias entre medições no próprio reservatório
                 df_res['dias_entre_medicoes'] = df_res['Data'].diff().dt.days.fillna(0)
+    
+                # Garante que a última medição cubra até o fim do período filtrado
                 ultima_data_res = df_res['Data'].iloc[-1]
                 fim_periodo = df_box['Data'].max() if pd.notna(df_box['Data'].max()) else ultima_data_res
                 df_res.loc[df_res.index[-1], 'dias_entre_medicoes'] = (fim_periodo - ultima_data_res).days + 1
+    
+                # Fluxo base em m³/s (origem L/s)
+                vazao_m3s = df_res['Vazão Operada'] / 1000.0
+    
+                # Volume acumulado em m³ no período (m³/s * s)
                 segundos_por_dia = 86400
-                df_res['volume_periodo'] = df_res['Vazão (conv)'] * segundos_por_dia * df_res['dias_entre_medicoes']
-                volume_total = df_res['volume_periodo'].sum()
-                
-                # Formatação condicional modificada
-                if volume_total >= 1000000:
-                    volume_formatado = f"{volume_total/1e6:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".") + " milhões m³"
-                elif volume_total >= 1000:
-                    volume_formatado = f"{volume_total/1e3:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".") + " mil m³"
-                else:
-                    volume_formatado = f"{volume_total:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".") + " m³"
-                
+                df_res['volume_periodo_m3'] = vazao_m3s * segundos_por_dia * df_res['dias_entre_medicoes']
+                volume_total_m3 = df_res['volume_periodo_m3'].sum()
+    
                 volumes.append({
-                    'Reservatório Monitorado': reservatorio, 
-                    'Volume Acumulado': volume_total, 
-                    'Volume Formatado': volume_formatado
+                    'Reservatório Monitorado': reservatorio,
+                    'Volume Acumulado (m³)': volume_total_m3
                 })
-            
+    
             df_volumes = pd.DataFrame(volumes)
-            
-            # Ajuste na formatação do display
-            df_volumes['Volume Display'] = df_volumes['Volume Acumulado'].apply(
-                lambda x: f"{x/1e6:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".") + " milhões m³" 
-                if x >= 1000000 else 
-                f"{x/1e3:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".") + " mil m³"
-                if x >= 1000 else
-                f"{x:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".") + " m³"
-            )
-            
-            # Ajuste na escala do eixo Y (todos em milhões para uniformidade)
-            df_volumes['Volume Eixo Y'] = df_volumes['Volume Acumulado'] / 1e6
-            
-            # Título do eixo Y
+    
+            # --------- Formatação condicional em 3 níveis ----------
+            def fmt_m3(x):
+                if pd.isna(x):
+                    return "—"
+                if x >= 1_000_000:
+                    return f"{x/1e6:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".") + " milhões m³"
+                elif x >= 1_000:
+                    return f"{x/1e3:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".") + " mil m³"
+                else:
+                    return f"{x:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".") + " m³"
+    
+            df_volumes['Volume Formatado'] = df_volumes['Volume Acumulado (m³)'].apply(fmt_m3)
+    
+            # Escala do gráfico sempre em "milhões m³" para uniformidade
+            df_volumes['Volume Eixo Y'] = df_volumes['Volume Acumulado (m³)'] / 1e6
+            y_max = float(df_volumes['Volume Eixo Y'].max()) if not df_volumes.empty else 0.0
+            y_max = y_max * 1.1 if y_max > 0 else 1.0  # evita domínio [0,0]
+    
             y_title = "Volume Acumulado (milhões m³)"
-            
-            # GRÁFICO
+    
+            # --------- Gráfico (emoji 💧 dimensionado pelo volume) ----------
             chart = alt.Chart(df_volumes).mark_text(
                 align='center',
                 baseline='bottom',
-                dx=0, 
                 dy=10
             ).encode(
                 x=alt.X('Reservatório Monitorado:N', title='Reservatório'),
                 y=alt.Y('Volume Eixo Y:Q', title=y_title,
-                       scale=alt.Scale(domain=[0, df_volumes['Volume Eixo Y'].max() * 1.1])),
+                        scale=alt.Scale(domain=[0, y_max])),
                 text=alt.value('💧'),
-                size=alt.Size('Volume Eixo Y', scale=alt.Scale(range=[10, 300]), legend=None),
+                size=alt.Size('Volume Eixo Y:Q', scale=alt.Scale(range=[10, 300]), legend=None),
                 color=alt.value('steelblue'),
                 tooltip=[
-                    alt.Tooltip('Reservatório Monitorado', title='Reservatório'),
-                    alt.Tooltip('Volume Formatado', title='Volume Total')
+                    alt.Tooltip('Reservatório Monitorado:N', title='Reservatório'),
+                    alt.Tooltip('Volume Formatado:N', title='Volume Total')
                 ]
             ).properties(
                 title='Volume Acumulado por Reservatório',
@@ -353,6 +357,7 @@ def render_home():
             st.altair_chart(chart, use_container_width=True)
         else:
             st.info("Sem dados suficientes para o gráfico de volume.")
+
 
     # ------------- Mapa com camadas -------------
     st.subheader("🗺️ Mapa dos Reservatórios com Camadas")
