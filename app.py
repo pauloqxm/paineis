@@ -282,8 +282,7 @@ def render_home():
 #======================MENU
     with gtab2:
         if not df_filtrado.empty and df_filtrado['Reservatório Monitorado'].nunique() > 0:
-            # Sempre calcule volume em m³ (independente da unidade exibida no app)
-            # A coluna 'Vazão Operada' está originalmente em L/s, então dividimos por 1000 para obter m³/s.
+            # ===================== Cálculo do volume (sempre em m³) =====================
             df_box = df_filtrado.copy()
     
             volumes = []
@@ -312,6 +311,68 @@ def render_home():
                 })
     
             df_volumes = pd.DataFrame(volumes)
+    
+            # ===================== Formatação condicional (3 níveis) =====================
+            def fmt_m3(x):
+                if pd.isna(x):
+                    return "—"
+                if x >= 1_000_000:
+                    return f"{x/1e6:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".") + " milhões m³"
+                elif x >= 1_000:
+                    return f"{x/1e3:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".") + " mil m³"
+                else:
+                    return f"{x:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".") + " m³"
+    
+            df_volumes['Volume Formatado'] = df_volumes['Volume Acumulado (m³)'].apply(fmt_m3)
+    
+            # Escala do gráfico sempre em "milhões m³" para uniformidade
+            df_volumes['Volume Eixo Y'] = df_volumes['Volume Acumulado (m³)'] / 1e6
+            y_max = float(df_volumes['Volume Eixo Y'].max()) if not df_volumes.empty else 0.0
+            y_max = y_max * 1.1 if y_max > 0 else 1.0  # evita domínio [0,0]
+            y_title = "Volume Acumulado (milhões m³)"
+    
+            # ===================== GRÁFICO (BARRAS + RÓTULO) =====================
+            bars = alt.Chart(df_volumes).mark_bar(
+                cornerRadiusTopLeft=6,
+                cornerRadiusTopRight=6
+            ).encode(
+                x=alt.X('Reservatório Monitorado:N',
+                        title='Reservatório',
+                        sort='-y',                      # ordena do maior para o menor (opcional)
+                        axis=alt.Axis(labelAngle=90)),  # nomes na vertical para caber melhor
+                y=alt.Y('Volume Eixo Y:Q',
+                        title=y_title,
+                        scale=alt.Scale(domain=[0, y_max], nice=True)),
+                tooltip=[
+                    alt.Tooltip('Reservatório Monitorado:N', title='Reservatório'),
+                    alt.Tooltip('Volume Formatado:N', title='Volume Total')
+                ],
+                color=alt.value('#4da3ff')
+            )
+    
+            labels = alt.Chart(df_volumes).mark_text(
+                align='center',
+                baseline='bottom',
+                dy=-4,
+                fontWeight='bold'
+            ).encode(
+                x='Reservatório Monitorado:N',
+                y=alt.Y('Volume Eixo Y:Q'),
+                text=alt.Text('Volume Formatado:N')
+            )
+    
+            chart = (bars + labels).properties(
+                title='Volume Acumulado por Reservatório',
+                height=420
+            ).configure_axis(
+                grid=True
+            )
+    
+            st.altair_chart(chart, use_container_width=True)
+    
+        else:
+            st.info("Sem dados suficientes para o gráfico de volume.")
+
     
             # --------- Formatação condicional em 3 níveis ----------
             def fmt_m3(x):
