@@ -1073,6 +1073,7 @@ with tab3:
             gap: 8px;
             width: 90%;
             margin: 0 auto;
+            position: relative;
         }}
         
         .footer-row {{
@@ -1112,6 +1113,31 @@ with tab3:
         .footer-logos img {{
             height: 60px; /* Ajuste o tamanho das logos aqui */
         }}
+        
+        /* Botão Voltar ao Topo */
+        .back-to-top {{
+            position: absolute;
+            right: 20px;
+            bottom: 20px;
+            background-color: #fad905;
+            color: #000;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            font-size: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+        }}
+        
+        .back-to-top:hover {{
+            background-color: #e6c800;
+            transform: translateY(-2px);
+        }}
     
         /* Mobile First */
         @media (min-width: 481px) {{
@@ -1140,6 +1166,13 @@ with tab3:
             .footer-logos img {{
                 height: 50px; /* Ajuste o tamanho das logos para dispositivos móveis */
             }}
+            .back-to-top {{
+                right: 10px;
+                bottom: 10px;
+                width: 35px;
+                height: 35px;
+                font-size: 18px;
+            }}
         }}
         </style>
         
@@ -1166,6 +1199,7 @@ with tab3:
                 <div class="footer-address">
                     🏢 Rua Dona Francisca Santiago, 44 – Centro. CEP 63800-000 – Quixeramobim/CE
                 </div>
+                <button class="back-to-top" onclick="window.scrollTo({{top: 0, behavior: 'smooth'}});">↑</button>
             </div>
         </div>
         """, unsafe_allow_html=True)
