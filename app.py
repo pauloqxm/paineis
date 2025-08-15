@@ -31,10 +31,6 @@ with open("bacia_banabuiu.geojson", "r", encoding="utf-8") as f:
 with open("pontos_controle.geojson", "r", encoding="utf-8") as f:
     geojson_pontos = json.load(f)
 
-#==============TOPO======================
-st.markdown('<div id="topo"></div>', unsafe_allow_html=True)
-#==============TOPO======================
-
 # ---------------- TOPO CUSTOM ----------------
 fuso_brasilia = timezone(timedelta(hours=-3))
 agora = datetime.now(fuso_brasilia)
@@ -938,6 +934,10 @@ def render_acudes():
 
 def render_docs():
     # === CONTEÚDO DA ABA 3 (📜 Documentos Oficiais) ===
+
+#==============TOPO======================
+st.markdown('<div id="topo"></div>', unsafe_allow_html=True)
+#==============TOPO======================
 
     st.title("📜 Documentos para Download")
 
