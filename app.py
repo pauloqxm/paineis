@@ -45,6 +45,10 @@ meses = {
 }
 data_hoje = f"{dias_semana[agora.strftime('%A')]}, {agora.day:02d} de {meses[agora.strftime('%B')]} de {agora.year}"
 
+#==============TOPO======================
+    st.markdown('<div id="topo"></div>', unsafe_allow_html=True)
+#==============TOPO======================
+
 #----------------- BARRA FIXA (HEADER) ------------
 st.markdown(f"""
 <style>
@@ -934,9 +938,7 @@ def render_acudes():
 
 def render_docs():
     # === CONTEÚDO DA ABA 3 (📜 Documentos Oficiais) ===
-#==============TOPO======================
-    st.markdown('<div id="topo"></div>', unsafe_allow_html=True)
-#==============TOPO======================
+
     st.title("📜 Documentos para Download")
 
     SHEET_ID = "1-Tn_ZDHH-mNgJAY1WtjWd_Pyd2f5kv_ZU8dhL0caGDI"
