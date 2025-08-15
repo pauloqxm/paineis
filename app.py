@@ -1052,8 +1052,7 @@ with tab3:
 
 # ====================== RODAPÉ
     st.markdown(f"""
-        <style>
-        /* Estilos existentes */
+        <style>        
         .footer-mobile-full {{
             position: relative;
             width: 100vw;
