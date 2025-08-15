@@ -1019,8 +1019,7 @@ def render_acudes():
     else:
         st.warning("⚠️ Nenhum dado encontrado com os filtros aplicados.", icon="⚠️")
 
-
-def render_docs():
+    def render_docs():
     # === CONTEÚDO DA ABA 3 (📜 Documentos Oficiais) ===
 
     st.title("📜 Documentos para Download")
