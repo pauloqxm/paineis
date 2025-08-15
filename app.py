@@ -300,7 +300,7 @@ def render_home():
             
             df_volumes = pd.DataFrame(volumes)
             
-            # --- NOVO: Adicione uma coluna para o volume em milhões de m³ ---
+            # --- Volume em Milhões para o Eixo Y e Escala do Gráfico ---
             df_volumes['Volume Acumulado (milhões)'] = df_volumes['Volume Acumulado'] / 1e6
     
             # ----------------------------------------------------
@@ -313,10 +313,10 @@ def render_home():
                 dy=10  
             ).encode(
                 x=alt.X('Reservatório Monitorado:N', title='Reservatório'),
-                # --- NOVO: Use a nova coluna e defina o título correto ---
                 y=alt.Y('Volume Acumulado (milhões)', title='Volume Acumulado (milhões m³)'),
                 text=alt.value('💧'),
-                size=alt.Size('Volume Acumulado (milhões)', scale=alt.Scale(range=[100, 500]), legend=None),
+                # --- Escala de tamanho ajustada para valores menores ---
+                size=alt.Size('Volume Acumulado (milhões)', scale=alt.Scale(range=[10, 300]), legend=None),
                 color=alt.value('steelblue'),
                 tooltip=[
                     alt.Tooltip('Reservatório Monitorado', title='Reservatório'),
@@ -324,7 +324,6 @@ def render_home():
                 ]
             ).properties(
                 title='Volume Acumulado por Reservatório',
-                # --- NOVO: Defina a altura do gráfico para abrir a visualização ---
                 height=400 
             ).interactive()
     
