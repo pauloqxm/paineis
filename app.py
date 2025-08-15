@@ -1165,9 +1165,8 @@ with tab3:
                 </div>
                 <div class="footer-address">
                     🏢 Rua Dona Francisca Santiago, 44 – Centro. CEP 63800-000 – Quixeramobim/CE
-                </div>
-                
-                <!-- Logos adicionadas aqui -->
+                </div>                
+#=================LOGOS
                 <div class="logo-container">
                     <img src="https://i.ibb.co/r2FRGkmB/cogerh-logo.png" alt="COGERH Logo" class="logo-img">
                     <img src="https://i.ibb.co/tpQrmPb0/csbh.png" alt="CSBH Logo" class="logo-img">
