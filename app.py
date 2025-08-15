@@ -1028,19 +1028,19 @@ with tab3:
         <div class="footer-content">
             <div class="footer-row">
                 <div class="footer-item">
-                    📞 (88) 99999-9999
+                    📞 (85) 3513-9055
                 </div>
                 <span class="footer-divider">|</span>
                 <div class="footer-item">
-                    📧 vocedenuncia@qvocedenuncia
+                    📧  comite.banabuiu@cogerh.com.br 
                 </div>
                 <span class="footer-divider">|</span>
                 <div class="footer-item">
-                    <b>Plataforma Você Denuncia</b>
+                    <b>Secretaria Executiva do CSBH Banabuiú: COGERH – Gerência da Bacia do Banabuiú</b>
                 </div>
             </div>
             <div class="footer-address">
-                🏢 R. 14 de Agosto, 123 - Centro, Quixeramobim - CE, 63800-000
+                🏢 Rua Dona Francisca Santiago, 44 – Centro. CEP 63800-000 – Quixeramobim/CE
             </div>
         </div>
     </div>
