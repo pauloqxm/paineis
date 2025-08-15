@@ -1,6 +1,4 @@
 
-
-
 import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
@@ -237,7 +235,7 @@ def render_home():
 
 #======================Evolução da Vazão Operada por Reservatório
     st.subheader("📈 Evolução da Vazão Operada por Reservatório")
-    
+        
     if not df_filtrado.empty:
         # Pré-processamento dos dados
         df_plot = df_filtrado.sort_values(['Reservatório Monitorado', 'Data'])
@@ -247,14 +245,14 @@ def render_home():
         
         # Criar gráfico base
         base = alt.Chart(df_plot).properties(
-            width='container',
+            # --- CORREÇÃO: Removida a linha 'width='container'' ---
             height=500,
             padding=20
         )
         
         # Configuração de cores
         color_scheme = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', 
-                       '#9467bd', '#8c564b', '#17becf', '#e377c2']
+                        '#9467bd', '#8c564b', '#17becf', '#e377c2']
         
         # Linhas e pontos
         lines = base.mark_line(
@@ -264,8 +262,8 @@ def render_home():
             x=alt.X('Data:T', title='Data', axis=alt.Axis(format='%d/%m/%Y')),
             y=alt.Y('Vazão Convertida:Q', title=f'Vazão Operada ({unit_suffix})'),
             color=alt.Color('Reservatório Monitorado:N', 
-                           scale=alt.Scale(range=color_scheme),
-                           legend=alt.Legend(title='Reservatório')),
+                            scale=alt.Scale(range=color_scheme),
+                            legend=alt.Legend(title='Reservatório')),
             tooltip=[
                 alt.Tooltip('Reservatório Monitorado:N', title='Reservatório'),
                 alt.Tooltip('Data:T', title='Data', format='%d/%m/%Y'),
