@@ -1145,25 +1145,26 @@ with tab3:
         
         <div class="footer-mobile-full">
             <div class="footer-content">
+                <div class="footer-logos">
+                    <img src="https://i.ibb.co/r2FRGkmB/cogerh-logo.png" alt="COGERH Logo">
+                    <img src="https://i.ibb.co/tpQrmPb0/csbh.png" alt="CSBH Logo">
+                </div>
                 <div class="footer-row">
                     <div class="footer-item">
-                        📞 (85) 3513-9055
+                        <b>Secretaria Executiva do CSBH Banabuiú: COGERH – Gerência da Bacia do Banabuiú</b>
                     </div>
-                    <span class="footer-divider">|</span>
+                </div>
+                <div class="footer-row">
                     <div class="footer-item">
                         📧 comite.banabuiu@cogerh.com.br 
                     </div>
                     <span class="footer-divider">|</span>
                     <div class="footer-item">
-                        <b>Secretaria Executiva do CSBH Banabuiú: COGERH – Gerência da Bacia do Banabuiú</b>
+                        📞 (85) 3513-9055
                     </div>
                 </div>
                 <div class="footer-address">
                     🏢 Rua Dona Francisca Santiago, 44 – Centro. CEP 63800-000 – Quixeramobim/CE
-                </div>
-                <div class="footer-logos">
-                    <img src="https://i.ibb.co/r2FRGkmB/cogerh-logo.png" alt="COGERH Logo">
-                    <img src="https://i.ibb.co/tpQrmPb0/csbh.png" alt="CSBH Logo">
                 </div>
             </div>
         </div>
