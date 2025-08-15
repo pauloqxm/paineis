@@ -297,7 +297,7 @@ def render_home():
                 df_res['volume_periodo'] = df_res['Vazão (conv)'] * segundos_por_dia * df_res['dias_entre_medicoes']
                 volume_total = df_res['volume_periodo'].sum()
                 
-                # --- Lógica de formatação condicional para o tooltip ---
+                # Lógica de formatação condicional para o tooltip
                 if volume_total >= 1000000:
                     volume_formatado = f"{volume_total/1e6:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".") + " milhões m³"
                 else:
@@ -307,23 +307,21 @@ def render_home():
             
             df_volumes = pd.DataFrame(volumes)
             
-            # --- Adicione uma coluna para o volume formatado condicionalmente ---
+            # Coluna para o volume formatado condicionalmente
             df_volumes['Volume Display'] = df_volumes['Volume Acumulado'].apply(
                 lambda x: f"{x/1e6:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".") + " milhões m³" 
                 if x >= 1000000 else f"{x/1e3:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".") + " mil m³"
             )
             
-            # --- Crie uma coluna numérica para o eixo Y (em milhões ou mil conforme o valor) ---
+            # Coluna numérica para o eixo Y
             df_volumes['Volume Eixo Y'] = df_volumes['Volume Acumulado'].apply(
                 lambda x: x/1e6 if x >= 1000000 else x/1e3
             )
             
-            # --- Determine o título do eixo Y dinamicamente ---
+            # Título do eixo Y dinâmico
             y_title = "Volume Acumulado (milhões m³)" if (df_volumes['Volume Acumulado'] >= 1000000).any() else "Volume Acumulado (mil m³)"
             
-            # ----------------------------------------------------
-            # 💧 GRÁFICO DE GOTAS (Altair)
-            # ----------------------------------------------------
+            # GRÁFICO DE GOTAS (Altair)
             chart = alt.Chart(df_volumes).mark_text(
                 align='center',
                 baseline='bottom',
@@ -332,9 +330,9 @@ def render_home():
             ).encode(
                 x=alt.X('Reservatório Monitorado:N', title='Reservatório'),
                 y=alt.Y('Volume Eixo Y:Q', title=y_title,
-                        scale=alt.Scale(domain=[0, df_volumes['Volume Eixo Y'].max() * 1.1]),  # Fixa no 0 e adiciona 10% de espaço
+                       scale=alt.Scale(domain=[0, df_volumes['Volume Eixo Y'].max() * 1.1])),
                 text=alt.value('💧'),
-                size=alt.Size('Volume Eixo Y', scale=alt.Scale(range=[10, 300]), legend=None),
+                size=alt.Size('Volume Eixo Y', scale=alt.Scale(range=[10, 300]), 
                 color=alt.value('steelblue'),
                 tooltip=[
                     alt.Tooltip('Reservatório Monitorado', title='Reservatório'),
@@ -346,7 +344,6 @@ def render_home():
             ).interactive()
     
             st.altair_chart(chart, use_container_width=True)
-        # ----------------------------------------------------
         else:
             st.info("Sem dados suficientes para o gráfico de volume.")
 
