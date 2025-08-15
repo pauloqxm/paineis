@@ -1047,104 +1047,131 @@ with tab3:
     render_docs()
 
 #======================RODAPÉ
+
     st.markdown(f"""
-    <style>
-    .footer-mobile-full {{
-        position: relative;
-        width: 100vw; /* Usa a largura total da viewport */
-        left: 50%; /* Posiciona a partir do meio */
-        right: 50%; /* Posiciona a partir do meio */
-        margin-left: -50vw; /* Compensa a posição */
-        margin-right: -50vw; /* Compensa a posição */
-        margin-top: 40px;
-        background: none;
-        color: #000000;
-        padding: 10px 0;
-        font-family: 'Segoe UI', Roboto, sans-serif;
-        border-top: 3px solid #fad905;
-        text-align: center;
-        box-shadow: none;
-    }}
-    
-    .footer-content {{
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-        width: 90%;
-        margin: 0 auto;
-    }}
-    
-    .footer-row {{
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: center;
-        align-items: center;
-        gap: 12px;
-    }}
-    
-    .footer-item {{
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        font-size: 14px;
-    }}
-    
-    .footer-divider {{
-        color: rgba(0,0,0,0.4);
-        font-size: 14px;
-    }}
-    
-    .footer-address {{
-        font-size: 13px;
-        opacity: 0.9;
-        margin-top: 4px;
-    }}
-    
-    /* Mobile First */
-    @media (min-width: 481px) {{
-        .footer-row {{
-            gap: 16px;
+        <style>
+        .footer-mobile-full {{
+            position: relative;
+            width: 100vw;
+            left: 50%;
+            right: 50%;
+            margin-left: -50vw;
+            margin-right: -50vw;
+            margin-top: 40px;
+            background: none;
+            color: #000000;
+            padding: 10px 0;
+            font-family: 'Segoe UI', Roboto, sans-serif;
+            border-top: 3px solid #fad905;
+            text-align: center;
+            box-shadow: none;
         }}
-        .footer-item {{
-            font-size: 15px;
-        }}
-    }}
-    
-    @media (max-width: 480px) {{
-        .footer-row {{
+        
+        .footer-content {{
+            display: flex;
             flex-direction: column;
             gap: 8px;
+            width: 90%;
+            margin: 0 auto;
         }}
-        .footer-divider {{
-            display: none;
+        
+        .footer-row {{
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 12px;
         }}
+        
         .footer-item {{
-            font-size: 13px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 14px;
         }}
+        
+        .footer-divider {{
+            color: rgba(0,0,0,0.4);
+            font-size: 14px;
+        }}
+        
         .footer-address {{
-            font-size: 12px;
+            font-size: 13px;
+            opacity: 0.9;
+            margin-top: 4px;
         }}
-    }}
-    </style>
-    
-    <div class="footer-mobile-full">
-        <div class="footer-content">
-            <div class="footer-row">
-                <div class="footer-item">
-                    📞 (85) 3513-9055
+        
+        .logo-container {{
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin: 15px 0;
+        }}
+        
+        .logo-img {{
+            height: 50px;
+            object-fit: contain;
+        }}
+        
+        /* Mobile First */
+        @media (min-width: 481px) {{
+            .footer-row {{
+                gap: 16px;
+            }}
+            .footer-item {{
+                font-size: 15px;
+            }}
+            .logo-img {{
+                height: 60px;
+            }}
+        }}
+        
+        @media (max-width: 480px) {{
+            .footer-row {{
+                flex-direction: column;
+                gap: 8px;
+            }}
+            .footer-divider {{
+                display: none;
+            }}
+            .footer-item {{
+                font-size: 13px;
+            }}
+            .footer-address {{
+                font-size: 12px;
+            }}
+            .logo-container {{
+                flex-direction: column;
+                align-items: center;
+                gap: 15px;
+            }}
+        }}
+        </style>
+        
+        <div class="footer-mobile-full">
+            <div class="footer-content">
+                <div class="footer-row">
+                    <div class="footer-item">
+                        📞 (85) 3513-9055
+                    </div>
+                    <span class="footer-divider">|</span>
+                    <div class="footer-item">
+                        📧 comite.banabuiu@cogerh.com.br 
+                    </div>
+                    <span class="footer-divider">|</span>
+                    <div class="footer-item">
+                        <b>Secretaria Executiva do CSBH Banabuiú: COGERH – Gerência da Bacia do Banabuiú</b>
+                    </div>
                 </div>
-                <span class="footer-divider">|</span>
-                <div class="footer-item">
-                    📧  comite.banabuiu@cogerh.com.br 
+                <div class="footer-address">
+                    🏢 Rua Dona Francisca Santiago, 44 – Centro. CEP 63800-000 – Quixeramobim/CE
                 </div>
-                <span class="footer-divider">|</span>
-                <div class="footer-item">
-                    <b>Secretaria Executiva do CSBH Banabuiú: COGERH – Gerência da Bacia do Banabuiú</b>
+                
+                <!-- Logos adicionadas aqui -->
+                <div class="logo-container">
+                    <img src="https://i.ibb.co/r2FRGkmB/cogerh-logo.png" alt="COGERH Logo" class="logo-img">
+                    <img src="https://i.ibb.co/tpQrmPb0/csbh.png" alt="CSBH Logo" class="logo-img">
                 </div>
-            </div>
-            <div class="footer-address">
-                🏢 Rua Dona Francisca Santiago, 44 – Centro. CEP 63800-000 – Quixeramobim/CE
             </div>
         </div>
-    </div>
-    """, unsafe_allow_html=True)
+        """, unsafe_allow_html=True)
