@@ -31,6 +31,10 @@ with open("bacia_banabuiu.geojson", "r", encoding="utf-8") as f:
 with open("pontos_controle.geojson", "r", encoding="utf-8") as f:
     geojson_pontos = json.load(f)
 
+#==============TOPO======================
+st.markdown('<div id="topo"></div>', unsafe_allow_html=True)
+#==============TOPO======================
+
 # ---------------- TOPO CUSTOM ----------------
 fuso_brasilia = timezone(timedelta(hours=-3))
 agora = datetime.now(fuso_brasilia)
@@ -44,10 +48,6 @@ meses = {
     'October':'outubro','November':'novembro','December':'dezembro'
 }
 data_hoje = f"{dias_semana[agora.strftime('%A')]}, {agora.day:02d} de {meses[agora.strftime('%B')]} de {agora.year}"
-
-#==============TOPO======================
-st.markdown('<div id="topo"></div>', unsafe_allow_html=True)
-#==============TOPO======================
 
 #----------------- BARRA FIXA (HEADER) ------------
 st.markdown(f"""
