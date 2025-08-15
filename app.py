@@ -296,14 +296,20 @@ def render_home():
                 segundos_por_dia = 86400
                 df_res['volume_periodo'] = df_res['Vazão (conv)'] * segundos_por_dia * df_res['dias_entre_medicoes']
                 volume_total = df_res['volume_periodo'].sum()
-                volume_formatado = f"{volume_total/1e6:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".") + " milhões m³"
+                
+                # --- Lógica de formatação condicional ---
+                if volume_total >= 1000000:
+                    volume_formatado = f"{volume_total/1e6:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".") + " milhões m³"
+                else:
+                    volume_formatado = f"{volume_total/1e3:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".") + " mil m³"
+                
                 volumes.append({'Reservatório Monitorado': reservatorio, 'Volume Acumulado': volume_total, 'Volume Formatado': volume_formatado})
             
             df_volumes = pd.DataFrame(volumes)
             
-            # --- NOVO: Adicione uma coluna para o volume em milhões de m³ ---
+            # --- Adicione uma coluna para o volume em milhões de m³ ---
             df_volumes['Volume Acumulado (milhões)'] = df_volumes['Volume Acumulado'] / 1e6
-    
+
             # ----------------------------------------------------
             # 💧 GRÁFICO DE GOTAS (Altair)
             # ----------------------------------------------------
@@ -314,7 +320,6 @@ def render_home():
                 dy=10  
             ).encode(
                 x=alt.X('Reservatório Monitorado:N', title='Reservatório'),
-                # --- NOVO: Use a nova coluna e defina o título correto ---
                 y=alt.Y('Volume Acumulado (milhões)', title='Volume Acumulado (milhões m³)'),
                 text=alt.value('💧'),
                 size=alt.Size('Volume Acumulado (milhões)', scale=alt.Scale(range=[100, 500]), legend=None),
@@ -325,10 +330,9 @@ def render_home():
                 ]
             ).properties(
                 title='Volume Acumulado por Reservatório',
-                # --- NOVO: Defina a altura do gráfico para abrir a visualização ---
                 height=400 
             ).interactive()
-    
+
             st.altair_chart(chart, use_container_width=True)
             # ----------------------------------------------------
         else:
