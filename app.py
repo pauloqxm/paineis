@@ -936,7 +936,7 @@ def render_docs():
     # === CONTEÚDO DA ABA 3 (📜 Documentos Oficiais) ===
 
 #==============TOPO======================
-st.markdown('<div id="topo"></div>', unsafe_allow_html=True)
+    st.markdown('<div id="topo"></div>', unsafe_allow_html=True)
 #==============TOPO======================
 
     st.title("📜 Documentos para Download")
