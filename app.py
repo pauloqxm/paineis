@@ -278,7 +278,7 @@ def render_home():
         else:
             st.info("Sem dados para média mensal.")
             
-#================ABA
+#======================MENU
     with gtab2:
         if not df_filtrado.empty and df_filtrado['Reservatório Monitorado'].nunique() > 0:
             yconv, sufx = convert_vazao(df_filtrado['Vazão Operada'], unidade_sel)
@@ -299,6 +299,9 @@ def render_home():
                 volumes.append({'Reservatório Monitorado': reservatorio, 'Volume Acumulado': volume_total, 'Volume Formatado': volume_formatado})
             
             df_volumes = pd.DataFrame(volumes)
+            
+            # --- NOVO: Adicione uma coluna para o volume em milhões de m³ ---
+            df_volumes['Volume Acumulado (milhões)'] = df_volumes['Volume Acumulado'] / 1e6
     
             # ----------------------------------------------------
             # 💧 GRÁFICO DE GOTAS (Altair)
@@ -306,20 +309,23 @@ def render_home():
             chart = alt.Chart(df_volumes).mark_text(
                 align='center',
                 baseline='bottom',
-                dx=0,  # Desloca a anotação para a direita
-                dy=10  # Desloca a anotação para cima
+                dx=0, 
+                dy=10  
             ).encode(
                 x=alt.X('Reservatório Monitorado:N', title='Reservatório'),
-                y=alt.Y('Volume Acumulado', title='Volume Acumulado (m³)', axis=alt.Axis(format='~s')),
-                text=alt.value('💧'), # Usa o emoji de gota como marca
-                size=alt.Size('Volume Acumulado', scale=alt.Scale(range=[100, 500]), legend=None), # O tamanho da gota varia com o volume
+                # --- NOVO: Use a nova coluna e defina o título correto ---
+                y=alt.Y('Volume Acumulado (milhões)', title='Volume Acumulado (milhões m³)'),
+                text=alt.value('💧'),
+                size=alt.Size('Volume Acumulado (milhões)', scale=alt.Scale(range=[100, 500]), legend=None),
                 color=alt.value('steelblue'),
                 tooltip=[
                     alt.Tooltip('Reservatório Monitorado', title='Reservatório'),
                     alt.Tooltip('Volume Formatado', title='Volume Total')
                 ]
             ).properties(
-                title='Volume Acumulado por Reservatório'
+                title='Volume Acumulado por Reservatório',
+                # --- NOVO: Defina a altura do gráfico para abrir a visualização ---
+                height=400 
             ).interactive()
     
             st.altair_chart(chart, use_container_width=True)
