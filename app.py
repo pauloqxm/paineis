@@ -934,6 +934,9 @@ def render_acudes():
 
 def render_docs():
     # === CONTEÚDO DA ABA 3 (📜 Documentos Oficiais) ===
+#==============TOPO======================
+    st.markdown('<div id="topo"></div>', unsafe_allow_html=True)
+#==============TOPO======================
     st.title("📜 Documentos para Download")
 
     SHEET_ID = "1-Tn_ZDHH-mNgJAY1WtjWd_Pyd2f5kv_ZU8dhL0caGDI"
@@ -1066,7 +1069,7 @@ with tab3:
             text-align: center;
             box-shadow: none;
         }}
-        
+
         .footer-content {{
             display: flex;
             flex-direction: column;
@@ -1075,7 +1078,7 @@ with tab3:
             margin: 0 auto;
             position: relative;
         }}
-        
+
         .footer-row {{
             display: flex;
             flex-wrap: wrap;
@@ -1083,25 +1086,25 @@ with tab3:
             align-items: center;
             gap: 12px;
         }}
-        
+
         .footer-item {{
             display: inline-flex;
             align-items: center;
             gap: 6px;
             font-size: 14px;
         }}
-        
+
         .footer-divider {{
             color: rgba(0,0,0,0.4);
             font-size: 14px;
         }}
-        
+
         .footer-address {{
             font-size: 13px;
             opacity: 0.9;
             margin-top: 4px;
         }}
-        
+
         .footer-logos {{
             display: flex;
             justify-content: center;
@@ -1109,11 +1112,11 @@ with tab3:
             gap: 20px;
             margin-top: 10px;
         }}
-    
+
         .footer-logos img {{
-            height: 60px; /* Ajuste o tamanho das logos aqui */
+            height: 60px;
         }}
-        
+
         /* Botão Voltar ao Topo */
         .back-to-top {{
             position: absolute;
@@ -1133,12 +1136,12 @@ with tab3:
             box-shadow: 0 2px 5px rgba(0,0,0,0.2);
             transition: all 0.3s ease;
         }}
-        
+
         .back-to-top:hover {{
             background-color: #e6c800;
             transform: translateY(-2px);
         }}
-    
+
         /* Mobile First */
         @media (min-width: 481px) {{
             .footer-row {{
@@ -1148,7 +1151,7 @@ with tab3:
                 font-size: 15px;
             }}
         }}
-        
+
         @media (max-width: 480px) {{
             .footer-row {{
                 flex-direction: column;
@@ -1164,7 +1167,7 @@ with tab3:
                 font-size: 12px;
             }}
             .footer-logos img {{
-                height: 50px; /* Ajuste o tamanho das logos para dispositivos móveis */
+                height: 50px;
             }}
             .back-to-top {{
                 right: 10px;
@@ -1175,7 +1178,7 @@ with tab3:
             }}
         }}
         </style>
-        
+
         <div class="footer-mobile-full">
             <div class="footer-content">
                 <div class="footer-logos">
@@ -1199,7 +1202,7 @@ with tab3:
                 <div class="footer-address">
                     🏢 Rua Dona Francisca Santiago, 44 – Centro. CEP 63800-000 – Quixeramobim/CE
                 </div>
-                <button class="back-to-top" onclick="window.scrollTo({{top: 0, behavior: 'smooth'}});">↑</button>
+                <button class="back-to-top" onclick="document.getElementById('topo').scrollIntoView({{behavior: 'smooth'}});">↑</button>
             </div>
         </div>
         """, unsafe_allow_html=True)
