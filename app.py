@@ -935,10 +935,6 @@ def render_acudes():
 def render_docs():
     # === CONTEÚDO DA ABA 3 (📜 Documentos Oficiais) ===
 
-#==============TOPO======================
-    st.markdown('<div id="topo"></div>', unsafe_allow_html=True)
-#==============TOPO======================
-
     st.title("📜 Documentos para Download")
 
     SHEET_ID = "1-Tn_ZDHH-mNgJAY1WtjWd_Pyd2f5kv_ZU8dhL0caGDI"
@@ -1204,7 +1200,17 @@ with tab3:
                 <div class="footer-address">
                     🏢 Rua Dona Francisca Santiago, 44 – Centro. CEP 63800-000 – Quixeramobim/CE
                 </div>
-                <button class="back-to-top" onclick="document.getElementById('topo').scrollIntoView({{behavior: 'smooth'}});">↑</button>
+                <button class="back-to-top" id="backToTopBtn">↑</button>
             </div>
         </div>
+
+        <script>
+        // Adiciona o event listener para o botão
+        document.getElementById("backToTopBtn").addEventListener("click", function() {{
+            window.scrollTo({{
+                top: 0,
+                behavior: 'smooth'
+            }});
+        }});
+        </script>
         """, unsafe_allow_html=True)
