@@ -233,11 +233,13 @@ def render_home():
     </div>
     """, unsafe_allow_html=True)
 
-    # ------------- Gráfico série temporal -------------
+#======================GRÁFICO SÉRIE TEMPORAL
+
     st.subheader("📈 Evolução da Vazão Operada por Reservatório")
     fig = go.Figure()
     cores = ['#1f77b4','#ff7f0e','#2ca02c','#d62728','#9467bd','#8c564b','#17becf','#e377c2']
     reservatorios = df_filtrado['Reservatório Monitorado'].dropna().unique()
+
     for i, r in enumerate(reservatorios):
         dfr = (df_filtrado[df_filtrado['Reservatório Monitorado'] == r]
                .sort_values('Data').groupby('Data', as_index=False).last())
@@ -256,12 +258,33 @@ def render_home():
             fig.add_hline(y=media_pond_conv.iloc[0], line_dash="dash", line_width=2, line_color="red",
                           annotation_text=f"Média Ponderada: {media_pond_conv.iloc[0]:.2f} {unit_suffix}",
                           annotation_position="top right")
-    fig.update_layout(xaxis_title="Data",
-                      yaxis_title=f"Vazão Operada ({'m³/s' if unidade_sel=='m³/s' else 'L/s'})",
-                      legend_title="Reservatório", template="plotly_white",
-                      margin=dict(l=40,r=20,t=10,b=40),
-                      xaxis=dict(rangeslider=dict(visible=True, thickness=0.1, bgcolor='#f5f5f5')))
-    fig.update_xaxes(rangeslider=dict(bordercolor="#cccccc", borderwidth=1))
+
+    # Configurações de layout atualizadas
+    fig.update_layout(
+        xaxis_title="Data",
+        yaxis_title=f"Vazão Operada ({'m³/s' if unidade_sel=='m³/s' else 'L/s'})",
+        legend_title="Reservatório", 
+        template="plotly_white",
+        margin=dict(l=40, r=20, t=10, b=40),
+        height=600,  # Aumenta a altura do gráfico
+        legend=dict(
+            orientation="h",  # Legenda horizontal
+            yanchor="bottom",  # Ancora na parte inferior
+            y=-0.3,           # Posição abaixo do gráfico
+            xanchor="center",  # Centraliza horizontalmente
+            x=0.5             # Posição central
+        ),
+        xaxis=dict(
+            rangeslider=dict(
+                visible=True, 
+                thickness=0.1, 
+                bgcolor='#f5f5f5',
+                bordercolor="#cccccc", 
+                borderwidth=1
+            )
+        )
+    )
+
     st.plotly_chart(fig, use_container_width=True, config={"displaylogo": False})
 
     # ------------- Abas de gráficos agregados -------------
