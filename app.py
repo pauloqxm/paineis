@@ -300,8 +300,10 @@ def render_home():
                 # Formatação condicional modificada
                 if volume_total >= 1000000:
                     volume_formatado = f"{volume_total/1e6:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".") + " milhões m³"
+                elif volume_total >= 1000:
+                    volume_formatado = f"{volume_total/1e3:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".") + " mil m³"
                 else:
-                    volume_formatado = f"{volume_total:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".") + " m³"  # Removida a divisão por 1e3
+                    volume_formatado = f"{volume_total:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".") + " m³"
                 
                 volumes.append({
                     'Reservatório Monitorado': reservatorio, 
@@ -314,16 +316,17 @@ def render_home():
             # Ajuste na formatação do display
             df_volumes['Volume Display'] = df_volumes['Volume Acumulado'].apply(
                 lambda x: f"{x/1e6:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".") + " milhões m³" 
-                if x >= 1000000 else f"{x:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".") + " m³"  # Mostra o valor completo em m³
+                if x >= 1000000 else 
+                f"{x/1e3:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".") + " mil m³"
+                if x >= 1000 else
+                f"{x:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".") + " m³"
             )
             
-            # Ajuste na escala do eixo Y
-            df_volumes['Volume Eixo Y'] = df_volumes['Volume Acumulado'].apply(
-                lambda x: x/1e6 if x >= 1000000 else x  # Mantém o valor original para < 1 milhão
-            )
+            # Ajuste na escala do eixo Y (todos em milhões para uniformidade)
+            df_volumes['Volume Eixo Y'] = df_volumes['Volume Acumulado'] / 1e6
             
-            # Título do eixo Y dinâmico
-            y_title = "Volume Acumulado (milhões m³)" if (df_volumes['Volume Acumulado'] >= 1000000).any() else "Volume Acumulado (m³)"
+            # Título do eixo Y
+            y_title = "Volume Acumulado (milhões m³)"
             
             # GRÁFICO
             chart = alt.Chart(df_volumes).mark_text(
