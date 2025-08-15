@@ -235,50 +235,112 @@ def render_home():
     </div>
     """, unsafe_allow_html=True)
 
-    # ------------- Gráfico série temporal -------------
+#======================Evolução da Vazão Operada por Reservatório
     st.subheader("📈 Evolução da Vazão Operada por Reservatório")
-    fig = go.Figure()
-    cores = ['#1f77b4','#ff7f0e','#2ca02c','#d62728','#9467bd','#8c564b','#17becf','#e377c2']
-    reservatorios = df_filtrado['Reservatório Monitorado'].dropna().unique()
-    for i, r in enumerate(reservatorios):
-        dfr = (df_filtrado[df_filtrado['Reservatório Monitorado'] == r]
-               .sort_values('Data').groupby('Data', as_index=False).last())
-        y_vals, unit_suffix = convert_vazao(dfr["Vazão Operada"], unidade_sel)
-        fig.add_trace(go.Scatter(
-            x=dfr["Data"], y=y_vals, mode="lines+markers", name=r,
-            line=dict(shape='hv', width=2, color=cores[i % len(cores)]),
-            marker=dict(size=5),
-            hovertemplate=f"<b>{r}</b><br>Data: %{{x|%d/%m/%Y}}<br>Vazão: %{{y:.3f}} {unit_suffix}<extra></extra>"
-        ))
-        if len(reservatorios) == 1 and len(dfr) > 1:
-            dfr['dias_ativos'] = dfr['Data'].diff().dt.days.fillna(0)
-            dfr.loc[dfr.index[-1], 'dias_ativos'] = (df_filtrado['Data'].max() - dfr['Data'].iloc[-1]).days + 1
-            media_pond = (dfr['Vazão Operada'] * dfr['dias_ativos']).sum() / dfr['dias_ativos'].sum()
+    
+    if not df_filtrado.empty:
+        # Pré-processamento dos dados
+        df_plot = df_filtrado.sort_values(['Reservatório Monitorado', 'Data'])
+        
+        # Converter unidades
+        df_plot['Vazão Convertida'], unit_suffix = convert_vazao(df_plot['Vazão Operada'], unidade_sel)
+        
+        # Criar gráfico base
+        base = alt.Chart(df_plot).properties(
+            width='container',
+            height=500,
+            padding=20
+        )
+        
+        # Configuração de cores
+        color_scheme = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', 
+                       '#9467bd', '#8c564b', '#17becf', '#e377c2']
+        
+        # Linhas e pontos
+        lines = base.mark_line(
+            interpolate='step-after',
+            strokeWidth=2
+        ).encode(
+            x=alt.X('Data:T', title='Data', axis=alt.Axis(format='%d/%m/%Y')),
+            y=alt.Y('Vazão Convertida:Q', title=f'Vazão Operada ({unit_suffix})'),
+            color=alt.Color('Reservatório Monitorado:N', 
+                           scale=alt.Scale(range=color_scheme),
+                           legend=alt.Legend(title='Reservatório')),
+            tooltip=[
+                alt.Tooltip('Reservatório Monitorado:N', title='Reservatório'),
+                alt.Tooltip('Data:T', title='Data', format='%d/%m/%Y'),
+                alt.Tooltip('Vazão Convertida:Q', title='Vazão', format='.3f')
+            ]
+        )
+        
+        points = base.mark_point(
+            size=60,
+            filled=True
+        ).encode(
+            x='Data:T',
+            y='Vazão Convertida:Q',
+            color='Reservatório Monitorado:N',
+            tooltip=[
+                alt.Tooltip('Reservatório Monitorado:N', title='Reservatório'),
+                alt.Tooltip('Data:T', title='Data', format='%d/%m/%Y'),
+                alt.Tooltip('Vazão Convertida:Q', title='Vazão', format='.3f')
+            ]
+        )
+        
+        # Adicionar média ponderada se apenas um reservatório
+        if df_plot['Reservatório Monitorado'].nunique() == 1 and len(df_plot) > 1:
+            df_media = df_plot.copy()
+            df_media['dias_ativos'] = df_media['Data'].diff().dt.days.fillna(0)
+            df_media.loc[df_media.index[-1], 'dias_ativos'] = (df_plot['Data'].max() - df_media['Data'].iloc[-1]).days + 1
+            media_pond = (df_media['Vazão Operada'] * df_media['dias_ativos']).sum() / df_media['dias_ativos'].sum()
             media_pond_conv, _ = convert_vazao(pd.Series([media_pond]), unidade_sel)
-            fig.add_hline(y=media_pond_conv.iloc[0], line_dash="dash", line_width=2, line_color="red",
-                          annotation_text=f"Média Ponderada: {media_pond_conv.iloc[0]:.2f} {unit_suffix}",
-                          annotation_position="top right")
-    fig.update_layout(xaxis_title="Data",
-                      yaxis_title=f"Vazão Operada ({'m³/s' if unidade_sel=='m³/s' else 'L/s'})",
-                      legend_title="Reservatório", template="plotly_white",
-                      margin=dict(l=40,r=20,t=10,b=40),
-                      xaxis=dict(rangeslider=dict(visible=True, thickness=0.1, bgcolor='#f5f5f5')))
-    fig.update_xaxes(rangeslider=dict(bordercolor="#cccccc", borderwidth=1))
-    st.plotly_chart(fig, use_container_width=True, config={"displaylogo": False})
-
-    # ------------- Abas de gráficos agregados -------------
-    gtab1, gtab2 = st.tabs(["📊 Média mensal", "📦 Distribuição (boxplot)"])
-    with gtab1:
-        if not df_filtrado.empty:
-            dmm = (df_filtrado.assign(mes_num=df_filtrado['Data'].dt.to_period('M').astype(str))
-                   .groupby(['Reservatório Monitorado','mes_num'], as_index=False)['Vazão Operada'].mean())
-            yconv, sufx = convert_vazao(dmm['Vazão Operada'], unidade_sel)
-            dmm['Vazão (conv)'] = yconv
-            figm = px.bar(dmm, x='mes_num', y='Vazão (conv)', color='Reservatório Monitorado',
-                          labels={'mes_num':'Mês','Vazão (conv)':f'Média ({sufx})'}, barmode='group')
-            st.plotly_chart(figm, use_container_width=True, config={"displaylogo": False})
+            
+            rule = alt.Chart(pd.DataFrame({'y': [media_pond_conv.iloc[0]]})).mark_rule(
+                color='red',
+                strokeDash=[5,5],
+                strokeWidth=2
+            ).encode(
+                y='y:Q'
+            )
+            
+            text = alt.Chart(pd.DataFrame({
+                'x': [df_plot['Data'].max()],
+                'y': [media_pond_conv.iloc[0]],
+                'text': [f'Média Ponderada: {media_pond_conv.iloc[0]:.2f} {unit_suffix}']
+            })).mark_text(
+                align='right',
+                baseline='bottom',
+                dx=-5,
+                dy=-5,
+                color='red'
+            ).encode(
+                x='x:T',
+                y='y:Q',
+                text='text:N'
+            )
+            
+            chart = alt.layer(lines, points, rule, text)
         else:
-            st.info("Sem dados para média mensal.")
+            chart = alt.layer(lines, points)
+        
+        # Configurações finais
+        chart = chart.configure_view(
+            strokeWidth=0
+        ).configure_axis(
+            gridColor='#f0f0f0',
+            domainColor='#cccccc',
+            labelFontSize=11,
+            titleFontSize=13
+        ).configure_legend(
+            labelFontSize=11,
+            titleFontSize=12,
+            symbolSize=100,
+            symbolStrokeWidth=2
+        ).interactive(bind_y=False)
+        
+        st.altair_chart(chart, use_container_width=True)
+    else:
+        st.info("Nenhum dado disponível para exibir o gráfico.")
             
 #======================MENU
     with gtab2:
