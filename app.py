@@ -987,7 +987,7 @@ def render_dados():
         return
 
     df = df[colunas].copy()
-    df["Data"] = pd.to_datetime(df["Data"], errors="coerce")
+    df["Data"] = pd.to_datetime(df["Data"], errors="coerce")  # usa coluna Data
 
     # =========================
     # Estilos (harmonizados com o header)
@@ -1023,7 +1023,7 @@ def render_dados():
     """, unsafe_allow_html=True)
 
     # =========================
-    # Filtros (expander aberto)
+    # Filtros (expander aberto) — Período baseado na coluna Data (min/max) + formato DD/MM/AAAA
     # =========================
     with st.container():
         st.markdown('<div class="expander-rounded">', unsafe_allow_html=True)
@@ -1041,14 +1041,17 @@ def render_dados():
                 )
 
             with c2:
-                data_min = pd.to_datetime(df["Data"].min()) if not df["Data"].isna().all() else None
-                data_max = pd.to_datetime(df["Data"].max()) if not df["Data"].isna().all() else None
-                if data_min is not None and data_max is not None:
+                # usa apenas datas válidas da coluna Data
+                datas_validas = df["Data"].dropna()
+                if not datas_validas.empty:
+                    data_min = datas_validas.min().date()
+                    data_max = datas_validas.max().date()
                     periodo = st.date_input(
                         "Período",
-                        value=(data_min.date(), data_max.date()),
-                        min_value=data_min.date(),
-                        max_value=data_max.date()
+                        value=(data_min, data_max),     # sempre primeira e última data
+                        min_value=data_min,
+                        max_value=data_max,
+                        format="DD/MM/YYYY"            # DD/MM/AAAA
                     )
                 else:
                     periodo = None
@@ -1132,6 +1135,7 @@ def render_dados():
             dff.sort_values(["Açude", "Data"], ascending=[True, False]),
             use_container_width=True
         )
+
 
 
 
