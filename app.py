@@ -245,7 +245,6 @@ def render_home():
         
         # Criar gráfico base
         base = alt.Chart(df_plot).properties(
-            # --- CORREÇÃO: Removida a linha 'width='container'' ---
             height=500,
             padding=20
         )
