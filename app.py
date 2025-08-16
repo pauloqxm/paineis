@@ -819,8 +819,8 @@ def render_dados():
     # --- Carregamento
     sheet_url = "https://docs.google.com/spreadsheets/d/1C40uaNmLUeu-k_FGEPZOgF8FwpSU00C9PtQu8Co4AUI/export?format=csv"
     try:
-        # ✅ CORREÇÃO AQUI: Adicionado sep=';' e decimal=',' para ler o CSV corretamente
-        df = pd.read_csv(sheet_url, sep=';', decimal=',')
+        # ✅ CORREÇÃO AQUI: Mudado para o separador de vírgula, que é o padrão do Google Docs
+        df = pd.read_csv(sheet_url, sep=',', decimal=',')
     except Exception as e:
         st.error(f"Não foi possível ler a planilha: {e}")
         return
@@ -835,7 +835,6 @@ def render_dados():
 
     df = df[colunas].copy()
 
-    # ✅ PARSE DE DATA ROBUSTO (corrige o “só primeira data”)
     df["Data"] = pd.to_datetime(
         df["Data"].astype(str).str.strip(),
         dayfirst=True,
@@ -843,7 +842,6 @@ def render_dados():
     )
     df = df.dropna(subset=["Data"])
     
-    # ✅ GARANTIR QUE COLUNAS NUMÉRICAS SEJAM DO TIPO FLOAT
     colunas_numericas = ["Cota Inicial (m)", "Cota Dia (m)", "Volume (m³)", "Volume (%)", "Evapor. Parcial (mm)"]
     for col in colunas_numericas:
         df[col] = pd.to_numeric(df[col], errors='coerce')
@@ -898,7 +896,6 @@ def render_dados():
         dff = dff[dff["Açude"].isin(acudes_sel)]
         
     if periodo:
-        # Lógica para tratar seleção de uma ou duas datas
         if len(periodo) == 1:
             ini = fim = pd.to_datetime(periodo[0])
         else:
@@ -944,7 +941,6 @@ def render_dados():
     # --- Tabela
     with st.expander("📋 Ver dados filtrados"):
         st.dataframe(dff.sort_values(["Açude", "Data"], ascending=[True, False]), use_container_width=True)
-
 
 
 # =========================
