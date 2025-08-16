@@ -803,11 +803,9 @@ def render_docs():
 
 
 def render_dados():
-    # === CONTEÚDO DA ABA 4 (📈 Simulações) ===
     st.title("📈 Simulações")
 
-    st.markdown(
-        """
+    st.markdown("""
 <div style="background: linear-gradient(135deg, #f5f7fa 0%, #e4e8eb 100%); border-radius: 12px; padding: 20px; border-left: 4px solid #228B22; box-shadow: 0 4px 12px rgba(0,0,0,0.08); margin-bottom: 20px;">
   <p style="font-family: 'Segoe UI', Roboto, sans-serif; color: #2c3e50; font-size: 16px; line-height: 1.6; margin: 0;">
     <span style="font-weight: 600; color: #006400;">📌 Nesta página você encontra:</span><br>
@@ -816,69 +814,52 @@ def render_dados():
     • Linha de <b>Volume (m³)</b> ao longo do tempo
   </p>
 </div>
-""",
-        unsafe_allow_html=True,
-    )
+""", unsafe_allow_html=True)
 
-    # =========================
-    # Carregamento e preparo
-    # =========================
+    # --- Carregamento
     sheet_url = "https://docs.google.com/spreadsheets/d/1C40uaNmLUeu-k_FGEPZOgF8FwpSU00C9PtQu8Co4AUI/export?format=csv"
-
     try:
         df = pd.read_csv(sheet_url)
     except Exception as e:
         st.error(f"Não foi possível ler a planilha: {e}")
         return
 
-    colunas = ["Data", "Açude", "Município", "Região Hidrográfica", "Cota Inicial (m)", "Cota Dia (m)", "Volume (m³)", "Volume (%)", "Evapor. Parcial (mm)", "Cota Interm. (m)", "Volume Interm. (m³)", "Liberação (m³/s)", "Liberação (m³)", "Volume Final (m³)", "Cota Final (m)", "Coordendas"]
+    colunas = ["Data","Açude","Município","Região Hidrográfica","Cota Inicial (m)","Cota Dia (m)","Volume (m³)",
+               "Volume (%)","Evapor. Parcial (mm)","Cota Interm. (m)","Volume Interm. (m³)",
+               "Liberação (m³/s)","Liberação (m³)","Volume Final (m³)","Cota Final (m)","Coordendas"]
     faltantes = [c for c in colunas if c not in df.columns]
     if faltantes:
         st.error(f"As seguintes colunas não foram encontradas na planilha: {', '.join(faltantes)}")
         return
 
     df = df[colunas].copy()
-    df["Data"] = pd.to_datetime(df["Data"], errors="coerce")  # usa coluna Data
 
-    # =========================
-    # Estilos (harmonizados com o header)
-    # =========================
-    st.markdown(
-        """
-    <style>
-      .filter-card {
-        border: 1px solid #e6e6e6;
-        border-radius: 14px;
-        padding: 14px;
-        background: linear-gradient(180deg,#ffffff 0%, #fafafa 100%);
-        box-shadow: 0 6px 16px rgba(0,0,0,.06);
-        margin: 6px 0 16px 0;
-      }
-      .filter-title {
-        font-weight: 700;
-        color: #006400;
-        margin-bottom: 8px;
-        letter-spacing: .2px;
-      }
-      .expander-rounded > details {
-        border: 1px solid #e6e6e6 !important;
-        border-radius: 14px !important;
-        background: #fff !important;
-        box-shadow: 0 4px 14px rgba(0,0,0,.06) !important;
-        padding: 6px 6px 0 6px !important;
-      }
-      .expander-rounded summary {
-        font-weight: 600 !important;
-        color: #006400 !important;
-      }
-    </style>
-    """,
-        unsafe_allow_html=True,
+    # ✅ PARSE DE DATA ROBUSTO (corrige o “só primeira data”)
+    df["Data"] = pd.to_datetime(
+        df["Data"].astype(str).str.strip(),  # remove espaços/extras
+        dayfirst=True,                       # DD/MM/AAAA
+        errors="coerce"
     )
+    df = df.dropna(subset=["Data"])         # evita min=max por NaT
+    # (opcional) normaliza qualquer tz
+    if pd.api.types.is_datetime64tz_dtype(df["Data"]):
+        df["Data"] = df["Data"].dt.tz_convert(None)
 
-    # =========================
-    # Filtros (expander aberto) — Período baseado na coluna Data (min/max) + formato DD/MM/AAAA
-    # =========================
+    # --- Estilos
+    st.markdown("""
+    <style>
+      .filter-card { border:1px solid #e6e6e6; border-radius:14px; padding:14px;
+                     background:linear-gradient(180deg,#ffffff 0%, #fafafa 100%);
+                     box-shadow:0 6px 16px rgba(0,0,0,.06); margin:6px 0 16px 0; }
+      .filter-title { font-weight:700; color:#006400; margin-bottom:8px; letter-spacing:.2px; }
+      .expander-rounded > details { border:1px solid #e6e6e6 !important; border-radius:14px !important;
+                                    background:#fff !important; box-shadow:0 4px 14px rgba(0,0,0,.06) !important;
+                                    padding:6px 6px 0 6px !important; }
+      .expander-rounded summary { font-weight:600 !important; color:#006400 !important; }
+    </style>
+    """, unsafe_allow_html=True)
+
+    # --- Filtros
     with st.container():
         st.markdown('<div class="expander-rounded">', unsafe_allow_html=True)
         with st.expander("☰ Filtros (clique para expandir)", expanded=True):
@@ -887,43 +868,35 @@ def render_dados():
             c1, c2 = st.columns([2, 3])
 
             with c1:
-                opcoes_acudes = sorted([a for a in df["Açude"].dropna().unique()])
-                acudes_sel = st.multiselect("Açude", options=opcoes_acudes, default=opcoes_acudes[:1] if opcoes_acudes else [])
+                opcoes_acudes = sorted(df["Açude"].dropna().unique().tolist())
+                # ✅ por padrão, selecionar TODOS (não só o primeiro)
+                acudes_sel = st.multiselect("Açude", options=opcoes_acudes, default=opcoes_acudes)
 
             with c2:
-                # usa apenas datas válidas da coluna Data
-                datas_validas = df["Data"].dropna()
+                datas_validas = df["Data"]
                 if not datas_validas.empty:
                     data_min = datas_validas.min().date()
                     data_max = datas_validas.max().date()
-                    periodo = st.date_input("Período", value=(data_min, data_max), min_value=data_min, max_value=data_max, format="DD/MM/YYYY")
+                    periodo = st.date_input(
+                        "Período",
+                        value=(data_min, data_max),   # ✅ sempre primeira e última
+                        min_value=data_min,
+                        max_value=data_max,
+                        format="DD/MM/YYYY"
+                    )
                 else:
                     periodo = None
 
             st.markdown("</div>", unsafe_allow_html=True)
         st.markdown("</div>", unsafe_allow_html=True)
 
-    # =========================
-    # Aplicar filtros
-    # =========================
+    # --- Aplicar filtros
     dff = df.copy()
     if acudes_sel:
         dff = dff[dff["Açude"].isin(acudes_sel)]
-    
-    # Lógica de filtro de datas corrigida
-    if periodo:
-        # Se o usuário selecionar apenas uma data, o resultado é um único elemento
-        # Se ele selecionar um intervalo, o resultado é uma tupla de 2 elementos
-        if len(periodo) == 1:
-            ini = fim = pd.to_datetime(periodo[0])
-        elif len(periodo) == 2:
-            ini, fim = periodo
-            ini, fim = pd.to_datetime(ini), pd.to_datetime(fim)
-        else:
-            ini, fim = None, None
-
-        if ini and fim:
-            dff = dff[(dff["Data"] >= ini) & (dff["Data"] <= fim)]
+    if periodo and isinstance(periodo, (list, tuple)) and len(periodo) == 2:
+        ini, fim = [pd.to_datetime(d) for d in periodo]
+        dff = dff[(dff["Data"] >= ini) & (dff["Data"] <= fim)]
 
     if dff.empty:
         st.info("Não há dados para os filtros selecionados.")
@@ -931,36 +904,39 @@ def render_dados():
 
     dff = dff.sort_values(["Açude", "Data"])
 
-    # =========================
-    # Gráfico 1: Cota Inicial (m) x Cota Dia (m)
-    # =========================
+    # --- Gráfico 1
     st.subheader("📈 Cotas (Cota Inicial x Cota Dia)")
     fig_cotas = go.Figure()
     for acude in sorted(dff["Açude"].dropna().unique()):
         base = dff[dff["Açude"] == acude].sort_values("Data")
-        fig_cotas.add_trace(go.Scatter(x=base["Data"], y=base["Cota Inicial (m)"], mode="lines+markers", name=f"{acude} - Cota Inicial (m)", hovertemplate="%{x|%d/%m/%Y} • %{y:.3f} m<extra></extra>"))
-        fig_cotas.add_trace(go.Scatter(x=base["Data"], y=base["Cota Dia (m)"], mode="lines+markers", name=f"{acude} - Cota Dia (m)", hovertemplate="%{x|%d/%m/%Y} • %{y:.3f} m<extra></extra>"))
-
-    fig_cotas.update_layout(template="plotly_white", margin=dict(l=10, r=10, t=10, b=10), legend=dict(orientation="h", yanchor="bottom", y=-0.25, xanchor="center", x=0.5), xaxis_title="Data", yaxis_title="Cota (m)", height=480)
+        fig_cotas.add_trace(go.Scatter(x=base["Data"], y=base["Cota Inicial (m)"],
+                                       mode="lines+markers", name=f"{acude} - Cota Inicial (m)",
+                                       hovertemplate="%{x|%d/%m/%Y} • %{y:.3f} m<extra></extra>"))
+        fig_cotas.add_trace(go.Scatter(x=base["Data"], y=base["Cota Dia (m)"],
+                                       mode="lines+markers", name=f"{acude} - Cota Dia (m)",
+                                       hovertemplate="%{x|%d/%m/%Y} • %{y:.3f} m<extra></extra>"))
+    fig_cotas.update_layout(template="plotly_white", margin=dict(l=10, r=10, t=10, b=10),
+                            legend=dict(orientation="h", yanchor="bottom", y=-0.25, xanchor="center", x=0.5),
+                            xaxis_title="Data", yaxis_title="Cota (m)", height=480)
     st.plotly_chart(fig_cotas, use_container_width=True, config={"displaylogo": False})
 
-    # =========================
-    # Gráfico 2: Volume (m³)
-    # =========================
+    # --- Gráfico 2
     st.subheader("📈 Volume (m³)")
     fig_vol = go.Figure()
     for acude in sorted(dff["Açude"].dropna().unique()):
         base = dff[dff["Açude"] == acude].sort_values("Data")
-        fig_vol.add_trace(go.Scatter(x=base["Data"], y=base["Volume (m³)"], mode="lines+markers", name=f"{acude} - Volume (m³)", hovertemplate="%{x|%d/%m/%Y} • %{y:.0f} m³<extra></extra>"))
-
-    fig_vol.update_layout(template="plotly_white", margin=dict(l=10, r=10, t=10, b=10), legend=dict(orientation="h", yanchor="bottom", y=-0.25, xanchor="center", x=0.5), xaxis_title="Data", yaxis_title="Volume (m³)", height=420)
+        fig_vol.add_trace(go.Scatter(x=base["Data"], y=base["Volume (m³)"],
+                                     mode="lines+markers", name=f"{acude} - Volume (m³)",
+                                     hovertemplate="%{x|%d/%m/%Y} • %{y:.0f} m³<extra></extra>"))
+    fig_vol.update_layout(template="plotly_white", margin=dict(l=10, r=10, t=10, b=10),
+                          legend=dict(orientation="h", yanchor="bottom", y=-0.25, xanchor="center", x=0.5),
+                          xaxis_title="Data", yaxis_title="Volume (m³)", height=420)
     st.plotly_chart(fig_vol, use_container_width=True, config={"displaylogo": False})
 
-    # =========================
-    # Tabela detalhada (opcional)
-    # =========================
+    # --- Tabela
     with st.expander("📋 Ver dados filtrados"):
         st.dataframe(dff.sort_values(["Açude", "Data"], ascending=[True, False]), use_container_width=True)
+
 
 
 # =========================
