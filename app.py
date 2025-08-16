@@ -802,9 +802,6 @@ def render_docs():
     st.markdown(table_html, unsafe_allow_html=True)
 
 
-# === CONTEÚDO DA ABA 4 (📈 Simulações) ===
-
-
 def render_dados():
     # === CONTEÚDO DA ABA 4 (📈 Simulações) ===
     st.title("📈 Simulações")
@@ -899,7 +896,7 @@ def render_dados():
                 if not datas_validas.empty:
                     data_min = datas_validas.min().date()
                     data_max = datas_validas.max().date()
-                    periodo = st.date_input("Período", value=(data_min, data_max), min_value=data_min, max_value=data_max, format="DD/MM/YYYY")  # sempre primeira e última data  # DD/MM/AAAA
+                    periodo = st.date_input("Período", value=(data_min, data_max), min_value=data_min, max_value=data_max, format="DD/MM/YYYY")
                 else:
                     periodo = None
 
@@ -912,10 +909,21 @@ def render_dados():
     dff = df.copy()
     if acudes_sel:
         dff = dff[dff["Açude"].isin(acudes_sel)]
-    if periodo and isinstance(periodo, (list, tuple)) and len(periodo) == 2:
-        ini, fim = periodo
-        ini, fim = pd.to_datetime(ini), pd.to_datetime(fim)
-        dff = dff[(dff["Data"] >= ini) & (dff["Data"] <= fim)]
+    
+    # Lógica de filtro de datas corrigida
+    if periodo:
+        # Se o usuário selecionar apenas uma data, o resultado é um único elemento
+        # Se ele selecionar um intervalo, o resultado é uma tupla de 2 elementos
+        if len(periodo) == 1:
+            ini = fim = pd.to_datetime(periodo[0])
+        elif len(periodo) == 2:
+            ini, fim = periodo
+            ini, fim = pd.to_datetime(ini), pd.to_datetime(fim)
+        else:
+            ini, fim = None, None
+
+        if ini and fim:
+            dff = dff[(dff["Data"] >= ini) & (dff["Data"] <= fim)]
 
     if dff.empty:
         st.info("Não há dados para os filtros selecionados.")
