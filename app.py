@@ -819,7 +819,6 @@ def render_dados():
     # --- Carregamento
     sheet_url = "https://docs.google.com/spreadsheets/d/1C40uaNmLUeu-k_FGEPZOgF8FwpSU00C9PtQu8Co4AUI/export?format=csv"
     try:
-        # ✅ CORREÇÃO AQUI: Mudado para o separador de vírgula, que é o padrão do Google Docs
         df = pd.read_csv(sheet_url, sep=',', decimal=',')
     except Exception as e:
         st.error(f"Não foi possível ler a planilha: {e}")
@@ -845,6 +844,17 @@ def render_dados():
     colunas_numericas = ["Cota Inicial (m)", "Cota Dia (m)", "Volume (m³)", "Volume (%)", "Evapor. Parcial (mm)"]
     for col in colunas_numericas:
         df[col] = pd.to_numeric(df[col], errors='coerce')
+    
+    # ✅ Formatar a coluna de volume com base no valor
+    def formatar_volume(volume):
+        if volume >= 1_000_000:
+            return f"{volume / 1_000_000:.2f} milhões/m³"
+        elif volume > 0:
+            return f"{volume / 1_000:.2f} mil/m³"
+        else:
+            return "0 m³"
+            
+    df['Volume_formatado'] = df['Volume (m³)'].apply(formatar_volume)
 
     # --- Estilos
     st.markdown("""
@@ -882,7 +892,8 @@ def render_dados():
                         value=(data_min, data_max),
                         min_value=data_min,
                         max_value=data_max,
-                        format="DD/MM/YYYY"
+                        # ✅ Atualizado para a/m/a
+                        format="DD/MM/YYYY" 
                     )
                 else:
                     periodo = None
@@ -930,9 +941,14 @@ def render_dados():
     fig_vol = go.Figure()
     for acude in sorted(dff["Açude"].dropna().unique()):
         base = dff[dff["Açude"] == acude].sort_values("Data")
-        fig_vol.add_trace(go.Scatter(x=base["Data"], y=base["Volume (m³)"],
-                                        mode="lines+markers", name=f"{acude} - Volume (m³)",
-                                        hovertemplate="%{x|%d/%m/%Y} • %{y:.0f} m³<extra></extra>"))
+        fig_vol.add_trace(go.Scatter(
+            x=base["Data"], 
+            y=base["Volume (m³)"],
+            mode="lines+markers", 
+            name=f"{acude} - Volume (m³)",
+            # ✅ Atualizado para usar o Volume_formatado
+            hovertemplate="%{x|%d/%m/%Y} • " + base["Volume_formatado"] + "<extra></extra>"
+        ))
     fig_vol.update_layout(template="plotly_white", margin=dict(l=10, r=10, t=10, b=10),
                             legend=dict(orientation="h", yanchor="bottom", y=-0.25, xanchor="center", x=0.5),
                             xaxis_title="Data", yaxis_title="Volume (m³)", height=420)
@@ -941,6 +957,7 @@ def render_dados():
     # --- Tabela
     with st.expander("📋 Ver dados filtrados"):
         st.dataframe(dff.sort_values(["Açude", "Data"], ascending=[True, False]), use_container_width=True)
+
 
 
 # =========================
