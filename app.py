@@ -1,3 +1,4 @@
+
 import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
@@ -809,7 +810,6 @@ def render_dados():
 <div style="background: linear-gradient(135deg, #f5f7fa 0%, #e4e8eb 100%); border-radius: 12px; padding: 20px; border-left: 4px solid #228B22; box-shadow: 0 4px 12px rgba(0,0,0,0.08); margin-bottom: 20px;">
   <p style="font-family: 'Segoe UI', Roboto, sans-serif; color: #2c3e50; font-size: 16px; line-height: 1.6; margin: 0;">
     <span style="font-weight: 600; color: #006400;">📌 Nesta página você encontra:</span><br>
-    • Mapa interativo com a localização dos açudes<br>
     • Linha comparativa de <b>Cota Inicial (m)</b> e <b>Cota Dia (m)</b><br>
     • Filtros por <b>Data</b> e <b>Açude</b><br>
     • Linha de <b>Volume (m³)</b> ao longo do tempo
@@ -845,13 +845,7 @@ def render_dados():
     colunas_numericas = ["Cota Inicial (m)", "Cota Dia (m)", "Volume (m³)", "Volume (%)", "Evapor. Parcial (mm)"]
     for col in colunas_numericas:
         df[col] = pd.to_numeric(df[col], errors='coerce')
-
-    # ✅ Processar coordenadas para o mapa
-    df[['lat', 'lon']] = df['Coordendas'].str.split(', ', expand=True)
-    df['lat'] = pd.to_numeric(df['lat'], errors='coerce')
-    df['lon'] = pd.to_numeric(df['lon'], errors='coerce')
-    df = df.dropna(subset=['lat', 'lon'])
-
+    
     # ✅ Formatar a coluna de volume com base no valor
     def formatar_volume(volume):
         if volume >= 1_000_000:
@@ -899,6 +893,7 @@ def render_dados():
                         value=(data_min, data_max),
                         min_value=data_min,
                         max_value=data_max,
+                        # ✅ Atualizado para a/m/a
                         format="DD/MM/YYYY" 
                     )
                 else:
@@ -926,13 +921,6 @@ def render_dados():
 
     dff = dff.sort_values(["Açude", "Data"])
 
-    # --- Mapa
-    st.subheader("🗺️ Localização dos Açudes")
-    # Apenas pontos únicos por açude para evitar sobreposição no mapa
-    map_data = dff[['Açude', 'lat', 'lon', 'Volume (m³)']].drop_duplicates(subset=['Açude'])
-    st.map(map_data, zoom=6)
-
-
     # --- Gráfico 1
     st.subheader("📈 Cotas (Cota Inicial x Cota Dia)")
     fig_cotas = go.Figure()
@@ -959,6 +947,7 @@ def render_dados():
             y=base["Volume (m³)"],
             mode="lines+markers", 
             name=f"{acude} - Volume (m³)",
+            # ✅ Atualizado para usar o Volume_formatado
             hovertemplate="%{x|%d/%m/%Y} • " + base["Volume_formatado"] + "<extra></extra>"
         ))
     fig_vol.update_layout(template="plotly_white", margin=dict(l=10, r=10, t=10, b=10),
@@ -969,7 +958,6 @@ def render_dados():
     # --- Tabela
     with st.expander("📋 Ver dados filtrados"):
         st.dataframe(dff.sort_values(["Açude", "Data"], ascending=[True, False]), use_container_width=True)
-
 
 
 
