@@ -12,6 +12,11 @@ from datetime import datetime, timedelta, timezone
 from streamlit_folium import folium_static
 from folium.plugins import Fullscreen, MiniMap, MousePosition, MeasureControl, MarkerCluster
 
+#==============def render home -> #L126
+#==============def render açudes -> #L539
+#==============def render_docs -> #L852
+#==============def render_dados -> #L953
+
 # ---------------- CONFIG GERAL ----------------
 st.set_page_config(page_title="Dashboard Vazões", layout="wide")
 
@@ -451,10 +456,8 @@ def render_home():
     st.subheader("📋 Tabela Detalhada")
     st.dataframe(df_filtrado.sort_values(by="Data", ascending=False), use_container_width=True)
 
-
+# === CONTEÚDO DA ABA 2 (🗺️ Açudes Monitorados) ===
 def render_acudes():
-    # === CONTEÚDO DA ABA 2 (🗺️ Açudes Monitorados) ===
-
     st.title("🗺️ Açudes Monitorados")
     st.markdown(
         """
@@ -476,26 +479,48 @@ def render_acudes():
             url = "https://docs.google.com/spreadsheets/d/1zZ0RCyYj-AzA_dhWzxRziDWjgforbaH7WIoSEd2EKdk/export?format=csv"
             df = pd.read_csv(url)
 
-            if "Latitude" in df.columns and "Longitude" in df.columns:
-                df["Latitude"] = pd.to_numeric(df["Latitude"].astype(str).str.replace(",", "."), errors="coerce")
-                df["Longitude"] = pd.to_numeric(df["Longitude"].astype(str).str.replace(",", "."), errors="coerce")
+            # Normalizações de tipo
+            if {"Latitude", "Longitude"} <= set(df.columns):
+                df["Latitude"] = pd.to_numeric(
+                    df["Latitude"].astype(str).str.replace(",", "."), errors="coerce"
+                )
+                df["Longitude"] = pd.to_numeric(
+                    df["Longitude"].astype(str).str.replace(",", "."), errors="coerce"
+                )
                 df = df.dropna(subset=["Latitude", "Longitude"])
             else:
                 st.error("Colunas 'Latitude' e 'Longitude' são necessárias")
                 return pd.DataFrame()
 
             if "Data de Coleta" in df.columns:
-                df["Data de Coleta"] = pd.to_datetime(df["Data de Coleta"], errors="coerce", dayfirst=True)
+                df["Data de Coleta"] = pd.to_datetime(
+                    df["Data de Coleta"], errors="coerce", dayfirst=True
+                )
                 df = df.dropna(subset=["Data de Coleta"])
 
-            numeric_cols = {"Percentual": lambda x: pd.to_numeric(x.astype(str).str.replace(",", ".").str.replace("%", "").str.strip(), errors="coerce"), "Volume": lambda x: pd.to_numeric(x.astype(str).str.replace(",", ".").str.strip(), errors="coerce"), "Cota Sangria": lambda x: pd.to_numeric(x.astype(str).str.replace(",", ".").str.strip(), errors="coerce"), "Nivel": lambda x: pd.to_numeric(x.astype(str).str.replace(",", ".").str.strip(), errors="coerce")}
-            for col, converter in numeric_cols.items():
+            # Converter numéricos
+            converters = {
+                "Percentual": lambda s: pd.to_numeric(
+                    s.astype(str).str.replace(",", ".").str.replace("%", "").str.strip(),
+                    errors="coerce",
+                ),
+                "Volume": lambda s: pd.to_numeric(
+                    s.astype(str).str.replace(",", ".").str.strip(), errors="coerce"
+                ),
+                "Cota Sangria": lambda s: pd.to_numeric(
+                    s.astype(str).str.replace(",", ".").str.strip(), errors="coerce"
+                ),
+                "Nivel": lambda s: pd.to_numeric(
+                    s.astype(str).str.replace(",", ".").str.strip(), errors="coerce"
+                ),
+            }
+            for col, conv in converters.items():
                 if col in df.columns:
-                    df[col] = converter(df[col]).fillna(0)
+                    df[col] = conv(df[col])
 
             return df
         except Exception as e:
-            st.error(f"Erro ao carregar dados: {str(e)}")
+            st.error(f"Erro ao carregar dados: {e}")
             return pd.DataFrame()
 
     df_full = load_reservatorios_data()
@@ -510,7 +535,10 @@ def render_acudes():
         with col1:
             min_date = df_full["Data de Coleta"].min().date()
             max_date = df_full["Data de Coleta"].max().date()
-            date_range = st.date_input("Período:", value=(max_date, max_date), min_value=min_date, max_value=max_date)
+            date_range = st.date_input(
+                "Período:", value=(max_date, max_date),
+                min_value=min_date, max_value=max_date
+            )
             if len(date_range) == 2:
                 start_date, end_date = date_range
             else:
@@ -518,122 +546,252 @@ def render_acudes():
                 st.stop()
 
         with col2:
-            reservatorios = sorted(df_full["Reservatório"].unique())
-            reservatorio_filtro = st.multiselect("Reservatório(s):", options=reservatorios, default=reservatorios, placeholder="Selecione...")
+            reservatorios = sorted(df_full["Reservatório"].dropna().astype(str).unique())
+            reservatorio_filtro = st.multiselect(
+                "Reservatório(s):", options=reservatorios,
+                default=reservatorios, placeholder="Selecione..."
+            )
 
         with col3:
-            municipios = ["Todos"] + sorted(df_full["Município"].unique().tolist())
+            municipios = ["Todos"] + sorted(
+                df_full["Município"].dropna().astype(str).unique().tolist()
+            )
             municipio_filtro = st.selectbox("Município:", options=municipios, index=0)
 
-        min_perc = float(df_full["Percentual"].min()) if "Percentual" in df_full.columns else 0
-        max_perc = float(df_full["Percentual"].max()) if "Percentual" in df_full.columns else 100
-        perc_range = st.slider("Percentual de Volume (%):", min_value=min_perc, max_value=max_perc, value=(min_perc, max_perc), step=0.1)
+        # Slider Percentual à prova de NaN/série vazia
+        if "Percentual" in df_full.columns:
+            perc_series = df_full["Percentual"].dropna()
+            if not perc_series.empty:
+                min_perc = float(perc_series.min())
+                max_perc = float(perc_series.max())
+            else:
+                min_perc, max_perc = 0.0, 100.0
+        else:
+            min_perc, max_perc = 0.0, 100.0
+
+        perc_range = st.slider(
+            "Percentual de Volume (%):",
+            min_value=float(min_perc),
+            max_value=float(max_perc),
+            value=(float(min_perc), float(max_perc)),
+            step=0.1,
+        )
 
     # --- Aplicar filtros ---
-    df_filtrado = df_full[(df_full["Data de Coleta"].dt.date >= start_date) & (df_full["Data de Coleta"].dt.date <= end_date) & (df_full["Reservatório"].isin(reservatorio_filtro)) & (df_full["Percentual"] >= perc_range[0]) & (df_full["Percentual"] <= perc_range[1])].copy()
+    if not reservatorio_filtro:
+        reservatorio_filtro = reservatorios  # tudo
+
+    mask = (
+        (df_full["Data de Coleta"].dt.date >= start_date) &
+        (df_full["Data de Coleta"].dt.date <= end_date) &
+        (df_full["Reservatório"].astype(str).isin(reservatorio_filtro)) &
+        (df_full["Percentual"].between(perc_range[0], perc_range[1], inclusive="both"))
+    )
+    df_filtrado = df_full.loc[mask].copy()
 
     if municipio_filtro != "Todos":
-        df_filtrado = df_filtrado[df_filtrado["Município"] == municipio_filtro].copy()
+        df_filtrado = df_filtrado[
+            df_filtrado["Município"].astype(str) == municipio_filtro
+        ].copy()
 
     # Última medição por reservatório para o mapa
-    df_mapa = df_filtrado.sort_values("Data de Coleta", ascending=False).drop_duplicates(subset=["Reservatório"]).copy()
+    df_mapa = (
+        df_filtrado.sort_values("Data de Coleta", ascending=False)
+                   .drop_duplicates(subset=["Reservatório"])
+                   .copy()
+    )
 
     # ===================== Mapa Interativo =====================
     st.subheader("🌍 Mapa dos Açudes")
     with st.expander("Configurações do Mapa", expanded=False):
-        tile_option = st.selectbox("Estilo do Mapa:", ["OpenStreetMap", "Stamen Terrain", "Stamen Toner", "CartoDB positron", "CartoDB dark_matter", "Esri Satellite"], index=0)
+        tile_option = st.selectbox(
+            "Estilo do Mapa:",
+            ["OpenStreetMap", "Stamen Terrain", "Stamen Toner",
+             "CartoDB positron", "CartoDB dark_matter", "Esri Satellite"],
+            index=0
+        )
 
-    tile_config = {"OpenStreetMap": {"tiles": "OpenStreetMap", "attr": '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'}, "Stamen Terrain": {"tiles": "https://stamen-tiles.a.ssl.fastly.net/terrain/{z}/{x}/{y}.png", "attr": 'Map tiles by <a href="http://stamen.com">Stamen Design</a>'}, "CartoDB positron": {"tiles": "https://cartodb-basemaps-a.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png", "attr": '&copy; <a href="https://carto.com/attributions">CARTO</a>'}, "CartoDB dark_matter": {"tiles": "https://cartodb-basemaps-a.global.ssl.fastly.net/dark_all/{z}/{x}/{y}.png", "attr": '&copy; <a href="https://carto.com/attributions">CARTO</a>'}, "Esri Satellite": {"tiles": "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}", "attr": "Tiles &copy; Esri — Source: Esri"}, "Stamen Toner": {"tiles": "https://stamen-tiles.a.ssl.fastly.net/toner/{z}/{x}/{y}.png", "attr": 'Map tiles by <a href="http://stamen.com">Stamen Design</a>'}}
+    tile_config = {
+        "OpenStreetMap": {
+            "tiles": "OpenStreetMap",
+            "attr": '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+        },
+        "Stamen Terrain": {
+            "tiles": "https://stamen-tiles.a.ssl.fastly.net/terrain/{z}/{x}/{y}.png",
+            "attr": 'Map tiles by <a href="http://stamen.com">Stamen Design</a>',
+        },
+        "CartoDB positron": {
+            "tiles": "https://cartodb-basemaps-a.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png",
+            "attr": '&copy; <a href="https://carto.com/attributions">CARTO</a>',
+        },
+        "CartoDB dark_matter": {
+            "tiles": "https://cartodb-basemaps-a.global.ssl.fastly.net/dark_all/{z}/{x}/{y}.png",
+            "attr": '&copy; <a href="https://carto.com/attributions">CARTO</a>',
+        },
+        "Esri Satellite": {
+            "tiles": "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+            "attr": "Tiles &copy; Esri — Source: Esri",
+        },
+        "Stamen Toner": {
+            "tiles": "https://stamen-tiles-a.a.ssl.fastly.net/toner/{z}/{x}/{y}.png",
+            "attr": 'Map tiles by <a href="http://stamen.com">Stamen Design</a>',
+        },
+    }
 
     def get_marker_color(percentual):
-        if pd.isna(percentual):
+        if pd.isna(percentual) or 0 <= percentual <= 10:
             return "#808080"
-        if 0 <= percentual <= 10:
-            return "#808080"
-        elif 10.1 <= percentual <= 30:
+        if 10.1 <= percentual <= 30:
             return "#FF0000"
-        elif 30.1 <= percentual <= 50:
+        if 30.1 <= percentual <= 50:
             return "#FFFF00"
-        elif 50.1 <= percentual <= 70:
+        if 50.1 <= percentual <= 70:
             return "#008000"
-        elif 70.1 <= percentual <= 100:
+        if 70.1 <= percentual <= 100:
             return "#0000FF"
-        else:
-            return "#800080"
+        return "#800080"
 
     def create_svg_icon(color, size=15):
-        svg = f"""<svg width="{size}" height="{size}" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-            <polygon points="50,0 100,100 0,100" fill="{color}" stroke="#000000" stroke-width="5"/></svg>"""
+        svg = (
+            f'<svg width="{size}" height="{size}" viewBox="0 0 100 100" '
+            f'xmlns="http://www.w3.org/2000/svg">'
+            f'<polygon points="50,0 100,100 0,100" fill="{color}" '
+            f'stroke="#000000" stroke-width="5"/></svg>'
+        )
         svg_b64 = base64.b64encode(svg.encode("utf-8")).decode("utf-8")
         return f"data:image/svg+xml;base64,{svg_b64}"
 
     if not df_filtrado.empty:
         mapa_center = [df_mapa["Latitude"].mean(), df_mapa["Longitude"].mean()]
         m = folium.Map(location=mapa_center, zoom_start=9, tiles=None)
-        folium.TileLayer(tiles=tile_config[tile_option]["tiles"], attr=tile_config[tile_option]["attr"], name=tile_option).add_to(m)
+        folium.TileLayer(
+            tiles=tile_config[tile_option]["tiles"],
+            attr=tile_config[tile_option]["attr"],
+            name=tile_option,
+        ).add_to(m)
 
+        # Bacia (se disponível)
         try:
-            folium.GeoJson(geojson_bacia, name="Bacia do Banabuiú", style_function=lambda x: {"color": "blue", "weight": 2, "fillOpacity": 0.1}, tooltip=folium.GeoJsonTooltip(fields=["DESCRICA1"], aliases=["Bacia:"])).add_to(m)
+            folium.GeoJson(
+                geojson_bacia,
+                name="Bacia do Banabuiú",
+                style_function=lambda x: {"color": "blue", "weight": 2, "fillOpacity": 0.1},
+                tooltip=folium.GeoJsonTooltip(fields=["DESCRICA1"], aliases=["Bacia:"]),
+            ).add_to(m)
         except NameError:
             st.warning("Camada da bacia não adicionada (geojson_bacia não encontrado).")
 
+        # Comissões Gestoras
         gestoras_layer = folium.FeatureGroup(name="Comissões Gestoras", show=False)
         try:
             for feature in geojson_c_gestoras["features"]:
                 props = feature["properties"]
-                coords = feature["geometry"]["coordinates"]
+                lon, lat = feature["geometry"]["coordinates"]
                 nome_g = props.get("SISTEMAH3", "Sem nome")
-                popup_info = f"""
-<div style='font-family: "Segoe UI", Arial, sans-serif; padding: 12px; background: white; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); border-top: 4px solid #228B22; min-width: 200px;'>
-  <div style='font-size: 16px; font-weight: 600; color: #2c3e50; margin-bottom: 8px;'>{nome_g}</div>
-  <div style='margin: 6px 0;'><div style='font-weight: 500; color: #7f8c8d;'>Ano de Formação</div><div style='color: #2c3e50;'>{props.get("ANOFORMA1","N/A")}</div></div>
-  <div style='margin: 6px 0;'><div style='font-weight: 500; color: #7f8c8d;'>Sistema</div><div style='color: #2c3e50;'>{props.get("SISTEMAH3","N/A")}</div></div>
-  <div style='margin: 6px 0;'><div style='font-weight: 500; color: #7f8c8d;'>Município</div><div style='color: #228B22; font-weight: 500;'>{props.get("MUNICIPI6","N/A")}</div></div>
-</div>
-"""
-                folium.Marker([coords[1], coords[0]], icon=folium.CustomIcon("https://cdn-icons-png.flaticon.com/512/4144/4144517.png", icon_size=(30, 30)), tooltip=nome_g, popup=folium.Popup(popup_info, max_width=300)).add_to(gestoras_layer)
+
+                popup_info = (
+                    "<div style='font-family: \"Segoe UI\", Arial, sans-serif; padding: 12px; "
+                    "background: white; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); "
+                    "border-top: 4px solid #228B22; min-width: 200px;'>"
+                    f"<div style='font-size: 16px; font-weight: 600; color: #2c3e50; margin-bottom: 8px;'>{nome_g}</div>"
+                    f"<div style='margin: 6px 0;'><div style='font-weight: 500; color: #7f8c8d;'>Ano de Formação</div>"
+                    f"<div style='color: #2c3e50;'>{props.get('ANOFORMA1','N/A')}</div></div>"
+                    f"<div style='margin: 6px 0;'><div style='font-weight: 500; color: #7f8c8d;'>Sistema</div>"
+                    f"<div style='color: #2c3e50;'>{props.get('SISTEMAH3','N/A')}</div></div>"
+                    f"<div style='margin: 6px 0;'><div style='font-weight: 500; color: #7f8c8d;'>Município</div>"
+                    f"<div style='color: #228B22; font-weight: 500;'>{props.get('MUNICIPI6','N/A')}</div></div>"
+                    "</div>"
+                )
+
+                folium.Marker(
+                    [lat, lon],
+                    icon=folium.CustomIcon(
+                        "https://cdn-icons-png.flaticon.com/512/4144/4144517.png",
+                        icon_size=(30, 30),
+                    ),
+                    tooltip=nome_g,
+                    popup=folium.Popup(popup_info, max_width=300),
+                ).add_to(gestoras_layer)
             gestoras_layer.add_to(m)
         except NameError:
             st.warning("Camada de comissões gestoras não adicionada (geojson_c_gestoras não encontrado).")
 
+        # Municípios (se disponível)
         municipios_layer = folium.FeatureGroup(name="Polígonos Municipais", show=False)
         try:
-            folium.GeoJson(geojson_poligno, tooltip=folium.GeoJsonTooltip(fields=["DESCRICA1"], aliases=["Município:"]), style_function=lambda x: {"fillOpacity": 0, "color": "blue", "weight": 1}).add_to(municipios_layer)
+            folium.GeoJson(
+                geojson_poligno,
+                tooltip=folium.GeoJsonTooltip(fields=["DESCRICA1"], aliases=["Município:"]),
+                style_function=lambda x: {"fillOpacity": 0, "color": "blue", "weight": 1},
+            ).add_to(municipios_layer)
             municipios_layer.add_to(m)
         except NameError:
             st.warning("Camada de municípios não adicionada (geojson_poligno não encontrado).")
 
+        # Marcadores dos reservatórios
         for _, row in df_mapa.iterrows():
             try:
                 percentual_val = float(row["Percentual"])
                 percentual_str = f"{percentual_val:.2f}%"
             except (ValueError, TypeError):
                 percentual_val, percentual_str = None, "N/A"
+
             try:
-                volume_str = f"{float(row['Volume']):,.2f} hm³".replace(",", "X").replace(".", ",").replace("X", ".")
+                volume_str = (
+                    f"{float(row['Volume']):,.2f} hm³"
+                    .replace(",", "X").replace(".", ",").replace("X", ".")
+                )
             except (ValueError, TypeError):
                 volume_str = "N/A"
+
             try:
-                cota_sangria_str = f"{float(row['Cota Sangria']):,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+                cota_sangria_str = (
+                    f"{float(row['Cota Sangria']):,.2f}"
+                    .replace(",", "X").replace(".", ",").replace("X", ".")
+                )
             except (ValueError, TypeError):
                 cota_sangria_str = "N/A"
 
-            ultima_data_filtrada = df_filtrado[df_filtrado["Reservatório"] == row["Reservatório"]]["Data de Coleta"].max()
-            data_formatada = ultima_data_filtrada.strftime("%d/%m/%Y") if pd.notnull(ultima_data_filtrada) else "N/A"
+            ultima_data = df_filtrado[
+                df_filtrado["Reservatório"] == row["Reservatório"]
+            ]["Data de Coleta"].max()
+            data_formatada = ultima_data.strftime("%d/%m/%Y") if pd.notnull(ultima_data) else "N/A"
             icon_color = get_marker_color(percentual_val)
 
-            popup_content = f"""
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
-<div style='font-family: "Segoe UI", sans-serif; width: 280px; background: linear-gradient(to bottom, #f9f9f9, #ffffff); border-radius: 8px; border-left: 5px solid {icon_color}; padding: 12px; box-shadow: 0 3px 10px rgba(0,0,0,0.2);'>
-  <div style='color: #006400; font-size: 18px; font-weight: 700; margin-bottom: 10px; border-bottom: 1px solid #e0e0e0; padding-bottom: 8px;'><i class="fas fa-water" style="margin-right: 8px;"></i>{row['Reservatório']}</div>
-  <div style='margin-bottom: 8px;'><span style='display: inline-block; width: 100px; font-weight: 600; color: #555;'><i class="fas fa-calendar-alt" style="margin-right: 5px;"></i>Data:</span><span style='color: #333;'>{data_formatada}</span></div>
-  <div style='margin-bottom: 8px;'><span style='display: inline-block; width: 100px; font-weight: 600; color: #555;'><i class="fas fa-city" style="margin-right: 5px;"></i>Município:</span><span style='color: #333;'>{row.get('Município', 'N/A')}</span></div>
-  <div style='margin-bottom: 8px;'><span style='display: inline-block; width: 100px; font-weight: 600; color: #555;'><i class="fas fa-chart-bar" style="margin-right: 5px;"></i>Volume:</span><span style='color: #1a5276; font-weight: 500;'>{volume_str}</span></div>
-  <div style='margin-bottom: 8px;'><span style='display: inline-block; width: 100px; font-weight: 600; color: #555;'><i class="fas fa-percentage" style="margin-right: 5px;"></i>Percentual:</span><span style='color: #27ae60; font-weight: 600;'>{percentual_str}</span></div>
-  <div style='margin-bottom: 8px;'><span style='display: inline-block; width: 100px; font-weight: 600; color: #555;'><i class="fas fa-ruler" style="margin-right: 5px;"></i>Cota Sangria:</span><span style='color: #7d3c98; font-weight: 500;'>{cota_sangria_str} m</span></div>
-</div>
-"""
-            folium.Marker(location=[row["Latitude"], row["Longitude"]], popup=folium.Popup(popup_content, max_width=300), icon=folium.CustomIcon(create_svg_icon(icon_color), icon_size=(15, 15), icon_anchor=(7, 7)), tooltip=f"{row['Reservatório']} - {data_formatada}").add_to(m)
+            popup_content = (
+                '<link rel="stylesheet" '
+                'href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">'
+                f"<div style='font-family: \"Segoe UI\", sans-serif; width: 280px; "
+                f"background: linear-gradient(to bottom, #f9f9f9, #ffffff); border-radius: 8px; "
+                f"border-left: 5px solid {icon_color}; padding: 12px; "
+                f"box-shadow: 0 3px 10px rgba(0,0,0,0.2);'>"
+                f"<div style='color: #006400; font-size: 18px; font-weight: 700; margin-bottom: 10px; "
+                f"border-bottom: 1px solid #e0e0e0; padding-bottom: 8px;'>"
+                f"<i class='fas fa-water' style='margin-right: 8px;'></i>{row['Reservatório']}</div>"
+                f"<div style='margin-bottom: 8px;'><span style='display: inline-block; width: 100px; "
+                f"font-weight: 600; color: #555;'><i class='fas fa-calendar-alt' style='margin-right: 5px;'></i>Data:</span>"
+                f"<span style='color: #333;'>{data_formatada}</span></div>"
+                f"<div style='margin-bottom: 8px;'><span style='display: inline-block; width: 100px; "
+                f"font-weight: 600; color: #555;'><i class='fas fa-city' style='margin-right: 5px;'></i>Município:</span>"
+                f"<span style='color: #333;'>{row.get('Município', 'N/A')}</span></div>"
+                f"<div style='margin-bottom: 8px;'><span style='display: inline-block; width: 100px; "
+                f"font-weight: 600; color: #555;'><i class='fas fa-chart-bar' style='margin-right: 5px;'></i>Volume:</span>"
+                f"<span style='color: #1a5276; font-weight: 500;'>{volume_str}</span></div>"
+                f"<div style='margin-bottom: 8px;'><span style='display: inline-block; width: 100px; "
+                f"font-weight: 600; color: #555;'><i class='fas fa-percentage' style='margin-right: 5px;'></i>Percentual:</span>"
+                f"<span style='color: #27ae60; font-weight: 600;'>{percentual_str}</span></div>"
+                f"<div style='margin-bottom: 8px;'><span style='display: inline-block; width: 100px; "
+                f"font-weight: 600; color: #555;'><i class='fas fa-ruler' style='margin-right: 5px;'></i>Cota Sangria:</span>"
+                f"<span style='color: #7d3c98; font-weight: 500;'>{cota_sangria_str} m</span></div>"
+                "</div>"
+            )
+
+            folium.Marker(
+                location=[row["Latitude"], row["Longitude"]],
+                popup=folium.Popup(popup_content, max_width=300),
+                icon=folium.CustomIcon(create_svg_icon(icon_color), icon_size=(15, 15), icon_anchor=(7, 7)),
+                tooltip=f"{row['Reservatório']} - {data_formatada}",
+            ).add_to(m)
 
         folium.LayerControl().add_to(m)
         Fullscreen(position="topleft").add_to(m)
@@ -642,7 +800,7 @@ def render_acudes():
     else:
         st.warning("Não há reservatórios com os filtros aplicados.")
 
-    # ===================== Tabela Interativa =====================
+# ===================== Tabela Interativa =====================
     st.subheader("📊 Dados Detalhados Interativos")
     if not df_filtrado.empty:
         faixas_percentual = [(0, 10, "#808080", "Muito Crítica"), (10.1, 30, "#FF0000", "Crítica"), (30.1, 50, "#FFFF00", "Alerta"), (50.1, 70, "#008000", "Confortável"), (70.1, 100, "#0000FF", "Muito Confortável"), (100.1, float("inf"), "#800080", "Vertendo")]
